@@ -17,7 +17,7 @@ canvas{position:fixed;inset:0;width:100%;height:100%;display:block;touch-action:
 <body>
 <canvas id="game"></canvas>
 <script>
-// DINO INVADERS: SPACE V3.9 — ENEMY WAVES + HUNTERS
+// DINO INVADERS: SPACE V4.0 — FAST RAMP + HUNTER ASSAULT
 const canvas=document.getElementById("game");
 const ctx=canvas.getContext("2d",{alpha:false,desynchronized:true});
 let W=0,H=0;
@@ -29,7 +29,7 @@ const raptorImg=new Image();
 let raptorReady=false,raptorFailed=false;
 raptorImg.onload=()=>{raptorReady=true;raptorFailed=false};
 raptorImg.onerror=()=>{raptorReady=false;raptorFailed=true};
-raptorImg.src="8BBBE99D-BE50-463D-AB99-9356374B034D.png?v=39";
+raptorImg.src="8BBBE99D-BE50-463D-AB99-9356374B034D.png?v=40";
 
 let state="start",score=0,combatScore=0,distance=0,high=Number(localStorage.spaceHigh||0),gameTime=0,difficulty=1,screenShake=0;
 const player={x:100,y:300,radius:6.8544,width:55.216,fireCooldown:0};
@@ -94,15 +94,15 @@ function drawPowerups(){
  }
 }
 function spawnEnemy(type="scout",offset=0){
- if(enemies.length>=8)return;
+ if(enemies.length>=10)return;
  const y=70+Math.random()*Math.max(100,H-140),hunter=type==="hunter";
  enemies.push({x:W+70+offset,y,baseY:y,vx:-(hunter?2.7:2.1)-Math.random()*.8-difficulty*.12,phase:Math.random()*Math.PI*2,health:hunter?4:2,radius:hunter?15:11.424,points:hunter?350:180,type});
 }
 function spawnWave(){
  if(enemies.length>4)return;
- wave++;const count=Math.min(4,2+Math.floor(level/2));
+ wave++;const count=Math.min(6,3+Math.floor(level/2));
  powerMessageText="INVADER WAVE "+wave;powerMessage=100;
- for(let i=0;i<count;i++)spawnEnemy(level>=2&&i===count-1?"hunter":"scout",i*55);
+ for(let i=0;i<count;i++)spawnEnemy(level>=2&&(i===count-1||level>=4&&i%3===2)?"hunter":"scout",i*48);
 }
 function destroyEnemy(index){
  const e=enemies[index];combatScore+=e.points;score=combatScore+Math.floor(distance);
@@ -189,16 +189,16 @@ function update(){
  for(let i=shockwaves.length-1;i>=0;i--){const s=shockwaves[i];s.radius+=(s.maxRadius-s.radius)*.22;s.life--;if(s.life<=0)shockwaves.splice(i,1)}
  for(let i=particles.length-1;i>=0;i--){const p=particles[i];p.x+=p.vx;p.y+=p.vy;p.vx*=.98;p.vy*=.98;if(p.type==="debris")p.rotation+=p.spin;p.life--;if(p.life<=0||p.x<-100||p.x>W+100||p.y<-100||p.y>H+100)particles.splice(i,1)}
  if(state!=="play")return;
- gameTime++;distance+=1/12;score=combatScore+Math.floor(distance);level=1+Math.floor(gameTime/900);difficulty=1+gameTime/1500+level*.08;
+ gameTime++;distance+=1/12;score=combatScore+Math.floor(distance);level=1+Math.floor(gameTime/600);difficulty=1+gameTime/900+level*.16;
  if(level>lastLevel){lastLevel=level;powerMessageText="LEVEL "+level;powerMessage=110;screenShake=Math.max(screenShake,2)}
  if(spreadTimer>0)spreadTimer--;if(powerMessage>0)powerMessage--;
  if(gameTime===300||gameTime%780===0)spawnPowerup("spread");
  if(gameTime===540||gameTime%1200===0)spawnPowerup("shield");
  player.x=Math.max(50,Math.min(W-65,player.x));player.y=Math.max(50,Math.min(H-65,player.y));
  if(player.fireCooldown>0)player.fireCooldown--;if(firing&&player.fireCooldown<=0)shoot();
- const spawnRate=Math.max(28,62-Math.floor(difficulty*5));if(gameTime%spawnRate===0)spawnAsteroid();
- if(gameTime>240 && gameTime%Math.max(260,390-Math.floor(difficulty*10))===0)spawnEnemy();
- if(gameTime>=600&&gameTime%900===0)spawnWave();
+ const spawnRate=Math.max(20,58-Math.floor(difficulty*6));if(gameTime%spawnRate===0&&asteroids.length<22)spawnAsteroid();
+ if(gameTime>180 && gameTime%Math.max(150,300-Math.floor(difficulty*13))===0)spawnEnemy(level>=2&&Math.random()<Math.min(.55,.15+level*.035)?"hunter":"scout");
+ if(gameTime===360||gameTime%600===0)spawnWave();
  for(let i=bullets.length-1;i>=0;i--){const b=bullets[i];b.x+=b.vx;b.y+=b.vy||0;if(b.x>W+40||b.y<-40||b.y>H+40)bullets.splice(i,1)}
  for(let i=powerups.length-1;i>=0;i--){const p=powerups[i];p.x+=p.vx;
   if(hitCircle(player.x,player.y,player.radius+5,p.x,p.y,p.radius)){
