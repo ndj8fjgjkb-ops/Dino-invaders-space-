@@ -17,7 +17,7 @@ canvas{position:fixed;inset:0;width:100%;height:100%;display:block;touch-action:
 <body>
 <canvas id="game"></canvas>
 <script>
-// DINO INVADERS: SPACE V3.2 — ULTRA WIDE FIELD
+// DINO INVADERS: SPACE V3.3 — DISTANCE SCORE
 const canvas=document.getElementById("game");
 const ctx=canvas.getContext("2d",{alpha:false,desynchronized:true});
 let W=0,H=0;
@@ -31,7 +31,7 @@ raptorImg.onload=()=>{raptorReady=true;raptorFailed=false};
 raptorImg.onerror=()=>{raptorReady=false;raptorFailed=true};
 raptorImg.src="8BBBE99D-BE50-463D-AB99-9356374B034D.png";
 
-let state="start",score=0,high=Number(localStorage.spaceHigh||0),gameTime=0,difficulty=1,screenShake=0;
+let state="start",score=0,combatScore=0,distance=0,high=Number(localStorage.spaceHigh||0),gameTime=0,difficulty=1,screenShake=0;
 const player={x:100,y:300,radius:6.8544,width:55.216,fireCooldown:0};
 let stars=[],bullets=[],asteroids=[],particles=[],shockwaves=[],enemies=[],planets=[];
 let moveTouchID=null,lastMoveX=0,lastMoveY=0,firing=false;
@@ -85,7 +85,7 @@ function spawnEnemy(){
  enemies.push({x:W+70,y,baseY:y,vx:-(2.1+Math.random()*.8+difficulty*.12),phase:Math.random()*Math.PI*2,health:2,radius:11.424,points:180});
 }
 function destroyEnemy(index){
- const e=enemies[index];score+=e.points;
+ const e=enemies[index];combatScore+=e.points;score=combatScore+Math.floor(distance);
  shockwaves.push({x:e.x,y:e.y,radius:8,maxRadius:55,life:15,maxLife:15});
  particles.push({x:e.x,y:e.y,vx:0,vy:0,life:8,maxLife:8,size:34,type:"flash"});
  burst(e.x,e.y,24,"hot",8);burst(e.x,e.y,18,"rock",7);
@@ -102,7 +102,7 @@ function drawEnemy(e){
 }
 
 function reset(){
- score=0;gameTime=0;difficulty=1;screenShake=0;bullets=[];asteroids=[];particles=[];shockwaves=[];enemies=[];
+ score=0;combatScore=0;distance=0;gameTime=0;difficulty=1;screenShake=0;bullets=[];asteroids=[];particles=[];shockwaves=[];enemies=[];
  player.x=Math.min(100,W*.25);player.y=H*.5;player.fireCooldown=0;moveTouchID=null;firing=false;
 }
 function startGame(){if(!raptorReady)return;reset();state="play"}
@@ -142,7 +142,7 @@ function die(){
  if(score>high){high=score;localStorage.spaceHigh=high}
 }
 function destroyAsteroid(index){
- const a=asteroids[index];score+=a.points;
+ const a=asteroids[index];combatScore+=a.points;score=combatScore+Math.floor(distance);
  shockwaves.push({x:a.x,y:a.y,radius:a.radius*.2,maxRadius:a.radius*(a.size===3?1.8:1.5),life:a.size===3?18:14,maxLife:a.size===3?18:14});
  particles.push({x:a.x,y:a.y,vx:0,vy:0,life:8,maxLife:8,size:a.radius*.85,type:"flash"});
  burst(a.x,a.y,a.size===3?42:a.size===2?30:18,"rock",a.size===3?10:7);
@@ -163,7 +163,7 @@ function update(){
  for(let i=shockwaves.length-1;i>=0;i--){const s=shockwaves[i];s.radius+=(s.maxRadius-s.radius)*.22;s.life--;if(s.life<=0)shockwaves.splice(i,1)}
  for(let i=particles.length-1;i>=0;i--){const p=particles[i];p.x+=p.vx;p.y+=p.vy;p.vx*=.98;p.vy*=.98;if(p.type==="debris")p.rotation+=p.spin;p.life--;if(p.life<=0)particles.splice(i,1)}
  if(state!=="play")return;
- gameTime++;difficulty=1+gameTime/1800;
+ gameTime++;distance+=1/12;score=combatScore+Math.floor(distance);difficulty=1+gameTime/1800;
  player.x=Math.max(50,Math.min(W-65,player.x));player.y=Math.max(50,Math.min(H-65,player.y));
  if(player.fireCooldown>0)player.fireCooldown--;if(firing&&player.fireCooldown<=0)shoot();
  const spawnRate=Math.max(28,62-Math.floor(difficulty*5));if(gameTime%spawnRate===0)spawnAsteroid();
@@ -240,7 +240,7 @@ function drawPlayer(){
  if(!raptorReady)return;const w=player.width,h=w*raptorImg.naturalHeight/raptorImg.naturalWidth;
  ctx.save();ctx.translate(player.x,player.y);ctx.drawImage(raptorImg,-w*.46,-h*.5,w,h);ctx.restore();
 }
-function drawHUD(){ctx.textAlign="center";ctx.textBaseline="alphabetic";ctx.fillStyle="#fff";ctx.font="bold 27px Arial";ctx.fillText(score,W/2,45);ctx.font="bold 13px Arial";ctx.fillText("BEST "+high,W/2,66)}
+function drawHUD(){ctx.textAlign="center";ctx.textBaseline="alphabetic";ctx.fillStyle="#fff";ctx.font="bold 27px Arial";ctx.fillText(score,W/2,42);ctx.font="bold 12px Arial";ctx.fillText("DIST "+Math.floor(distance)+"   •   BEST "+high,W/2,62)}
 function drawStart(){
  ctx.fillStyle="rgba(2,5,15,.78)";ctx.fillRect(22,H*.25,W-44,285);ctx.textAlign="center";ctx.fillStyle="#fff";ctx.font="bold 32px Arial";ctx.fillText("DINO INVADERS",W/2,H*.34);
  ctx.fillStyle="#ff3535";ctx.font="bold 27px Arial";ctx.fillText("SPACE",W/2,H*.395);
@@ -250,7 +250,7 @@ function drawStart(){
 }
 function drawDead(){
  ctx.fillStyle="rgba(2,5,15,.82)";ctx.fillRect(25,H*.33,W-50,205);ctx.textAlign="center";ctx.fillStyle="#ff3535";ctx.font="bold 29px Arial";ctx.fillText("RAPTOR DOWN",W/2,H*.41);
- ctx.fillStyle="#fff";ctx.font="20px Arial";ctx.fillText("Score: "+score,W/2,H*.48);ctx.font="bold 19px Arial";ctx.fillText("TAP TO RELAUNCH",W/2,H*.56);
+ ctx.fillStyle="#fff";ctx.font="20px Arial";ctx.fillText("Score: "+score,W/2,H*.47);ctx.font="15px Arial";ctx.fillText("Distance: "+Math.floor(distance),W/2,H*.515);ctx.font="bold 19px Arial";ctx.fillText("TAP TO RELAUNCH",W/2,H*.57);
 }
 function draw(){
  ctx.save();if(screenShake>0)ctx.translate((Math.random()-.5)*screenShake,(Math.random()-.5)*screenShake);
