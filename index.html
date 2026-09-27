@@ -2,14 +2,8 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-
 <meta name="viewport"
-content="width=device-width,
-initial-scale=1,
-maximum-scale=1,
-user-scalable=no,
-viewport-fit=cover">
-
+content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#02040d">
@@ -17,7 +11,6 @@ viewport-fit=cover">
 <title>Dino Invaders: Space</title>
 
 <style>
-
 *{
   box-sizing:border-box;
   -webkit-user-select:none;
@@ -25,23 +18,12 @@ viewport-fit=cover">
   -webkit-touch-callout:none;
 }
 
-html{
+html,body{
   position:fixed;
-  width:100%;
-  height:100%;
-  overflow:hidden;
-  overscroll-behavior:none;
-  background:#02040d;
-}
-
-body{
-  position:fixed;
-  left:0;
-  top:0;
+  inset:0;
   width:100%;
   height:100%;
   margin:0;
-  padding:0;
   overflow:hidden;
   overscroll-behavior:none;
   touch-action:none;
@@ -50,34 +32,28 @@ body{
 
 canvas{
   position:fixed;
-  left:0;
-  top:0;
+  inset:0;
   width:100%;
   height:100%;
   display:block;
   touch-action:none;
-  overscroll-behavior:none;
 }
-
 </style>
 </head>
 
 <body>
-
 <canvas id="game"></canvas>
 
 <script>
 
-// ============================================
-// DINO INVADERS: SPACE V2.1
-// iPHONE CONTROL BUILD
-// ============================================
+// ========================================
+// DINO INVADERS: SPACE V2.4
+// iPHONE CONTROL + IMAGE LOAD FIX
+// ========================================
 
-const canvas =
-document.getElementById("game");
+const canvas = document.getElementById("game");
 
-const ctx =
-canvas.getContext("2d",{
+const ctx = canvas.getContext("2d",{
   alpha:false,
   desynchronized:true
 });
@@ -86,102 +62,89 @@ let W = 0;
 let H = 0;
 
 
-// ============================================
-// PREVENT SAFARI PAGE MOVEMENT
-// ============================================
+// ========================================
+// BLOCK SAFARI SCROLL / PULL DOWN
+// ========================================
 
-function blockTouch(e){
+document.addEventListener("touchmove", e=>{
   e.preventDefault();
-}
+},{passive:false});
 
-document.addEventListener(
-  "touchmove",
-  blockTouch,
-  {passive:false}
-);
+document.addEventListener("gesturestart", e=>{
+  e.preventDefault();
+},{passive:false});
 
-document.addEventListener(
-  "gesturestart",
-  blockTouch,
-  {passive:false}
-);
-
-document.addEventListener(
-  "gesturechange",
-  blockTouch,
-  {passive:false}
-);
-
-document.addEventListener(
-  "gestureend",
-  blockTouch,
-  {passive:false}
-);
+document.addEventListener("gesturechange", e=>{
+  e.preventDefault();
+},{passive:false});
 
 
-// ============================================
+// ========================================
 // PLAYER IMAGE
-// ============================================
+// ========================================
 
 const raptorImg = new Image();
 
+let raptorReady = false;
+let raptorFailed = false;
+
+raptorImg.onload = ()=>{
+  raptorReady = true;
+  raptorFailed = false;
+};
+
+raptorImg.onerror = ()=>{
+  raptorReady = false;
+  raptorFailed = true;
+};
+
 raptorImg.src =
-"./8BBBE99D-BE50-463D-AB99-9356374B034D.png?v=1";
+"8BBBE99D-BE50-463D-AB99-9356374B034D.png";
 
 
-// ============================================
-// GAME STATE
-// ============================================
+// ========================================
+// STATE
+// ========================================
 
 let state = "start";
 
 let score = 0;
 
 let high =
-Number(
-  localStorage.spaceHigh || 0
-);
+Number(localStorage.spaceHigh || 0);
 
 let gameTime = 0;
-
 let difficulty = 1;
-
 let screenShake = 0;
 
 
-// ============================================
+// ========================================
 // PLAYER
-// ============================================
+// ========================================
 
 const player = {
-
   x:100,
   y:300,
-
   radius:18,
-
   width:145,
-
   fireCooldown:0
 };
 
 
-// ============================================
+// ========================================
 // FIRE BUTTON
-// ============================================
+// ========================================
 
 const fireButton = {
-
   x:0,
   y:0,
-
-  radius:48
+  radius:50
 };
 
 
-// ============================================
+// ========================================
 // OBJECTS
-// ============================================
+// ========================================
 
 let stars = [];
 let bullets = [];
@@ -189,9 +152,9 @@ let meteors = [];
 let particles = [];
 
 
-// ============================================
-// MULTITOUCH CONTROL
-// ============================================
+// ========================================
+// TOUCH STATE
+// ========================================
 
 let moveTouchID = null;
 let fireTouchID = null;
@@ -202,62 +165,40 @@ let lastMoveY = 0;
 let firing = false;
 
 
-// ============================================
+// ========================================
 // RESIZE
-// ============================================
+// ========================================
 
 function resize(){
 
-  W =
-  document.documentElement.clientWidth;
+  W = window.innerWidth;
+  H = window.innerHeight;
 
-  H =
-  document.documentElement.clientHeight;
-
-  canvas.width =
-  Math.round(W);
-
-  canvas.height =
-  Math.round(H);
+  canvas.width = W;
+  canvas.height = H;
 
   ctx.imageSmoothingEnabled = true;
 
-  fireButton.x =
-  W - 70;
+  fireButton.x = W - 72;
 
-  fireButton.y =
-  H - 165;
+  // HIGHER FIRE BUTTON
+  fireButton.y = H - 165;
 
   createStars();
 
   player.x =
-  Math.max(
-    55,
-    Math.min(
-      W-65,
-      player.x
-    )
-  );
+  Math.max(55,Math.min(W-65,player.x));
 
   player.y =
-  Math.max(
-    55,
-    Math.min(
-      H-60,
-      player.y
-    )
-  );
+  Math.max(55,Math.min(H-65,player.y));
 }
 
-window.addEventListener(
-  "resize",
-  resize
-);
+window.addEventListener("resize",resize);
 
 
-// ============================================
+// ========================================
 // STARS
-// ============================================
+// ========================================
 
 function createStars(){
 
@@ -266,68 +207,41 @@ function createStars(){
   const count =
   Math.min(
     110,
-    Math.floor(
-      W*H/4200
-    )
+    Math.floor(W*H/4200)
   );
 
-  for(
-    let i=0;
-    i<count;
-    i++
-  ){
+  for(let i=0;i<count;i++){
 
     stars.push({
-
-      x:
-      Math.random()*W,
-
-      y:
-      Math.random()*H,
-
-      size:
-      .5+
-      Math.random()*1.8,
-
-      speed:
-      .25+
-      Math.random()*1.8,
-
-      alpha:
-      .3+
-      Math.random()*.7
-
+      x:Math.random()*W,
+      y:Math.random()*H,
+      size:.5+Math.random()*1.8,
+      speed:.3+Math.random()*1.8,
+      alpha:.3+Math.random()*.7
     });
   }
 }
 
 
-// ============================================
-// START / RESET
-// ============================================
+// ========================================
+// RESET
+// ========================================
 
 function reset(){
 
   score = 0;
-
   gameTime = 0;
-
   difficulty = 1;
-
   screenShake = 0;
 
-  bullets.length = 0;
-  meteors.length = 0;
-  particles.length = 0;
+  bullets = [];
+  meteors = [];
+  particles = [];
 
   player.x =
-  Math.min(
-    100,
-    W*.25
-  );
+  Math.min(100,W*.25);
 
-  player.y =
-  H*.5;
+  player.y = H*.5;
 
   player.fireCooldown = 0;
 
@@ -338,7 +252,17 @@ function reset(){
 }
 
 
+// ========================================
+// START
+// ========================================
+
 function startGame(){
+
+  // NEVER START AS A RED DOT
+
+  if(!raptorReady){
+    return;
+  }
 
   reset();
 
@@ -346,99 +270,64 @@ function startGame(){
 }
 
 
-// ============================================
-// FIRE BUTTON
-// ============================================
+// ========================================
+// FIRE BUTTON HITBOX
+// ========================================
 
-function insideFireButton(x,y){
+function onFireButton(x,y){
 
-  const dx =
-  x-fireButton.x;
+  const dx = x-fireButton.x;
+  const dy = y-fireButton.y;
 
-  const dy =
-  y-fireButton.y;
+  // Slightly larger invisible hit area
+  const r = fireButton.radius+14;
 
-  return(
-    dx*dx+
-    dy*dy <=
-    fireButton.radius*
-    fireButton.radius
-  );
+  return dx*dx+dy*dy <= r*r;
 }
 
 
-// ============================================
+// ========================================
 // SHOOT
-// ============================================
+// ========================================
 
 function shoot(){
 
-  if(state !== "play"){
+  if(state!=="play"){
     return;
   }
 
   bullets.push({
-
-    x:
-    player.x+55,
-
-    y:
-    player.y-5,
-
+    x:player.x+55,
+    y:player.y-5,
     vx:12,
-
     radius:4
-
   });
 
   player.fireCooldown = 7;
 
-
-  for(
-    let i=0;
-    i<3;
-    i++
-  ){
+  for(let i=0;i<3;i++){
 
     particles.push({
-
-      x:
-      player.x+54,
-
-      y:
-      player.y-5,
-
-      vx:
-      2+
-      Math.random()*3,
-
-      vy:
-      (Math.random()-.5)*2,
-
-      life:
-      8+
-      Math.random()*4,
-
-      size:
-      2+
-      Math.random()*2,
-
+      x:player.x+54,
+      y:player.y-5,
+      vx:2+Math.random()*3,
+      vy:(Math.random()-.5)*2,
+      life:10,
+      size:2+Math.random()*2,
       type:"laser"
-
     });
   }
 }
 
 
-// ============================================
-// METEOR
-// ============================================
+// ========================================
+// METEORS
+// ========================================
 
 function spawnMeteor(){
 
   const radius =
-  20+
-  Math.random()*28;
+  20+Math.random()*28;
 
   const speed =
   2.5+
@@ -447,88 +336,56 @@ function spawnMeteor(){
 
   meteors.push({
 
-    x:
-    W+
-    radius+
-    40,
+    x:W+radius+40,
 
     y:
     Math.random()*
     (H+120)-60,
 
-    vx:
-    -speed,
+    vx:-speed,
 
     vy:
     (Math.random()-.5)*
-    (
-      1+
-      difficulty*.12
-    ),
+    (1+difficulty*.12),
 
-    radius:radius,
+    radius,
 
     rotation:
-    Math.random()*
-    Math.PI*2,
+    Math.random()*Math.PI*2,
 
     spin:
-    (Math.random()-.5)*
-    .065,
+    (Math.random()-.5)*.065,
 
     health:
     radius>38 ? 2 : 1
-
   });
 }
 
 
-// ============================================
+// ========================================
 // PARTICLES
-// ============================================
+// ========================================
 
-function burst(
-  x,
-  y,
-  amount,
-  type
-){
+function burst(x,y,amount,type){
 
-  for(
-    let i=0;
-    i<amount;
-    i++
-  ){
+  for(let i=0;i<amount;i++){
 
     particles.push({
-
-      x:x,
-      y:y,
-
-      vx:
-      (Math.random()-.5)*7,
-
-      vy:
-      (Math.random()-.5)*7,
-
-      life:
-      14+
-      Math.random()*16,
-
-      size:
-      1+
-      Math.random()*4,
-
-      type:type
-
+      x,
+      y,
+      vx:(Math.random()-.5)*7,
+      vy:(Math.random()-.5)*7,
+      life:14+Math.random()*16,
+      size:1+Math.random()*4,
+      type
     });
   }
 }
 
 
-// ============================================
+// ========================================
 // COLLISION
-// ============================================
+// ========================================
 
 function hitCircle(
   ax,ay,ar,
@@ -540,21 +397,17 @@ function hitCircle(
 
   const r = ar+br;
 
-  return(
-    dx*dx+
-    dy*dy <
-    r*r
-  );
+  return dx*dx+dy*dy < r*r;
 }
 
 
-// ============================================
-// PLAYER DEATH
-// ============================================
+// ========================================
+// DEATH
+// ========================================
 
 function die(){
 
-  if(state !== "play"){
+  if(state!=="play"){
     return;
   }
 
@@ -578,15 +431,14 @@ function die(){
 
     high = score;
 
-    localStorage.spaceHigh =
-    high;
+    localStorage.spaceHigh = high;
   }
 }
 
 
-// ============================================
+// ========================================
 // UPDATE
-// ============================================
+// ========================================
 
 function update(){
 
@@ -596,18 +448,12 @@ function update(){
 
     s.x -=
     s.speed*
-    (
-      state==="play"
-      ? 1.3
-      : .35
-    );
+    (state==="play" ? 1.3 : .35);
 
-    if(s.x < -5){
+    if(s.x<-5){
 
       s.x = W+5;
-
-      s.y =
-      Math.random()*H;
+      s.y = Math.random()*H;
     }
   }
 
@@ -626,15 +472,9 @@ function update(){
 
   // PARTICLES
 
-  for(
-    let i=
-    particles.length-1;
-    i>=0;
-    i--
-  ){
+  for(let i=particles.length-1;i>=0;i--){
 
-    const p =
-    particles[i];
+    const p = particles[i];
 
     p.x += p.vx;
     p.y += p.vy;
@@ -642,16 +482,12 @@ function update(){
     p.life--;
 
     if(p.life<=0){
-
-      particles.splice(
-        i,
-        1
-      );
+      particles.splice(i,1);
     }
   }
 
 
-  if(state !== "play"){
+  if(state!=="play"){
     return;
   }
 
@@ -659,37 +495,27 @@ function update(){
   gameTime++;
 
   difficulty =
-  1+
-  gameTime/1800;
+  1+gameTime/1800;
 
 
-  // PLAYER LIMITS
+  // PLAYER BOUNDS
 
   player.x =
   Math.max(
     50,
-    Math.min(
-      W-65,
-      player.x
-    )
+    Math.min(W-65,player.x)
   );
 
   player.y =
   Math.max(
     50,
-    Math.min(
-      H-60,
-      player.y
-    )
+    Math.min(H-65,player.y)
   );
 
 
-  // FIRE
+  // WEAPON
 
-  if(
-    player.fireCooldown>0
-  ){
-
+  if(player.fireCooldown>0){
     player.fireCooldown--;
   }
 
@@ -697,79 +523,53 @@ function update(){
     firing &&
     player.fireCooldown<=0
   ){
-
     shoot();
   }
 
 
-  // SPAWN METEORS
+  // METEOR SPAWN
 
   const spawnRate =
   Math.max(
     34,
-    80-
-    Math.floor(
-      difficulty*6
-    )
+    80-Math.floor(difficulty*6)
   );
 
-  if(
-    gameTime%
-    spawnRate===0
-  ){
-
+  if(gameTime%spawnRate===0){
     spawnMeteor();
   }
 
 
   // BULLETS
 
-  for(
-    let i=
-    bullets.length-1;
-    i>=0;
-    i--
-  ){
+  for(let i=bullets.length-1;i>=0;i--){
 
-    const b =
-    bullets[i];
+    const b = bullets[i];
 
     b.x += b.vx;
 
-    if(b.x > W+40){
-
-      bullets.splice(
-        i,
-        1
-      );
+    if(b.x>W+40){
+      bullets.splice(i,1);
     }
   }
 
 
   // METEORS
 
-  for(
-    let i=
-    meteors.length-1;
-    i>=0;
-    i--
-  ){
+  for(let i=meteors.length-1;i>=0;i--){
 
-    const m =
-    meteors[i];
+    const m = meteors[i];
 
     m.x += m.vx;
     m.y += m.vy;
 
-    m.rotation +=
-    m.spin;
+    m.rotation += m.spin;
 
 
-    // PLAYER COLLISION
+    // RAPTOR COLLISION
 
     if(
       hitCircle(
-
         player.x,
         player.y,
         player.radius,
@@ -777,12 +577,10 @@ function update(){
         m.x,
         m.y,
         m.radius*.72
-
       )
     ){
 
       die();
-
       break;
     }
 
@@ -791,19 +589,12 @@ function update(){
 
     let destroyed = false;
 
-    for(
-      let j=
-      bullets.length-1;
-      j>=0;
-      j--
-    ){
+    for(let j=bullets.length-1;j>=0;j--){
 
-      const b =
-      bullets[j];
+      const b = bullets[j];
 
       if(
         hitCircle(
-
           b.x,
           b.y,
           b.radius,
@@ -811,14 +602,10 @@ function update(){
           m.x,
           m.y,
           m.radius*.8
-
         )
       ){
 
-        bullets.splice(
-          j,
-          1
-        );
+        bullets.splice(j,1);
 
         m.health--;
 
@@ -839,14 +626,9 @@ function update(){
           );
 
           score +=
-          Math.round(
-            m.radius
-          );
+          Math.round(m.radius);
 
-          meteors.splice(
-            i,
-            1
-          );
+          meteors.splice(i,1);
 
           screenShake = 3;
 
@@ -863,112 +645,43 @@ function update(){
 
 
     if(
-      m.x <
-      -m.radius-60 ||
-
+      m.x < -m.radius-60 ||
       m.y < -180 ||
-
       m.y > H+180
     ){
-
-      meteors.splice(
-        i,
-        1
-      );
+      meteors.splice(i,1);
     }
   }
 }
 
 
-// ============================================
-// SPACE
-// ============================================
+// ========================================
+// BACKGROUND
+// ========================================
 
 function drawSpace(){
 
   const g =
   ctx.createLinearGradient(
-    0,
-    0,
-    W,
-    H
+    0,0,W,H
   );
 
-  g.addColorStop(
-    0,
-    "#020611"
-  );
-
-  g.addColorStop(
-    .5,
-    "#07132d"
-  );
-
-  g.addColorStop(
-    1,
-    "#160824"
-  );
+  g.addColorStop(0,"#020611");
+  g.addColorStop(.5,"#07132d");
+  g.addColorStop(1,"#160824");
 
   ctx.fillStyle = g;
 
-  ctx.fillRect(
-    0,
-    0,
-    W,
-    H
-  );
-
-
-  // NEBULA
-
-  const nebula =
-  ctx.createRadialGradient(
-
-    W*.72,
-    H*.3,
-    5,
-
-    W*.72,
-    H*.3,
-    W*.7
-
-  );
-
-  nebula.addColorStop(
-    0,
-    "rgba(76,70,180,.20)"
-  );
-
-  nebula.addColorStop(
-    .45,
-    "rgba(20,80,145,.09)"
-  );
-
-  nebula.addColorStop(
-    1,
-    "rgba(0,0,0,0)"
-  );
-
-  ctx.fillStyle =
-  nebula;
-
-  ctx.fillRect(
-    0,
-    0,
-    W,
-    H
-  );
+  ctx.fillRect(0,0,W,H);
 
 
   // STARS
 
   for(const s of stars){
 
-    ctx.globalAlpha =
-    s.alpha;
+    ctx.globalAlpha = s.alpha;
 
-    ctx.fillStyle =
-    "#fff";
+    ctx.fillStyle = "#fff";
 
     ctx.fillRect(
       s.x,
@@ -982,50 +695,36 @@ function drawSpace(){
 }
 
 
-// ============================================
-// METEOR DRAW
-// ============================================
+// ========================================
+// METEOR DRAWING
+// ========================================
 
 function drawMeteor(m){
 
   ctx.save();
 
-  ctx.translate(
-    m.x,
-    m.y
-  );
+  ctx.translate(m.x,m.y);
+  ctx.rotate(m.rotation);
 
-  ctx.rotate(
-    m.rotation
-  );
-
-  ctx.fillStyle =
-  "#625d61";
+  ctx.fillStyle = "#625d61";
 
   ctx.beginPath();
 
   const points = 9;
 
-  for(
-    let i=0;
-    i<points;
-    i++
-  ){
+  for(let i=0;i<points;i++){
 
     const angle =
-    i/points*
-    Math.PI*2;
+    i/points*Math.PI*2;
 
     const variation =
     1+
     Math.sin(
-      i*7.3+
-      m.radius
+      i*7.3+m.radius
     )*.13;
 
     const r =
-    m.radius*
-    variation;
+    m.radius*variation;
 
     const x =
     Math.cos(angle)*r;
@@ -1034,28 +733,17 @@ function drawMeteor(m){
     Math.sin(angle)*r;
 
     if(i===0){
-
-      ctx.moveTo(
-        x,
-        y
-      );
-
+      ctx.moveTo(x,y);
     }else{
-
-      ctx.lineTo(
-        x,
-        y
-      );
+      ctx.lineTo(x,y);
     }
   }
 
   ctx.closePath();
-
   ctx.fill();
 
 
-  ctx.fillStyle =
-  "#8b8180";
+  ctx.fillStyle = "#8b8180";
 
   ctx.beginPath();
 
@@ -1070,8 +758,7 @@ function drawMeteor(m){
   ctx.fill();
 
 
-  ctx.fillStyle =
-  "#39363c";
+  ctx.fillStyle = "#39363c";
 
   ctx.beginPath();
 
@@ -1089,69 +776,57 @@ function drawMeteor(m){
 }
 
 
-// ============================================
+// ========================================
 // BULLETS
-// ============================================
+// ========================================
 
 function drawBullets(){
 
   for(const b of bullets){
 
-    ctx.fillStyle =
-    "#ff2f2f";
+    ctx.fillStyle = "#ff3030";
 
     ctx.fillRect(
       b.x-11,
       b.y-2,
-      24,
+      25,
       4
     );
 
-    ctx.fillStyle =
-    "#fff";
+    ctx.fillStyle = "#fff";
 
     ctx.fillRect(
-      b.x+6,
+      b.x+5,
       b.y-1,
-      8,
+      9,
       2
     );
   }
 }
 
 
-// ============================================
+// ========================================
 // PARTICLES
-// ============================================
+// ========================================
 
 function drawParticles(){
 
   for(const p of particles){
 
     ctx.globalAlpha =
-    Math.max(
-      0,
-      p.life/28
-    );
+    Math.max(0,p.life/28);
 
-    if(
-      p.type==="red"
-    ){
+    if(p.type==="red"){
 
-      ctx.fillStyle =
-      "#ff302d";
+      ctx.fillStyle="#ff302d";
 
-    }else if(
-      p.type==="laser"
-    ){
+    }else if(p.type==="laser"){
 
-      ctx.fillStyle =
-      "#ff4a43";
+      ctx.fillStyle="#ff4a43";
 
     }else{
 
-      ctx.fillStyle =
-      "#b59a82";
+      ctx.fillStyle="#b59a82";
     }
 
     ctx.fillRect(
@@ -1166,11 +841,24 @@ function drawParticles(){
 }
 
 
-// ============================================
-// PLAYER
-// ============================================
+// ========================================
+// RAPTOR
+// ========================================
 
 function drawPlayer(){
+
+  // Don't substitute a red dot anymore.
+
+  if(!raptorReady){
+    return;
+  }
+
+  const w = player.width;
+
+  const h =
+  w*
+  raptorImg.naturalHeight/
+  raptorImg.naturalWidth;
 
   ctx.save();
 
@@ -1179,70 +867,39 @@ function drawPlayer(){
     player.y
   );
 
-  if(
-    raptorImg.complete &&
-    raptorImg.naturalWidth
-  ){
+  ctx.drawImage(
+    raptorImg,
 
-    const w =
-    player.width;
+    -w*.46,
+    -h*.5,
 
-    const h =
-    w*
-    raptorImg.naturalHeight/
-    raptorImg.naturalWidth;
-
-    ctx.drawImage(
-
-      raptorImg,
-
-      -w*.46,
-      -h*.5,
-
-      w,
-      h
-    );
-
-  }else{
-
-    ctx.fillStyle =
-    "#d82c2c";
-
-    ctx.beginPath();
-
-    ctx.arc(
-      0,
-      0,
-      18,
-      0,
-      Math.PI*2
-    );
-
-    ctx.fill();
-  }
+    w,
+    h
+  );
 
   ctx.restore();
 }
 
 
-// ============================================
+// ========================================
 // FIRE BUTTON
-// ============================================
+// ========================================
 
 function drawFireButton(){
 
-  if(state !== "play"){
+  if(state!=="play"){
     return;
   }
 
   ctx.save();
 
 
-  ctx.globalAlpha =
-  firing ? .8 : .48;
+  // LARGE OUTER HIT INDICATOR
 
-  ctx.fillStyle =
-  "#420a12";
+  ctx.globalAlpha =
+  firing ? .85 : .5;
+
+  ctx.fillStyle="#420a12";
 
   ctx.beginPath();
 
@@ -1257,12 +914,10 @@ function drawFireButton(){
   ctx.fill();
 
 
-  ctx.globalAlpha = 1;
+  ctx.globalAlpha=1;
 
-  ctx.strokeStyle =
-  "#ff3434";
-
-  ctx.lineWidth = 3;
+  ctx.strokeStyle="#ff3434";
+  ctx.lineWidth=3;
 
   ctx.beginPath();
 
@@ -1278,17 +933,16 @@ function drawFireButton(){
 
 
   ctx.globalAlpha =
-  firing ? .95 : .65;
+  firing ? 1 : .72;
 
-  ctx.fillStyle =
-  "#d31e29";
+  ctx.fillStyle="#d31e29";
 
   ctx.beginPath();
 
   ctx.arc(
     fireButton.x,
     fireButton.y,
-    33,
+    34,
     0,
     Math.PI*2
   );
@@ -1296,19 +950,14 @@ function drawFireButton(){
   ctx.fill();
 
 
-  ctx.globalAlpha = 1;
+  ctx.globalAlpha=1;
 
-  ctx.fillStyle =
-  "#fff";
+  ctx.fillStyle="#fff";
 
-  ctx.textAlign =
-  "center";
+  ctx.textAlign="center";
+  ctx.textBaseline="middle";
 
-  ctx.textBaseline =
-  "middle";
-
-  ctx.font =
-  "bold 14px Arial";
+  ctx.font="bold 14px Arial";
 
   ctx.fillText(
     "FIRE",
@@ -1320,23 +969,18 @@ function drawFireButton(){
 }
 
 
-// ============================================
+// ========================================
 // HUD
-// ============================================
+// ========================================
 
 function drawHUD(){
 
-  ctx.textAlign =
-  "center";
+  ctx.textAlign="center";
+  ctx.textBaseline="alphabetic";
 
-  ctx.textBaseline =
-  "alphabetic";
+  ctx.fillStyle="#fff";
 
-  ctx.fillStyle =
-  "#fff";
-
-  ctx.font =
-  "bold 27px Arial";
+  ctx.font="bold 27px Arial";
 
   ctx.fillText(
     score,
@@ -1344,8 +988,7 @@ function drawHUD(){
     45
   );
 
-  ctx.font =
-  "bold 13px Arial";
+  ctx.font="bold 13px Arial";
 
   ctx.fillText(
     "BEST "+high,
@@ -1355,14 +998,14 @@ function drawHUD(){
 }
 
 
-// ============================================
+// ========================================
 // START SCREEN
-// ============================================
+// ========================================
 
 function drawStart(){
 
   ctx.fillStyle =
-  "rgba(2,5,15,.76)";
+  "rgba(2,5,15,.78)";
 
   ctx.fillRect(
     22,
@@ -1371,14 +1014,11 @@ function drawStart(){
     285
   );
 
-  ctx.textAlign =
-  "center";
+  ctx.textAlign="center";
 
-  ctx.fillStyle =
-  "#fff";
+  ctx.fillStyle="#fff";
 
-  ctx.font =
-  "bold 32px Arial";
+  ctx.font="bold 32px Arial";
 
   ctx.fillText(
     "DINO INVADERS",
@@ -1386,11 +1026,9 @@ function drawStart(){
     H*.34
   );
 
-  ctx.fillStyle =
-  "#ff3535";
+  ctx.fillStyle="#ff3535";
 
-  ctx.font =
-  "bold 27px Arial";
+  ctx.font="bold 27px Arial";
 
   ctx.fillText(
     "SPACE",
@@ -1398,38 +1036,73 @@ function drawStart(){
     H*.395
   );
 
-  ctx.fillStyle =
-  "#fff";
 
-  ctx.font =
-  "16px Arial";
+  if(raptorReady){
 
-  ctx.fillText(
-    "DRAG TO FLY",
-    W/2,
-    H*.48
-  );
+    ctx.fillStyle="#fff";
 
-  ctx.fillText(
-    "FIRE BUTTON TO SHOOT",
-    W/2,
-    H*.52
-  );
+    ctx.font="16px Arial";
 
-  ctx.font =
-  "bold 20px Arial";
+    ctx.fillText(
+      "DRAG TO FLY",
+      W/2,
+      H*.48
+    );
 
-  ctx.fillText(
-    "TAP TO LAUNCH",
-    W/2,
-    H*.61
-  );
+    ctx.fillText(
+      "FIRE BUTTON TO SHOOT",
+      W/2,
+      H*.52
+    );
+
+    ctx.font="bold 20px Arial";
+
+    ctx.fillText(
+      "TAP TO LAUNCH",
+      W/2,
+      H*.61
+    );
+
+  }else if(raptorFailed){
+
+    ctx.fillStyle="#ff5555";
+
+    ctx.font="bold 17px Arial";
+
+    ctx.fillText(
+      "RAPTOR IMAGE FAILED TO LOAD",
+      W/2,
+      H*.50
+    );
+
+    ctx.fillStyle="#fff";
+
+    ctx.font="14px Arial";
+
+    ctx.fillText(
+      "Refresh the game",
+      W/2,
+      H*.55
+    );
+
+  }else{
+
+    ctx.fillStyle="#fff";
+
+    ctx.font="bold 17px Arial";
+
+    ctx.fillText(
+      "LOADING RAPTOR...",
+      W/2,
+      H*.51
+    );
+  }
 }
 
 
-// ============================================
+// ========================================
 // GAME OVER
-// ============================================
+// ========================================
 
 function drawDead(){
 
@@ -1443,14 +1116,11 @@ function drawDead(){
     205
   );
 
-  ctx.textAlign =
-  "center";
+  ctx.textAlign="center";
 
-  ctx.fillStyle =
-  "#ff3535";
+  ctx.fillStyle="#ff3535";
 
-  ctx.font =
-  "bold 29px Arial";
+  ctx.font="bold 29px Arial";
 
   ctx.fillText(
     "RAPTOR DOWN",
@@ -1458,11 +1128,9 @@ function drawDead(){
     H*.41
   );
 
-  ctx.fillStyle =
-  "#fff";
+  ctx.fillStyle="#fff";
 
-  ctx.font =
-  "20px Arial";
+  ctx.font="20px Arial";
 
   ctx.fillText(
     "Score: "+score,
@@ -1470,8 +1138,7 @@ function drawDead(){
     H*.48
   );
 
-  ctx.font =
-  "bold 19px Arial";
+  ctx.font="bold 19px Arial";
 
   ctx.fillText(
     "TAP TO RELAUNCH",
@@ -1481,9 +1148,9 @@ function drawDead(){
 }
 
 
-// ============================================
+// ========================================
 // DRAW
-// ============================================
+// ========================================
 
 function draw(){
 
@@ -1492,33 +1159,24 @@ function draw(){
   if(screenShake>0){
 
     ctx.translate(
-
-      (Math.random()-.5)*
-      screenShake,
-
-      (Math.random()-.5)*
-      screenShake
-
+      (Math.random()-.5)*screenShake,
+      (Math.random()-.5)*screenShake
     );
   }
 
   drawSpace();
 
   for(const m of meteors){
-
     drawMeteor(m);
   }
 
   drawBullets();
-
   drawParticles();
-
   drawPlayer();
 
   ctx.restore();
 
   drawHUD();
-
   drawFireButton();
 
   if(state==="start"){
@@ -1531,35 +1189,28 @@ function draw(){
 }
 
 
-// ============================================
-// GAME LOOP
-// ============================================
+// ========================================
+// LOOP
+// ========================================
 
-let last =
-performance.now();
-
+let last = performance.now();
 let accumulator = 0;
 
-const STEP =
-1000/60;
-
+const STEP = 1000/60;
 
 function loop(now){
 
-  let delta =
-  now-last;
+  let delta = now-last;
 
   last = now;
 
   if(delta>80){
-    delta = 80;
+    delta=80;
   }
 
   accumulator += delta;
 
-  while(
-    accumulator>=STEP
-  ){
+  while(accumulator>=STEP){
 
     update();
 
@@ -1568,24 +1219,15 @@ function loop(now){
 
   draw();
 
-  requestAnimationFrame(
-    loop
-  );
+  requestAnimationFrame(loop);
 }
 
-requestAnimationFrame(
-  loop
-);
+requestAnimationFrame(loop);
 
 
-// ============================================
-// TOUCH CONTROLS
-//
-// IMPORTANT:
-//
-// We use native TOUCH events here rather than
-// relying on Safari pointer behavior.
-// ============================================
+// ========================================
+// TOUCH HELPERS
+// ========================================
 
 function touchPosition(touch){
 
@@ -1593,313 +1235,189 @@ function touchPosition(touch){
   canvas.getBoundingClientRect();
 
   return{
-
-    x:
-    touch.clientX-
-    rect.left,
-
-    y:
-    touch.clientY-
-    rect.top
+    x:touch.clientX-rect.left,
+    y:touch.clientY-rect.top
   };
 }
 
 
-// ============================================
+// ========================================
 // TOUCH START
-// ============================================
+// ========================================
 
 canvas.addEventListener(
-  "touchstart",
-  function(e){
-
-    e.preventDefault();
-
-    if(
-      state==="start" ||
-      state==="dead"
-    ){
-
-      startGame();
-
-      return;
-    }
-
-
-    for(
-      const touch of
-      e.changedTouches
-    ){
-
-      const p =
-      touchPosition(touch);
-
-
-      // FIRE BUTTON
-
-      if(
-        insideFireButton(
-          p.x,
-          p.y
-        ) &&
-        fireTouchID===null
-      ){
-
-        fireTouchID =
-        touch.identifier;
-
-        firing = true;
-
-        if(
-          player.fireCooldown<=0
-        ){
-
-          shoot();
-        }
-
-        continue;
-      }
-
-
-      // MOVEMENT CONTROL
-
-      if(
-        moveTouchID===null
-      ){
-
-        moveTouchID =
-        touch.identifier;
-
-        lastMoveX =
-        p.x;
-
-        lastMoveY =
-        p.y;
-      }
-    }
-
-  },
-  {passive:false}
-);
-
-
-// ============================================
-// TOUCH MOVE
-// ============================================
-
-canvas.addEventListener(
-  "touchmove",
-  function(e){
-
-    e.preventDefault();
-
-    if(state!=="play"){
-      return;
-    }
-
-
-    for(
-      const touch of
-      e.changedTouches
-    ){
-
-      if(
-        touch.identifier !==
-        moveTouchID
-      ){
-        continue;
-      }
-
-      const p =
-      touchPosition(touch);
-
-
-      /*
-        INVISIBLE JOYSTICK:
-
-        Only finger MOVEMENT matters.
-
-        The Raptor does NOT jump
-        underneath your finger.
-      */
-
-      const dx =
-      p.x-lastMoveX;
-
-      const dy =
-      p.y-lastMoveY;
-
-
-      player.x += dx;
-
-      player.y += dy;
-
-
-      player.x =
-      Math.max(
-        50,
-        Math.min(
-          W-65,
-          player.x
-        )
-      );
-
-
-      player.y =
-      Math.max(
-        50,
-        Math.min(
-          H-60,
-          player.y
-        )
-      );
-
-
-      lastMoveX =
-      p.x;
-
-      lastMoveY =
-      p.y;
-    }
-
-  },
-  {passive:false}
-);
-
-
-// ============================================
-// TOUCH END
-// ============================================
-
-function endTouches(e){
+"touchstart",
+function(e){
 
   e.preventDefault();
 
-  for(
-    const touch of
-    e.changedTouches
+  // START / RESTART
+
+  if(
+    state==="start" ||
+    state==="dead"
   ){
+
+    startGame();
+    return;
+  }
+
+
+  for(const touch of e.changedTouches){
+
+    const p =
+    touchPosition(touch);
+
+
+    // FIRE GETS PRIORITY
+
+    if(
+      onFireButton(p.x,p.y) &&
+      fireTouchID===null
+    ){
+
+      fireTouchID =
+      touch.identifier;
+
+      firing = true;
+
+      if(player.fireCooldown<=0){
+        shoot();
+      }
+
+      continue;
+    }
+
+
+    // MOVEMENT
+
+    if(moveTouchID===null){
+
+      moveTouchID =
+      touch.identifier;
+
+      lastMoveX = p.x;
+      lastMoveY = p.y;
+    }
+  }
+
+},
+{passive:false}
+);
+
+
+// ========================================
+// TOUCH MOVE
+// ========================================
+
+canvas.addEventListener(
+"touchmove",
+function(e){
+
+  e.preventDefault();
+
+  if(state!=="play"){
+    return;
+  }
+
+  for(const touch of e.touches){
+
+    if(
+      touch.identifier !==
+      moveTouchID
+    ){
+      continue;
+    }
+
+    const p =
+    touchPosition(touch);
+
+    const dx =
+    p.x-lastMoveX;
+
+    const dy =
+    p.y-lastMoveY;
+
+
+    player.x += dx;
+    player.y += dy;
+
+
+    player.x =
+    Math.max(
+      50,
+      Math.min(
+        W-65,
+        player.x
+      )
+    );
+
+    player.y =
+    Math.max(
+      50,
+      Math.min(
+        H-65,
+        player.y
+      )
+    );
+
+
+    lastMoveX = p.x;
+    lastMoveY = p.y;
+  }
+
+},
+{passive:false}
+);
+
+
+// ========================================
+// TOUCH RELEASE
+// ========================================
+
+function releaseTouches(e){
+
+  e.preventDefault();
+
+  for(const touch of e.changedTouches){
 
     if(
       touch.identifier===
       moveTouchID
     ){
-
-      moveTouchID = null;
+      moveTouchID=null;
     }
-
 
     if(
       touch.identifier===
       fireTouchID
     ){
-
-      fireTouchID = null;
-
-      firing = false;
+      fireTouchID=null;
+      firing=false;
     }
   }
 }
 
 
 canvas.addEventListener(
-  "touchend",
-  endTouches,
-  {passive:false}
+"touchend",
+releaseTouches,
+{passive:false}
 );
-
 
 canvas.addEventListener(
-  "touchcancel",
-  endTouches,
-  {passive:false}
+"touchcancel",
+releaseTouches,
+{passive:false}
 );
 
 
-// ============================================
-// DESKTOP FALLBACK
-// ============================================
-
-let mouseDown = false;
-let mouseX = 0;
-let mouseY = 0;
-
-
-canvas.addEventListener(
-  "mousedown",
-  e=>{
-
-    e.preventDefault();
-
-    if(
-      state==="start" ||
-      state==="dead"
-    ){
-
-      startGame();
-
-      return;
-    }
-
-    if(
-      insideFireButton(
-        e.clientX,
-        e.clientY
-      )
-    ){
-
-      firing = true;
-
-      shoot();
-
-      return;
-    }
-
-    mouseDown = true;
-
-    mouseX = e.clientX;
-    mouseY = e.clientY;
-  }
-);
-
-
-canvas.addEventListener(
-  "mousemove",
-  e=>{
-
-    if(!mouseDown){
-      return;
-    }
-
-    player.x +=
-    e.clientX-mouseX;
-
-    player.y +=
-    e.clientY-mouseY;
-
-    mouseX = e.clientX;
-    mouseY = e.clientY;
-  }
-);
-
-
-canvas.addEventListener(
-  "mouseup",
-  ()=>{
-
-    mouseDown = false;
-    firing = false;
-  }
-);
-
-
-// ============================================
+// ========================================
 // INITIALIZE
-// ============================================
+// ========================================
 
 resize();
 
 </script>
-
 </body>
 </html>
