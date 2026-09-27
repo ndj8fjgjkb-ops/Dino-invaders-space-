@@ -17,7 +17,7 @@ canvas{position:fixed;inset:0;width:100%;height:100%;display:block;touch-action:
 <body>
 <canvas id="game"></canvas>
 <script>
-// DINO INVADERS: SPACE V2.9 — WIDER FIELD + FASTER BACKGROUND
+// DINO INVADERS: SPACE V3.0 — DENSER ASTEROIDS + EXTRA WIDE FIELD
 const canvas=document.getElementById("game");
 const ctx=canvas.getContext("2d",{alpha:false,desynchronized:true});
 let W=0,H=0;
@@ -32,7 +32,7 @@ raptorImg.onerror=()=>{raptorReady=false;raptorFailed=true};
 raptorImg.src="8BBBE99D-BE50-463D-AB99-9356374B034D.png";
 
 let state="start",score=0,high=Number(localStorage.spaceHigh||0),gameTime=0,difficulty=1,screenShake=0;
-const player={x:100,y:300,radius:14.4,width:116,fireCooldown:0};
+const player={x:100,y:300,radius:12.24,width:98.6,fireCooldown:0};
 let stars=[],bullets=[],asteroids=[],particles=[],shockwaves=[],enemies=[],planets=[];
 let moveTouchID=null,lastMoveX=0,lastMoveY=0,firing=false;
 
@@ -51,8 +51,8 @@ function createStars(){
 
 function createPlanets(){
  planets=[
-  {x:W*.82,y:H*.22,r:Math.max(34,Math.min(W,H)*.096),speed:.08,type:0},
-  {x:W*1.55,y:H*.72,r:Math.max(24,Math.min(W,H)*.064),speed:.055,type:1}
+  {x:W*.82,y:H*.22,r:Math.max(29,Math.min(W,H)*.0816),speed:.08,type:0},
+  {x:W*1.55,y:H*.72,r:Math.max(20,Math.min(W,H)*.0544),speed:.055,type:1}
  ];
 }
 function updatePlanets(){
@@ -82,7 +82,7 @@ function drawPlanets(){
 }
 function spawnEnemy(){
  const y=70+Math.random()*Math.max(100,H-140);
- enemies.push({x:W+70,y,baseY:y,vx:-(2.1+Math.random()*.8+difficulty*.12),phase:Math.random()*Math.PI*2,health:2,radius:19.2,points:180});
+ enemies.push({x:W+70,y,baseY:y,vx:-(2.1+Math.random()*.8+difficulty*.12),phase:Math.random()*Math.PI*2,health:2,radius:16.32,points:180});
 }
 function destroyEnemy(index){
  const e=enemies[index];score+=e.points;
@@ -94,10 +94,10 @@ function destroyEnemy(index){
 function drawEnemy(e){
  ctx.save();ctx.translate(e.x,e.y);
  ctx.shadowColor="#55e8ff";ctx.shadowBlur=14;
- ctx.fillStyle="#162c49";ctx.beginPath();ctx.ellipse(0,0,22.4,11.2,0,0,Math.PI*2);ctx.fill();
- ctx.fillStyle="#59dfff";ctx.beginPath();ctx.ellipse(1.6,-6.4,10.4,7.2,0,Math.PI,Math.PI*2);ctx.fill();
- ctx.fillStyle="#9d4dff";ctx.fillRect(-17.6,6.4,8,3.2);ctx.fillRect(9.6,6.4,8,3.2);
- ctx.fillStyle="#ff426f";ctx.beginPath();ctx.arc(-14.4,0,2.4,0,Math.PI*2);ctx.arc(14.4,0,2.4,0,Math.PI*2);ctx.fill();
+ ctx.fillStyle="#162c49";ctx.beginPath();ctx.ellipse(0,0,19.04,9.52,0,0,Math.PI*2);ctx.fill();
+ ctx.fillStyle="#59dfff";ctx.beginPath();ctx.ellipse(1.36,-5.44,8.84,6.12,0,Math.PI,Math.PI*2);ctx.fill();
+ ctx.fillStyle="#9d4dff";ctx.fillRect(-14.96,5.44,6.8,2.72);ctx.fillRect(8.16,5.44,6.8,2.72);
+ ctx.fillStyle="#ff426f";ctx.beginPath();ctx.arc(-12.24,0,2.04,0,Math.PI*2);ctx.arc(12.24,0,2.04,0,Math.PI*2);ctx.fill();
  ctx.shadowBlur=0;ctx.restore();
 }
 
@@ -108,14 +108,14 @@ function reset(){
 function startGame(){if(!raptorReady)return;reset();state="play"}
 function shoot(){
  if(state!=="play")return;
- bullets.push({x:player.x+55,y:player.y-5,vx:12,radius:3.2});player.fireCooldown=7;
+ bullets.push({x:player.x+55,y:player.y-5,vx:12,radius:2.72});player.fireCooldown=7;
  for(let i=0;i<3;i++)particles.push({x:player.x+54,y:player.y-5,vx:2+Math.random()*3,vy:(Math.random()-.5)*2,life:10,maxLife:10,size:2+Math.random()*2,type:"laser"});
 }
 function makeAsteroid(x,y,size,vx,vy){
  let radius,health,points;
- if(size===3){radius=38.4+Math.random()*8;health=3;points=100}
- else if(size===2){radius=24.8+Math.random()*5.6;health=2;points=60}
- else{radius=13.6+Math.random()*4;health=1;points=30}
+ if(size===3){radius=32.64+Math.random()*6.8;health=3;points=100}
+ else if(size===2){radius=21.08+Math.random()*4.76;health=2;points=60}
+ else{radius=11.56+Math.random()*3.4;health=1;points=30}
  const shape=[],count=9+Math.floor(Math.random()*3);
  for(let i=0;i<count;i++)shape.push(.78+Math.random()*.35);
  return{x,y,size,radius,health,points,vx,vy,rotation:Math.random()*Math.PI*2,spin:(Math.random()-.5)*.045,shape,craterSeed:Math.random()*1000};
@@ -166,7 +166,7 @@ function update(){
  gameTime++;difficulty=1+gameTime/1800;
  player.x=Math.max(50,Math.min(W-65,player.x));player.y=Math.max(50,Math.min(H-65,player.y));
  if(player.fireCooldown>0)player.fireCooldown--;if(firing&&player.fireCooldown<=0)shoot();
- const spawnRate=Math.max(38,82-Math.floor(difficulty*5));if(gameTime%spawnRate===0)spawnAsteroid();
+ const spawnRate=Math.max(28,62-Math.floor(difficulty*5));if(gameTime%spawnRate===0)spawnAsteroid();
  if(gameTime>240 && gameTime%Math.max(210,360-Math.floor(difficulty*12))===0)spawnEnemy();
  for(let i=bullets.length-1;i>=0;i--){const b=bullets[i];b.x+=b.vx;if(b.x>W+40)bullets.splice(i,1)}
  for(let i=enemies.length-1;i>=0;i--){
@@ -215,7 +215,7 @@ function drawAsteroid(a){
  ctx.restore();
 }
 function drawBullets(){
- for(const b of bullets){ctx.shadowColor="#ff3030";ctx.shadowBlur=10;ctx.fillStyle="#ff3030";ctx.fillRect(b.x-8.8,b.y-1.6,20,3.2);ctx.fillStyle="#fff";ctx.fillRect(b.x+4,b.y-.8,7.2,1.6);ctx.shadowBlur=0}
+ for(const b of bullets){ctx.shadowColor="#ff3030";ctx.shadowBlur=10;ctx.fillStyle="#ff3030";ctx.fillRect(b.x-7.48,b.y-1.36,17,2.72);ctx.fillStyle="#fff";ctx.fillRect(b.x+3.4,b.y-.68,6.12,1.36);ctx.shadowBlur=0}
 }
 function drawShockwaves(){
  for(const s of shockwaves){const alpha=Math.max(0,s.life/s.maxLife);ctx.save();ctx.globalAlpha=alpha*.8;ctx.strokeStyle="#ff9b3d";ctx.shadowColor="#ff5a1f";ctx.shadowBlur=14;ctx.lineWidth=Math.max(2,5*alpha);ctx.beginPath();ctx.arc(s.x,s.y,s.radius,0,Math.PI*2);ctx.stroke();ctx.restore()}
