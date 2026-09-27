@@ -1,1785 +1,222 @@
-="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport"
+content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#02040d">
-
 <title>Dino Invaders: Space</title>
-
 <style>
-*{
-  box-sizing:border-box;
-  -webkit-user-select:none;
-  user-select:none;
-  -webkit-touch-callout:none;
-}
-
-html,body{
-  position:fixed;
-  inset:0;
-  width:100%;
-  height:100%;
-  margin:0;
-  overflow:hidden;
-  overscroll-behavior:none;
-  touch-action:none;
-  background:#02040d;
-}
-
-canvas{
-  position:fixed;
-  inset:0;
-  width:100%;
-  height:100%;
-  display:block;
-  touch-action:none;
-}
+*{box-sizing:border-box;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+html,body{position:fixed;inset:0;width:100%;height:100%;margin:0;overflow:hidden;overscroll-behavior:none;touch-action:none;background:#02040d}
+canvas{position:fixed;inset:0;width:100%;height:100%;display:block;touch-action:none}
 </style>
 </head>
-
 <body>
 <canvas id="game"></canvas>
-
 <script>
-
-// ========================================
-// DINO INVADERS: SPACE V2.5
-// ASTEROID DESTRUCTION BUILD
-// ========================================
-
-const canvas = document.getElementById("game");
-
-const ctx = canvas.getContext("2d",{
-  alpha:false,
-  desynchronized:true
-});
-
-let W=0;
-let H=0;
-
-
-// ========================================
-// BLOCK SAFARI MOVEMENT
-// ========================================
-
-document.addEventListener("touchmove",e=>{
-  e.preventDefault();
-},{passive:false});
-
-document.addEventListener("gesturestart",e=>{
-  e.preventDefault();
-},{passive:false});
-
-document.addEventListener("gesturechange",e=>{
-  e.preventDefault();
-},{passive:false});
-
-
-// ========================================
-// RAPTOR IMAGE
-// ========================================
+// DINO INVADERS: SPACE V2.6 — ENHANCED ASTEROID EXPLOSIONS
+const canvas=document.getElementById("game");
+const ctx=canvas.getContext("2d",{alpha:false,desynchronized:true});
+let W=0,H=0;
+document.addEventListener("touchmove",e=>e.preventDefault(),{passive:false});
+document.addEventListener("gesturestart",e=>e.preventDefault(),{passive:false});
+document.addEventListener("gesturechange",e=>e.preventDefault(),{passive:false});
 
 const raptorImg=new Image();
+let raptorReady=false,raptorFailed=false;
+raptorImg.onload=()=>{raptorReady=true;raptorFailed=false};
+raptorImg.onerror=()=>{raptorReady=false;raptorFailed=true};
+raptorImg.src="8BBBE99D-BE50-463D-AB99-9356374B034D.png";
 
-let raptorReady=false;
-let raptorFailed=false;
-
-raptorImg.onload=()=>{
-  raptorReady=true;
-  raptorFailed=false;
-};
-
-raptorImg.onerror=()=>{
-  raptorReady=false;
-  raptorFailed=true;
-};
-
-raptorImg.src=
-"8BBBE99D-BE50-463D-AB99-9356374B034D.png";
-
-
-// ========================================
-// GAME STATE
-// ========================================
-
-let state="start";
-
-let score=0;
-
-let high=
-Number(localStorage.spaceHigh||0);
-
-let gameTime=0;
-let difficulty=1;
-let screenShake=0;
-
-
-// ========================================
-// PLAYER
-// ========================================
-
-const player={
-  x:100,
-  y:300,
-  radius:18,
-  width:145,
-  fireCooldown:0
-};
-
-
-// ========================================
-// FIRE BUTTON
-// ========================================
-
-const fireButton={
-  x:0,
-  y:0,
-  radius:50
-};
-
-
-// ========================================
-// OBJECTS
-// ========================================
-
-let stars=[];
-let bullets=[];
-let asteroids=[];
-let particles=[];
-
-
-// ========================================
-// TOUCH STATE
-// ========================================
-
-let moveTouchID=null;
-let fireTouchID=null;
-
-let lastMoveX=0;
-let lastMoveY=0;
-
-let firing=false;
-
-
-// ========================================
-// RESIZE
-// ========================================
+let state="start",score=0,high=Number(localStorage.spaceHigh||0),gameTime=0,difficulty=1,screenShake=0;
+const player={x:100,y:300,radius:18,width:145,fireCooldown:0};
+const fireButton={x:0,y:0,radius:50};
+let stars=[],bullets=[],asteroids=[],particles=[],shockwaves=[];
+let moveTouchID=null,fireTouchID=null,lastMoveX=0,lastMoveY=0,firing=false;
 
 function resize(){
-
-  W=window.innerWidth;
-  H=window.innerHeight;
-
-  canvas.width=W;
-  canvas.height=H;
-
-  ctx.imageSmoothingEnabled=true;
-
-  fireButton.x=W-72;
-
-  // KEEP V2.4 FIRE POSITION
-  fireButton.y=H-165;
-
-  createStars();
-
-  player.x=
-  Math.max(55,Math.min(W-65,player.x));
-
-  player.y=
-  Math.max(55,Math.min(H-65,player.y));
+ W=innerWidth;H=innerHeight;canvas.width=W;canvas.height=H;ctx.imageSmoothingEnabled=true;
+ fireButton.x=W-72;fireButton.y=H-165;createStars();
+ player.x=Math.max(55,Math.min(W-65,player.x));player.y=Math.max(55,Math.min(H-65,player.y));
 }
-
-window.addEventListener("resize",resize);
-
-
-// ========================================
-// STARFIELD
-// ========================================
+addEventListener("resize",resize);
 
 function createStars(){
-
-  stars=[];
-
-  const count=
-  Math.min(
-    120,
-    Math.floor(W*H/3900)
-  );
-
-  for(let i=0;i<count;i++){
-
-    stars.push({
-      x:Math.random()*W,
-      y:Math.random()*H,
-      size:.5+Math.random()*1.8,
-      speed:.3+Math.random()*1.8,
-      alpha:.3+Math.random()*.7
-    });
-  }
+ stars=[];const count=Math.min(120,Math.floor(W*H/3900));
+ for(let i=0;i<count;i++)stars.push({x:Math.random()*W,y:Math.random()*H,size:.5+Math.random()*1.8,speed:.3+Math.random()*1.8,alpha:.3+Math.random()*.7});
 }
-
-
-// ========================================
-// RESET
-// ========================================
-
 function reset(){
-
-  score=0;
-  gameTime=0;
-  difficulty=1;
-  screenShake=0;
-
-  bullets=[];
-  asteroids=[];
-  particles=[];
-
-  player.x=
-  Math.min(100,W*.25);
-
-  player.y=H*.5;
-
-  player.fireCooldown=0;
-
-  moveTouchID=null;
-  fireTouchID=null;
-
-  firing=false;
+ score=0;gameTime=0;difficulty=1;screenShake=0;bullets=[];asteroids=[];particles=[];shockwaves=[];
+ player.x=Math.min(100,W*.25);player.y=H*.5;player.fireCooldown=0;moveTouchID=null;fireTouchID=null;firing=false;
 }
-
-
-function startGame(){
-
-  if(!raptorReady){
-    return;
-  }
-
-  reset();
-
-  state="play";
-}
-
-
-// ========================================
-// FIRE BUTTON HITBOX
-// ========================================
-
-function onFireButton(x,y){
-
-  const dx=x-fireButton.x;
-  const dy=y-fireButton.y;
-
-  const r=
-  fireButton.radius+14;
-
-  return dx*dx+dy*dy<=r*r;
-}
-
-
-// ========================================
-// SHOOT
-// ========================================
-
+function startGame(){if(!raptorReady)return;reset();state="play"}
+function onFireButton(x,y){const dx=x-fireButton.x,dy=y-fireButton.y,r=fireButton.radius+14;return dx*dx+dy*dy<=r*r}
 function shoot(){
-
-  if(state!=="play"){
-    return;
-  }
-
-  bullets.push({
-    x:player.x+55,
-    y:player.y-5,
-    vx:12,
-    radius:4
-  });
-
-  player.fireCooldown=7;
-
-  for(let i=0;i<3;i++){
-
-    particles.push({
-      x:player.x+54,
-      y:player.y-5,
-      vx:2+Math.random()*3,
-      vy:(Math.random()-.5)*2,
-      life:10,
-      maxLife:10,
-      size:2+Math.random()*2,
-      type:"laser"
-    });
-  }
+ if(state!=="play")return;
+ bullets.push({x:player.x+55,y:player.y-5,vx:12,radius:4});player.fireCooldown=7;
+ for(let i=0;i<3;i++)particles.push({x:player.x+54,y:player.y-5,vx:2+Math.random()*3,vy:(Math.random()-.5)*2,life:10,maxLife:10,size:2+Math.random()*2,type:"laser"});
 }
-
-
-// ========================================
-// ASTEROID CREATION
-// ========================================
-
-function makeAsteroid(
-  x,
-  y,
-  size,
-  vx,
-  vy
-){
-
-  let radius;
-  let health;
-  let points;
-
-  if(size===3){
-
-    radius=48+Math.random()*10;
-    health=3;
-    points=100;
-
-  }else if(size===2){
-
-    radius=31+Math.random()*7;
-    health=2;
-    points=60;
-
-  }else{
-
-    radius=17+Math.random()*5;
-    health=1;
-    points=30;
-  }
-
-
-  // Unique irregular shape
-
-  const shape=[];
-
-  const count=
-  9+Math.floor(Math.random()*3);
-
-  for(let i=0;i<count;i++){
-
-    shape.push(
-      .78+
-      Math.random()*.35
-    );
-  }
-
-
-  return{
-
-    x,
-    y,
-
-    size,
-    radius,
-    health,
-    points,
-
-    vx,
-    vy,
-
-    rotation:
-    Math.random()*Math.PI*2,
-
-    spin:
-    (Math.random()-.5)*.045,
-
-    shape,
-
-    craterSeed:
-    Math.random()*1000
-  };
+function makeAsteroid(x,y,size,vx,vy){
+ let radius,health,points;
+ if(size===3){radius=48+Math.random()*10;health=3;points=100}
+ else if(size===2){radius=31+Math.random()*7;health=2;points=60}
+ else{radius=17+Math.random()*5;health=1;points=30}
+ const shape=[],count=9+Math.floor(Math.random()*3);
+ for(let i=0;i<count;i++)shape.push(.78+Math.random()*.35);
+ return{x,y,size,radius,health,points,vx,vy,rotation:Math.random()*Math.PI*2,spin:(Math.random()-.5)*.045,shape,craterSeed:Math.random()*1000};
 }
-
-
-// ========================================
-// SPAWN ASTEROID
-// ========================================
-
 function spawnAsteroid(){
-
-  const roll=Math.random();
-
-  let size;
-
-  if(roll<.18){
-    size=3;
-  }else if(roll<.52){
-    size=2;
-  }else{
-    size=1;
-  }
-
-  const speed=
-  2.3+
-  difficulty*.2+
-  Math.random()*1.4;
-
-  asteroids.push(
-    makeAsteroid(
-      W+90,
-      40+
-      Math.random()*
-      Math.max(100,H-80),
-      size,
-      -speed,
-      (Math.random()-.5)*
-      (1+difficulty*.1)
-    )
-  );
+ const roll=Math.random();let size=roll<.18?3:roll<.52?2:1;
+ const speed=2.3+difficulty*.2+Math.random()*1.4;
+ asteroids.push(makeAsteroid(W+90,40+Math.random()*Math.max(100,H-80),size,-speed,(Math.random()-.5)*(1+difficulty*.1)));
 }
-
-
-// ========================================
-// SPLIT ASTEROID
-// ========================================
-
 function splitAsteroid(a){
-
-  if(a.size<=1){
-    return;
-  }
-
-  const childSize=
-  a.size-1;
-
-  const number=
-  a.size===3 ? 2 : 2;
-
-  for(let i=0;i<number;i++){
-
-    const direction=
-    i===0 ? -1 : 1;
-
-    const speed=
-    Math.abs(a.vx)*
-    (1.05+Math.random()*.25);
-
-    asteroids.push(
-      makeAsteroid(
-        a.x,
-        a.y+
-        direction*8,
-
-        childSize,
-
-        -speed,
-
-        direction*
-        (1.3+Math.random()*1.5)
-      )
-    );
-  }
+ if(a.size<=1)return;
+ const childSize=a.size-1;
+ for(let i=0;i<2;i++){
+  const direction=i===0?-1:1,speed=Math.abs(a.vx)*(1.05+Math.random()*.25);
+  asteroids.push(makeAsteroid(a.x,a.y+direction*8,childSize,-speed,direction*(1.3+Math.random()*1.5)));
+ }
 }
-
-
-// ========================================
-// PARTICLES
-// ========================================
-
-function burst(
-  x,
-  y,
-  amount,
-  type,
-  power=7
-){
-
-  for(let i=0;i<amount;i++){
-
-    const life=
-    14+Math.random()*20;
-
-    particles.push({
-
-      x,
-      y,
-
-      vx:
-      (Math.random()-.5)*
-      power,
-
-      vy:
-      (Math.random()-.5)*
-      power,
-
-      life,
-      maxLife:life,
-
-      size:
-      1+Math.random()*4,
-
-      type
-    });
-  }
+function burst(x,y,amount,type,power=7){
+ for(let i=0;i<amount;i++){const life=14+Math.random()*20;particles.push({x,y,vx:(Math.random()-.5)*power,vy:(Math.random()-.5)*power,life,maxLife:life,size:1+Math.random()*4,type})}
 }
-
-
-// ========================================
-// COLLISION
-// ========================================
-
-function hitCircle(
-  ax,ay,ar,
-  bx,by,br
-){
-
-  const dx=ax-bx;
-  const dy=ay-by;
-
-  const r=ar+br;
-
-  return dx*dx+dy*dy<r*r;
-}
-
-
-// ========================================
-// PLAYER DEATH
-// ========================================
-
+function hitCircle(ax,ay,ar,bx,by,br){const dx=ax-bx,dy=ay-by,r=ar+br;return dx*dx+dy*dy<r*r}
 function die(){
-
-  if(state!=="play"){
-    return;
-  }
-
-  state="dead";
-
-  firing=false;
-
-  moveTouchID=null;
-  fireTouchID=null;
-
-  screenShake=13;
-
-  burst(
-    player.x,
-    player.y,
-    32,
-    "red",
-    9
-  );
-
-  if(score>high){
-
-    high=score;
-
-    localStorage.spaceHigh=high;
-  }
+ if(state!=="play")return;state="dead";firing=false;moveTouchID=null;fireTouchID=null;screenShake=13;burst(player.x,player.y,32,"red",9);
+ if(score>high){high=score;localStorage.spaceHigh=high}
 }
-
-
-// ========================================
-// DESTROY ASTEROID
-// ========================================
-
 function destroyAsteroid(index){
-
-  const a=asteroids[index];
-
-  score+=a.points;
-
-  burst(
-    a.x,
-    a.y,
-    a.size===3 ? 28 :
-    a.size===2 ? 20 : 13,
-    "rock",
-    a.size===3 ? 10 : 7
-  );
-
-
-  // ORANGE HOT CORE PARTICLES
-
-  burst(
-    a.x,
-    a.y,
-    a.size===3 ? 12 : 7,
-    "hot",
-    6
-  );
-
-
-  splitAsteroid(a);
-
-  asteroids.splice(index,1);
-
-  screenShake=
-  Math.max(
-    screenShake,
-    a.size===3 ? 7 :
-    a.size===2 ? 4 : 2
-  );
+ const a=asteroids[index];score+=a.points;
+ shockwaves.push({x:a.x,y:a.y,radius:a.radius*.2,maxRadius:a.radius*(a.size===3?1.8:1.5),life:a.size===3?18:14,maxLife:a.size===3?18:14});
+ particles.push({x:a.x,y:a.y,vx:0,vy:0,life:8,maxLife:8,size:a.radius*.85,type:"flash"});
+ burst(a.x,a.y,a.size===3?42:a.size===2?30:18,"rock",a.size===3?10:7);
+ burst(a.x,a.y,a.size===3?24:a.size===2?16:10,"hot",7);
+ const debrisCount=a.size===3?12:a.size===2?8:5;
+ for(let i=0;i<debrisCount;i++){const life=24+Math.random()*22;particles.push({
+  x:a.x+(Math.random()-.5)*a.radius*.4,y:a.y+(Math.random()-.5)*a.radius*.4,
+  vx:(Math.random()-.5)*(a.size===3?12:9),vy:(Math.random()-.5)*(a.size===3?12:9),
+  life,maxLife:life,size:3+Math.random()*(a.size===3?8:5),type:"debris",
+  rotation:Math.random()*Math.PI*2,spin:(Math.random()-.5)*.35
+ })}
+ splitAsteroid(a);asteroids.splice(index,1);screenShake=Math.max(screenShake,a.size===3?9:a.size===2?6:3);
 }
-
-
-// ========================================
-// UPDATE
-// ========================================
-
 function update(){
-
-
-  // STARS
-
-  for(const s of stars){
-
-    s.x-=
-    s.speed*
-    (state==="play" ? 1.3 : .35);
-
-    if(s.x<-5){
-
-      s.x=W+5;
-      s.y=Math.random()*H;
-    }
+ for(const s of stars){s.x-=s.speed*(state==="play"?1.3:.35);if(s.x<-5){s.x=W+5;s.y=Math.random()*H}}
+ if(screenShake>0){screenShake*=.78;if(screenShake<.2)screenShake=0}
+ for(let i=shockwaves.length-1;i>=0;i--){const s=shockwaves[i];s.radius+=(s.maxRadius-s.radius)*.22;s.life--;if(s.life<=0)shockwaves.splice(i,1)}
+ for(let i=particles.length-1;i>=0;i--){const p=particles[i];p.x+=p.vx;p.y+=p.vy;p.vx*=.98;p.vy*=.98;if(p.type==="debris")p.rotation+=p.spin;p.life--;if(p.life<=0)particles.splice(i,1)}
+ if(state!=="play")return;
+ gameTime++;difficulty=1+gameTime/1800;
+ player.x=Math.max(50,Math.min(W-65,player.x));player.y=Math.max(50,Math.min(H-65,player.y));
+ if(player.fireCooldown>0)player.fireCooldown--;if(firing&&player.fireCooldown<=0)shoot();
+ const spawnRate=Math.max(38,82-Math.floor(difficulty*5));if(gameTime%spawnRate===0)spawnAsteroid();
+ for(let i=bullets.length-1;i>=0;i--){const b=bullets[i];b.x+=b.vx;if(b.x>W+40)bullets.splice(i,1)}
+ for(let i=asteroids.length-1;i>=0;i--){
+  const a=asteroids[i];a.x+=a.vx;a.y+=a.vy;a.rotation+=a.spin;
+  if(hitCircle(player.x,player.y,player.radius,a.x,a.y,a.radius*.7)){die();break}
+  let removed=false;
+  for(let j=bullets.length-1;j>=0;j--){const b=bullets[j];
+   if(hitCircle(b.x,b.y,b.radius,a.x,a.y,a.radius*.82)){
+    bullets.splice(j,1);a.health--;burst(b.x,b.y,7,"hot",4);burst(b.x,b.y,5,"rock",4);
+    if(a.health<=0){destroyAsteroid(i);removed=true;break}
+   }
   }
-
-
-  // SCREEN SHAKE
-
-  if(screenShake>0){
-
-    screenShake*=.78;
-
-    if(screenShake<.2){
-      screenShake=0;
-    }
-  }
-
-
-  // PARTICLES
-
-  for(let i=particles.length-1;i>=0;i--){
-
-    const p=particles[i];
-
-    p.x+=p.vx;
-    p.y+=p.vy;
-
-    p.vx*=.98;
-    p.vy*=.98;
-
-    p.life--;
-
-    if(p.life<=0){
-      particles.splice(i,1);
-    }
-  }
-
-
-  if(state!=="play"){
-    return;
-  }
-
-
-  gameTime++;
-
-  difficulty=
-  1+gameTime/1800;
-
-
-  // PLAYER LIMITS
-
-  player.x=
-  Math.max(
-    50,
-    Math.min(W-65,player.x)
-  );
-
-  player.y=
-  Math.max(
-    50,
-    Math.min(H-65,player.y)
-  );
-
-
-  // FIRE
-
-  if(player.fireCooldown>0){
-    player.fireCooldown--;
-  }
-
-  if(
-    firing &&
-    player.fireCooldown<=0
-  ){
-    shoot();
-  }
-
-
-  // SPAWN
-
-  const spawnRate=
-  Math.max(
-    38,
-    82-Math.floor(difficulty*5)
-  );
-
-  if(gameTime%spawnRate===0){
-    spawnAsteroid();
-  }
-
-
-  // BULLETS
-
-  for(let i=bullets.length-1;i>=0;i--){
-
-    const b=bullets[i];
-
-    b.x+=b.vx;
-
-    if(b.x>W+40){
-      bullets.splice(i,1);
-    }
-  }
-
-
-  // ASTEROIDS
-
-  for(let i=asteroids.length-1;i>=0;i--){
-
-    const a=asteroids[i];
-
-    a.x+=a.vx;
-    a.y+=a.vy;
-
-    a.rotation+=a.spin;
-
-
-    // PLAYER COLLISION
-
-    if(
-      hitCircle(
-        player.x,
-        player.y,
-        player.radius,
-
-        a.x,
-        a.y,
-        a.radius*.7
-      )
-    ){
-
-      die();
-      break;
-    }
-
-
-    // BULLET COLLISION
-
-    let removed=false;
-
-    for(let j=bullets.length-1;j>=0;j--){
-
-      const b=bullets[j];
-
-      if(
-        hitCircle(
-          b.x,
-          b.y,
-          b.radius,
-
-          a.x,
-          a.y,
-          a.radius*.82
-        )
-      ){
-
-        bullets.splice(j,1);
-
-        a.health--;
-
-
-        // IMPACT FLASH
-
-        burst(
-          b.x,
-          b.y,
-          7,
-          "hot",
-          4
-        );
-
-        burst(
-          b.x,
-          b.y,
-          5,
-          "rock",
-          4
-        );
-
-
-        if(a.health<=0){
-
-          destroyAsteroid(i);
-
-          removed=true;
-
-          break;
-        }
-      }
-    }
-
-    if(removed){
-      continue;
-    }
-
-
-    if(
-      a.x<-a.radius-100 ||
-      a.y<-180 ||
-      a.y>H+180
-    ){
-
-      asteroids.splice(i,1);
-    }
-  }
+  if(removed)continue;
+  if(a.x<-a.radius-100||a.y<-180||a.y>H+180)asteroids.splice(i,1);
+ }
 }
-
-
-// ========================================
-// SPACE BACKGROUND
-// ========================================
-
 function drawSpace(){
-
-  const g=
-  ctx.createLinearGradient(
-    0,0,W,H
-  );
-
-  g.addColorStop(
-    0,
-    "#01040d"
-  );
-
-  g.addColorStop(
-    .48,
-    "#07142e"
-  );
-
-  g.addColorStop(
-    1,
-    "#170725"
-  );
-
-  ctx.fillStyle=g;
-
-  ctx.fillRect(
-    0,0,W,H
-  );
-
-
-  // SUBTLE NEBULA
-
-  const neb=
-  ctx.createRadialGradient(
-    W*.72,
-    H*.28,
-    10,
-
-    W*.72,
-    H*.28,
-    W*.75
-  );
-
-  neb.addColorStop(
-    0,
-    "rgba(71,77,190,.17)"
-  );
-
-  neb.addColorStop(
-    .5,
-    "rgba(36,64,140,.07)"
-  );
-
-  neb.addColorStop(
-    1,
-    "rgba(0,0,0,0)"
-  );
-
-  ctx.fillStyle=neb;
-
-  ctx.fillRect(
-    0,0,W,H
-  );
-
-
-  // STARS
-
-  for(const s of stars){
-
-    ctx.globalAlpha=s.alpha;
-
-    ctx.fillStyle="#fff";
-
-    ctx.fillRect(
-      s.x,
-      s.y,
-      s.size,
-      s.size
-    );
-  }
-
-  ctx.globalAlpha=1;
+ const g=ctx.createLinearGradient(0,0,W,H);g.addColorStop(0,"#01040d");g.addColorStop(.48,"#07142e");g.addColorStop(1,"#170725");ctx.fillStyle=g;ctx.fillRect(0,0,W,H);
+ const neb=ctx.createRadialGradient(W*.72,H*.28,10,W*.72,H*.28,W*.75);neb.addColorStop(0,"rgba(71,77,190,.17)");neb.addColorStop(.5,"rgba(36,64,140,.07)");neb.addColorStop(1,"rgba(0,0,0,0)");ctx.fillStyle=neb;ctx.fillRect(0,0,W,H);
+ for(const s of stars){ctx.globalAlpha=s.alpha;ctx.fillStyle="#fff";ctx.fillRect(s.x,s.y,s.size,s.size)}ctx.globalAlpha=1;
 }
-
-
-// ========================================
-// REALISTIC ASTEROID
-// ========================================
-
 function drawAsteroid(a){
-
-  ctx.save();
-
-  ctx.translate(
-    a.x,
-    a.y
-  );
-
-  ctx.rotate(
-    a.rotation
-  );
-
-
-  // SHADOW / DEPTH
-
-  ctx.shadowColor=
-  "rgba(0,0,0,.7)";
-
-  ctx.shadowBlur=8;
-
-
-  // ROCK GRADIENT
-
-  const rock=
-  ctx.createRadialGradient(
-    -a.radius*.35,
-    -a.radius*.4,
-    2,
-
-    0,
-    0,
-    a.radius*1.2
-  );
-
-  rock.addColorStop(
-    0,
-    "#aaa09a"
-  );
-
-  rock.addColorStop(
-    .28,
-    "#766e69"
-  );
-
-  rock.addColorStop(
-    .65,
-    "#4b4646"
-  );
-
-  rock.addColorStop(
-    1,
-    "#242329"
-  );
-
-  ctx.fillStyle=rock;
-
-
-  // IRREGULAR BODY
-
-  ctx.beginPath();
-
-  const count=a.shape.length;
-
-  for(let i=0;i<count;i++){
-
-    const angle=
-    i/count*
-    Math.PI*2;
-
-    const r=
-    a.radius*
-    a.shape[i];
-
-    const x=
-    Math.cos(angle)*r;
-
-    const y=
-    Math.sin(angle)*r;
-
-    if(i===0){
-      ctx.moveTo(x,y);
-    }else{
-      ctx.lineTo(x,y);
-    }
-  }
-
-  ctx.closePath();
-
-  ctx.fill();
-
-
-  ctx.shadowBlur=0;
-
-
-  // CRATER 1
-
-  ctx.fillStyle=
-  "rgba(25,23,27,.65)";
-
-  ctx.beginPath();
-
-  ctx.ellipse(
-    -a.radius*.28,
-    -a.radius*.17,
-    a.radius*.23,
-    a.radius*.16,
-    .3,
-    0,
-    Math.PI*2
-  );
-
-  ctx.fill();
-
-
-  // CRATER HIGHLIGHT
-
-  ctx.strokeStyle=
-  "rgba(190,175,160,.22)";
-
-  ctx.lineWidth=
-  Math.max(1,a.radius*.04);
-
-  ctx.beginPath();
-
-  ctx.ellipse(
-    -a.radius*.28,
-    -a.radius*.17,
-    a.radius*.23,
-    a.radius*.16,
-    .3,
-    Math.PI,
-    Math.PI*2
-  );
-
-  ctx.stroke();
-
-
-  // CRATER 2
-
-  ctx.fillStyle=
-  "rgba(30,28,31,.55)";
-
-  ctx.beginPath();
-
-  ctx.arc(
-    a.radius*.3,
-    a.radius*.18,
-    a.radius*.13,
-    0,
-    Math.PI*2
-  );
-
-  ctx.fill();
-
-
-  // CRATER 3 FOR BIG ROCKS
-
-  if(a.size>1){
-
-    ctx.fillStyle=
-    "rgba(38,34,35,.48)";
-
-    ctx.beginPath();
-
-    ctx.arc(
-      a.radius*.12,
-      -a.radius*.43,
-      a.radius*.10,
-      0,
-      Math.PI*2
-    );
-
-    ctx.fill();
-  }
-
-
-  // DAMAGE GLOW
-
-  const maxHealth=a.size;
-
-  if(a.health<maxHealth){
-
-    ctx.globalAlpha=.8;
-
-    ctx.strokeStyle="#ff6b25";
-
-    ctx.lineWidth=2;
-
-    ctx.beginPath();
-
-    ctx.moveTo(
-      -a.radius*.05,
-      -a.radius*.55
-    );
-
-    ctx.lineTo(
-      a.radius*.05,
-      -a.radius*.18
-    );
-
-    ctx.lineTo(
-      -a.radius*.15,
-      a.radius*.1
-    );
-
-    ctx.lineTo(
-      a.radius*.12,
-      a.radius*.4
-    );
-
-    ctx.stroke();
-
-    ctx.globalAlpha=1;
-  }
-
-
-  ctx.restore();
+ ctx.save();ctx.translate(a.x,a.y);ctx.rotate(a.rotation);ctx.shadowColor="rgba(0,0,0,.7)";ctx.shadowBlur=8;
+ const rock=ctx.createRadialGradient(-a.radius*.35,-a.radius*.4,2,0,0,a.radius*1.2);rock.addColorStop(0,"#aaa09a");rock.addColorStop(.28,"#766e69");rock.addColorStop(.65,"#4b4646");rock.addColorStop(1,"#242329");ctx.fillStyle=rock;
+ ctx.beginPath();const count=a.shape.length;
+ for(let i=0;i<count;i++){const angle=i/count*Math.PI*2,r=a.radius*a.shape[i],x=Math.cos(angle)*r,y=Math.sin(angle)*r;i===0?ctx.moveTo(x,y):ctx.lineTo(x,y)}
+ ctx.closePath();ctx.fill();ctx.shadowBlur=0;
+ ctx.fillStyle="rgba(25,23,27,.65)";ctx.beginPath();ctx.ellipse(-a.radius*.28,-a.radius*.17,a.radius*.23,a.radius*.16,.3,0,Math.PI*2);ctx.fill();
+ ctx.strokeStyle="rgba(190,175,160,.22)";ctx.lineWidth=Math.max(1,a.radius*.04);ctx.beginPath();ctx.ellipse(-a.radius*.28,-a.radius*.17,a.radius*.23,a.radius*.16,.3,Math.PI,Math.PI*2);ctx.stroke();
+ ctx.fillStyle="rgba(30,28,31,.55)";ctx.beginPath();ctx.arc(a.radius*.3,a.radius*.18,a.radius*.13,0,Math.PI*2);ctx.fill();
+ if(a.size>1){ctx.fillStyle="rgba(38,34,35,.48)";ctx.beginPath();ctx.arc(a.radius*.12,-a.radius*.43,a.radius*.10,0,Math.PI*2);ctx.fill()}
+ if(a.health<a.size){ctx.globalAlpha=.8;ctx.strokeStyle="#ff6b25";ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(-a.radius*.05,-a.radius*.55);ctx.lineTo(a.radius*.05,-a.radius*.18);ctx.lineTo(-a.radius*.15,a.radius*.1);ctx.lineTo(a.radius*.12,a.radius*.4);ctx.stroke();ctx.globalAlpha=1}
+ ctx.restore();
 }
-
-
-// ========================================
-// BULLETS
-// ========================================
-
 function drawBullets(){
-
-  for(const b of bullets){
-
-    ctx.shadowColor="#ff3030";
-    ctx.shadowBlur=10;
-
-    ctx.fillStyle="#ff3030";
-
-    ctx.fillRect(
-      b.x-11,
-      b.y-2,
-      25,
-      4
-    );
-
-    ctx.fillStyle="#fff";
-
-    ctx.fillRect(
-      b.x+5,
-      b.y-1,
-      9,
-      2
-    );
-
-    ctx.shadowBlur=0;
-  }
+ for(const b of bullets){ctx.shadowColor="#ff3030";ctx.shadowBlur=10;ctx.fillStyle="#ff3030";ctx.fillRect(b.x-11,b.y-2,25,4);ctx.fillStyle="#fff";ctx.fillRect(b.x+5,b.y-1,9,2);ctx.shadowBlur=0}
 }
-
-
-// ========================================
-// PARTICLES
-// ========================================
-
+function drawShockwaves(){
+ for(const s of shockwaves){const alpha=Math.max(0,s.life/s.maxLife);ctx.save();ctx.globalAlpha=alpha*.8;ctx.strokeStyle="#ff9b3d";ctx.shadowColor="#ff5a1f";ctx.shadowBlur=14;ctx.lineWidth=Math.max(2,5*alpha);ctx.beginPath();ctx.arc(s.x,s.y,s.radius,0,Math.PI*2);ctx.stroke();ctx.restore()}
+}
 function drawParticles(){
-
-  for(const p of particles){
-
-    ctx.globalAlpha=
-    Math.max(
-      0,
-      p.life/p.maxLife
-    );
-
-    if(p.type==="red"){
-
-      ctx.fillStyle="#ff302d";
-
-    }else if(p.type==="laser"){
-
-      ctx.fillStyle="#ff4a43";
-
-    }else if(p.type==="hot"){
-
-      ctx.fillStyle=
-      p.life%2===0
-      ? "#ff7a22"
-      : "#ffd36a";
-
-    }else{
-
-      ctx.fillStyle="#93847a";
-    }
-
-    ctx.fillRect(
-      p.x,
-      p.y,
-      p.size,
-      p.size
-    );
-  }
-
-  ctx.globalAlpha=1;
+ for(const p of particles){
+  ctx.globalAlpha=Math.max(0,p.life/p.maxLife);
+  if(p.type==="flash"){
+   const glow=ctx.createRadialGradient(p.x,p.y,0,p.x,p.y,p.size);glow.addColorStop(0,"rgba(255,255,255,1)");glow.addColorStop(.22,"rgba(255,226,125,.95)");glow.addColorStop(.55,"rgba(255,104,25,.55)");glow.addColorStop(1,"rgba(255,60,10,0)");
+   ctx.fillStyle=glow;ctx.beginPath();ctx.arc(p.x,p.y,p.size,0,Math.PI*2);ctx.fill();continue;
+  }else if(p.type==="debris"){
+   ctx.save();ctx.translate(p.x,p.y);ctx.rotate(p.rotation);ctx.fillStyle="#665b55";ctx.fillRect(-p.size*.65,-p.size*.4,p.size*1.3,p.size*.8);ctx.fillStyle="#a39183";ctx.fillRect(-p.size*.45,-p.size*.32,p.size*.5,p.size*.18);ctx.restore();continue;
+  }else if(p.type==="red")ctx.fillStyle="#ff302d";
+  else if(p.type==="laser")ctx.fillStyle="#ff4a43";
+  else if(p.type==="hot")ctx.fillStyle=p.life%2===0?"#ff7a22":"#ffd36a";
+  else ctx.fillStyle="#93847a";
+  ctx.fillRect(p.x,p.y,p.size,p.size);
+ }
+ ctx.globalAlpha=1;
 }
-
-
-// ========================================
-// PLAYER
-// ========================================
-
 function drawPlayer(){
-
-  if(!raptorReady){
-    return;
-  }
-
-  const w=player.width;
-
-  const h=
-  w*
-  raptorImg.naturalHeight/
-  raptorImg.naturalWidth;
-
-  ctx.save();
-
-  ctx.translate(
-    player.x,
-    player.y
-  );
-
-  ctx.drawImage(
-    raptorImg,
-
-    -w*.46,
-    -h*.5,
-
-    w,
-    h
-  );
-
-  ctx.restore();
+ if(!raptorReady)return;const w=player.width,h=w*raptorImg.naturalHeight/raptorImg.naturalWidth;
+ ctx.save();ctx.translate(player.x,player.y);ctx.drawImage(raptorImg,-w*.46,-h*.5,w,h);ctx.restore();
 }
-
-
-// ========================================
-// FIRE BUTTON
-// ========================================
-
 function drawFireButton(){
-
-  if(state!=="play"){
-    return;
-  }
-
-  ctx.save();
-
-  ctx.globalAlpha=
-  firing ? .85 : .5;
-
-  ctx.fillStyle="#420a12";
-
-  ctx.beginPath();
-
-  ctx.arc(
-    fireButton.x,
-    fireButton.y,
-    fireButton.radius,
-    0,
-    Math.PI*2
-  );
-
-  ctx.fill();
-
-
-  ctx.globalAlpha=1;
-
-  ctx.strokeStyle="#ff3434";
-  ctx.lineWidth=3;
-
-  ctx.beginPath();
-
-  ctx.arc(
-    fireButton.x,
-    fireButton.y,
-    fireButton.radius-3,
-    0,
-    Math.PI*2
-  );
-
-  ctx.stroke();
-
-
-  ctx.globalAlpha=
-  firing ? 1 : .72;
-
-  ctx.fillStyle="#d31e29";
-
-  ctx.beginPath();
-
-  ctx.arc(
-    fireButton.x,
-    fireButton.y,
-    34,
-    0,
-    Math.PI*2
-  );
-
-  ctx.fill();
-
-
-  ctx.globalAlpha=1;
-
-  ctx.fillStyle="#fff";
-
-  ctx.textAlign="center";
-  ctx.textBaseline="middle";
-
-  ctx.font="bold 14px Arial";
-
-  ctx.fillText(
-    "FIRE",
-    fireButton.x,
-    fireButton.y
-  );
-
-  ctx.restore();
+ if(state!=="play")return;ctx.save();ctx.globalAlpha=firing?.85:.5;ctx.fillStyle="#420a12";ctx.beginPath();ctx.arc(fireButton.x,fireButton.y,fireButton.radius,0,Math.PI*2);ctx.fill();
+ ctx.globalAlpha=1;ctx.strokeStyle="#ff3434";ctx.lineWidth=3;ctx.beginPath();ctx.arc(fireButton.x,fireButton.y,fireButton.radius-3,0,Math.PI*2);ctx.stroke();
+ ctx.globalAlpha=firing?1:.72;ctx.fillStyle="#d31e29";ctx.beginPath();ctx.arc(fireButton.x,fireButton.y,34,0,Math.PI*2);ctx.fill();
+ ctx.globalAlpha=1;ctx.fillStyle="#fff";ctx.textAlign="center";ctx.textBaseline="middle";ctx.font="bold 14px Arial";ctx.fillText("FIRE",fireButton.x,fireButton.y);ctx.restore();
 }
-
-
-// ========================================
-// HUD
-// ========================================
-
-function drawHUD(){
-
-  ctx.textAlign="center";
-  ctx.textBaseline="alphabetic";
-
-  ctx.fillStyle="#fff";
-
-  ctx.font="bold 27px Arial";
-
-  ctx.fillText(
-    score,
-    W/2,
-    45
-  );
-
-  ctx.font="bold 13px Arial";
-
-  ctx.fillText(
-    "BEST "+high,
-    W/2,
-    66
-  );
-}
-
-
-// ========================================
-// START SCREEN
-// ========================================
-
+function drawHUD(){ctx.textAlign="center";ctx.textBaseline="alphabetic";ctx.fillStyle="#fff";ctx.font="bold 27px Arial";ctx.fillText(score,W/2,45);ctx.font="bold 13px Arial";ctx.fillText("BEST "+high,W/2,66)}
 function drawStart(){
-
-  ctx.fillStyle=
-  "rgba(2,5,15,.78)";
-
-  ctx.fillRect(
-    22,
-    H*.25,
-    W-44,
-    285
-  );
-
-  ctx.textAlign="center";
-
-  ctx.fillStyle="#fff";
-
-  ctx.font="bold 32px Arial";
-
-  ctx.fillText(
-    "DINO INVADERS",
-    W/2,
-    H*.34
-  );
-
-  ctx.fillStyle="#ff3535";
-
-  ctx.font="bold 27px Arial";
-
-  ctx.fillText(
-    "SPACE",
-    W/2,
-    H*.395
-  );
-
-
-  if(raptorReady){
-
-    ctx.fillStyle="#fff";
-
-    ctx.font="16px Arial";
-
-    ctx.fillText(
-      "DRAG TO FLY",
-      W/2,
-      H*.48
-    );
-
-    ctx.fillText(
-      "DESTROY THE ASTEROIDS",
-      W/2,
-      H*.52
-    );
-
-    ctx.font="bold 20px Arial";
-
-    ctx.fillText(
-      "TAP TO LAUNCH",
-      W/2,
-      H*.61
-    );
-
-  }else if(raptorFailed){
-
-    ctx.fillStyle="#ff5555";
-
-    ctx.font="bold 17px Arial";
-
-    ctx.fillText(
-      "RAPTOR IMAGE FAILED TO LOAD",
-      W/2,
-      H*.50
-    );
-
-  }else{
-
-    ctx.fillStyle="#fff";
-
-    ctx.font="bold 17px Arial";
-
-    ctx.fillText(
-      "LOADING RAPTOR...",
-      W/2,
-      H*.51
-    );
-  }
+ ctx.fillStyle="rgba(2,5,15,.78)";ctx.fillRect(22,H*.25,W-44,285);ctx.textAlign="center";ctx.fillStyle="#fff";ctx.font="bold 32px Arial";ctx.fillText("DINO INVADERS",W/2,H*.34);
+ ctx.fillStyle="#ff3535";ctx.font="bold 27px Arial";ctx.fillText("SPACE",W/2,H*.395);
+ if(raptorReady){ctx.fillStyle="#fff";ctx.font="16px Arial";ctx.fillText("DRAG TO FLY",W/2,H*.48);ctx.fillText("DESTROY THE ASTEROIDS",W/2,H*.52);ctx.font="bold 20px Arial";ctx.fillText("TAP TO LAUNCH",W/2,H*.61)}
+ else if(raptorFailed){ctx.fillStyle="#ff5555";ctx.font="bold 17px Arial";ctx.fillText("RAPTOR IMAGE FAILED TO LOAD",W/2,H*.50)}
+ else{ctx.fillStyle="#fff";ctx.font="bold 17px Arial";ctx.fillText("LOADING RAPTOR...",W/2,H*.51)}
 }
-
-
-// ========================================
-// GAME OVER
-// ========================================
-
 function drawDead(){
-
-  ctx.fillStyle=
-  "rgba(2,5,15,.82)";
-
-  ctx.fillRect(
-    25,
-    H*.33,
-    W-50,
-    205
-  );
-
-  ctx.textAlign="center";
-
-  ctx.fillStyle="#ff3535";
-
-  ctx.font="bold 29px Arial";
-
-  ctx.fillText(
-    "RAPTOR DOWN",
-    W/2,
-    H*.41
-  );
-
-  ctx.fillStyle="#fff";
-
-  ctx.font="20px Arial";
-
-  ctx.fillText(
-    "Score: "+score,
-    W/2,
-    H*.48
-  );
-
-  ctx.font="bold 19px Arial";
-
-  ctx.fillText(
-    "TAP TO RELAUNCH",
-    W/2,
-    H*.56
-  );
+ ctx.fillStyle="rgba(2,5,15,.82)";ctx.fillRect(25,H*.33,W-50,205);ctx.textAlign="center";ctx.fillStyle="#ff3535";ctx.font="bold 29px Arial";ctx.fillText("RAPTOR DOWN",W/2,H*.41);
+ ctx.fillStyle="#fff";ctx.font="20px Arial";ctx.fillText("Score: "+score,W/2,H*.48);ctx.font="bold 19px Arial";ctx.fillText("TAP TO RELAUNCH",W/2,H*.56);
 }
-
-
-// ========================================
-// DRAW
-// ========================================
-
 function draw(){
-
-  ctx.save();
-
-  if(screenShake>0){
-
-    ctx.translate(
-      (Math.random()-.5)*screenShake,
-      (Math.random()-.5)*screenShake
-    );
-  }
-
-  drawSpace();
-
-  for(const a of asteroids){
-    drawAsteroid(a);
-  }
-
-  drawBullets();
-  drawParticles();
-  drawPlayer();
-
-  ctx.restore();
-
-  drawHUD();
-  drawFireButton();
-
-  if(state==="start"){
-    drawStart();
-  }
-
-  if(state==="dead"){
-    drawDead();
-  }
+ ctx.save();if(screenShake>0)ctx.translate((Math.random()-.5)*screenShake,(Math.random()-.5)*screenShake);
+ drawSpace();for(const a of asteroids)drawAsteroid(a);drawBullets();drawShockwaves();drawParticles();drawPlayer();ctx.restore();
+ drawHUD();drawFireButton();if(state==="start")drawStart();if(state==="dead")drawDead();
 }
-
-
-// ========================================
-// GAME LOOP
-// ========================================
-
-let last=performance.now();
-let accumulator=0;
-
-const STEP=1000/60;
-
-function loop(now){
-
-  let delta=now-last;
-
-  last=now;
-
-  if(delta>80){
-    delta=80;
-  }
-
-  accumulator+=delta;
-
-  while(accumulator>=STEP){
-
-    update();
-
-    accumulator-=STEP;
-  }
-
-  draw();
-
-  requestAnimationFrame(loop);
-}
-
+let last=performance.now(),accumulator=0;const STEP=1000/60;
+function loop(now){let delta=now-last;last=now;if(delta>80)delta=80;accumulator+=delta;while(accumulator>=STEP){update();accumulator-=STEP}draw();requestAnimationFrame(loop)}
 requestAnimationFrame(loop);
-
-
-// ========================================
-// TOUCH POSITION
-// ========================================
-
-function touchPosition(touch){
-
-  const rect=
-  canvas.getBoundingClientRect();
-
-  return{
-    x:touch.clientX-rect.left,
-    y:touch.clientY-rect.top
-  };
-}
-
-
-// ========================================
-// TOUCH START
-// ========================================
-
-canvas.addEventListener(
-"touchstart",
-function(e){
-
-  e.preventDefault();
-
-  if(
-    state==="start" ||
-    state==="dead"
-  ){
-
-    startGame();
-    return;
-  }
-
-
-  for(const touch of e.changedTouches){
-
-    const p=
-    touchPosition(touch);
-
-
-    // FIRE HAS PRIORITY
-
-    if(
-      onFireButton(p.x,p.y) &&
-      fireTouchID===null
-    ){
-
-      fireTouchID=
-      touch.identifier;
-
-      firing=true;
-
-      if(player.fireCooldown<=0){
-        shoot();
-      }
-
-      continue;
-    }
-
-
-    // MOVEMENT
-
-    if(moveTouchID===null){
-
-      moveTouchID=
-      touch.identifier;
-
-      lastMoveX=p.x;
-      lastMoveY=p.y;
-    }
-  }
-
-},
-{passive:false}
-);
-
-
-// ========================================
-// TOUCH MOVE
-// ========================================
-
-canvas.addEventListener(
-"touchmove",
-function(e){
-
-  e.preventDefault();
-
-  if(state!=="play"){
-    return;
-  }
-
-  for(const touch of e.touches){
-
-    if(
-      touch.identifier!==
-      moveTouchID
-    ){
-      continue;
-    }
-
-    const p=
-    touchPosition(touch);
-
-    const dx=
-    p.x-lastMoveX;
-
-    const dy=
-    p.y-lastMoveY;
-
-    player.x+=dx;
-    player.y+=dy;
-
-    player.x=
-    Math.max(
-      50,
-      Math.min(W-65,player.x)
-    );
-
-    player.y=
-    Math.max(
-      50,
-      Math.min(H-65,player.y)
-    );
-
-    lastMoveX=p.x;
-    lastMoveY=p.y;
-  }
-
-},
-{passive:false}
-);
-
-
-// ========================================
-// TOUCH RELEASE
-// ========================================
-
-function releaseTouches(e){
-
-  e.preventDefault();
-
-  for(const touch of e.changedTouches){
-
-    if(
-      touch.identifier===
-      moveTouchID
-    ){
-      moveTouchID=null;
-    }
-
-    if(
-      touch.identifier===
-      fireTouchID
-    ){
-
-      fireTouchID=null;
-      firing=false;
-    }
-  }
-}
-
-
-canvas.addEventListener(
-"touchend",
-releaseTouches,
-{passive:false}
-);
-
-canvas.addEventListener(
-"touchcancel",
-releaseTouches,
-{passive:false}
-);
-
-
-// ========================================
-// INITIALIZE
-// ========================================
-
+function touchPosition(touch){const rect=canvas.getBoundingClientRect();return{x:touch.clientX-rect.left,y:touch.clientY-rect.top}}
+canvas.addEventListener("touchstart",function(e){
+ e.preventDefault();if(state==="start"||state==="dead"){startGame();return}
+ for(const touch of e.changedTouches){const p=touchPosition(touch);
+  if(onFireButton(p.x,p.y)&&fireTouchID===null){fireTouchID=touch.identifier;firing=true;if(player.fireCooldown<=0)shoot();continue}
+  if(moveTouchID===null){moveTouchID=touch.identifier;lastMoveX=p.x;lastMoveY=p.y}
+ }
+},{passive:false});
+canvas.addEventListener("touchmove",function(e){
+ e.preventDefault();if(state!=="play")return;
+ for(const touch of e.touches){if(touch.identifier!==moveTouchID)continue;const p=touchPosition(touch),dx=p.x-lastMoveX,dy=p.y-lastMoveY;
+  player.x+=dx;player.y+=dy;player.x=Math.max(50,Math.min(W-65,player.x));player.y=Math.max(50,Math.min(H-65,player.y));lastMoveX=p.x;lastMoveY=p.y;
+ }
+},{passive:false});
+function releaseTouches(e){e.preventDefault();for(const touch of e.changedTouches){if(touch.identifier===moveTouchID)moveTouchID=null;if(touch.identifier===fireTouchID){fireTouchID=null;firing=false}}}
+canvas.addEventListener("touchend",releaseTouches,{passive:false});
+canvas.addEventListener("touchcancel",releaseTouches,{passive:false});
 resize();
-
 </script>
 </body>
 </html>
