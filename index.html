@@ -17,7 +17,7 @@ canvas{position:fixed;inset:0;width:100%;height:100%;display:block;touch-action:
 <body>
 <canvas id="game"></canvas>
 <script>
-// DINO INVADERS: SPACE V3.0 — DENSER ASTEROIDS + EXTRA WIDE FIELD
+// DINO INVADERS: SPACE V3.1 — SMALLER RAPTOR
 const canvas=document.getElementById("game");
 const ctx=canvas.getContext("2d",{alpha:false,desynchronized:true});
 let W=0,H=0;
@@ -32,7 +32,7 @@ raptorImg.onerror=()=>{raptorReady=false;raptorFailed=true};
 raptorImg.src="8BBBE99D-BE50-463D-AB99-9356374B034D.png";
 
 let state="start",score=0,high=Number(localStorage.spaceHigh||0),gameTime=0,difficulty=1,screenShake=0;
-const player={x:100,y:300,radius:12.24,width:98.6,fireCooldown:0};
+const player={x:100,y:300,radius:9.792,width:78.88,fireCooldown:0};
 let stars=[],bullets=[],asteroids=[],particles=[],shockwaves=[],enemies=[],planets=[];
 let moveTouchID=null,lastMoveX=0,lastMoveY=0,firing=false;
 
@@ -108,8 +108,8 @@ function reset(){
 function startGame(){if(!raptorReady)return;reset();state="play"}
 function shoot(){
  if(state!=="play")return;
- bullets.push({x:player.x+55,y:player.y-5,vx:12,radius:2.72});player.fireCooldown=7;
- for(let i=0;i<3;i++)particles.push({x:player.x+54,y:player.y-5,vx:2+Math.random()*3,vy:(Math.random()-.5)*2,life:10,maxLife:10,size:2+Math.random()*2,type:"laser"});
+ bullets.push({x:player.x+44,y:player.y-4,vx:12,radius:2.72});player.fireCooldown=7;
+ for(let i=0;i<3;i++)particles.push({x:player.x+43,y:player.y-4,vx:2+Math.random()*3,vy:(Math.random()-.5)*2,life:10,maxLife:10,size:2+Math.random()*2,type:"laser"});
 }
 function makeAsteroid(x,y,size,vx,vy){
  let radius,health,points;
