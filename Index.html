@@ -1,0 +1,1735 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+
+<meta name="viewport"
+content="width=device-width,
+initial-scale=1,
+maximum-scale=1,
+user-scalable=no,
+viewport-fit=cover">
+
+<meta name="apple-mobile-web-app-capable" content="yes">
+
+<title>Dino Invaders: Space</title>
+
+<style>
+
+html,body{
+  margin:0;
+  width:100%;
+  height:100%;
+  overflow:hidden;
+  background:#02040d;
+  touch-action:none;
+  font-family:Arial,sans-serif;
+}
+
+canvas{
+  display:block;
+  width:100vw;
+  height:100vh;
+}
+
+</style>
+</head>
+
+<body>
+
+<canvas id="game"></canvas>
+
+<script>
+
+// =====================================
+// CANVAS
+// =====================================
+
+const canvas=
+  document.getElementById("game");
+
+const ctx=
+  canvas.getContext("2d",{
+    alpha:false,
+    desynchronized:true
+  });
+
+let W=innerWidth;
+let H=innerHeight;
+
+function resize(){
+
+  W=innerWidth;
+  H=innerHeight;
+
+  canvas.width=
+    Math.round(W);
+
+  canvas.height=
+    Math.round(H);
+
+  ctx.imageSmoothingEnabled=true;
+}
+
+resize();
+
+addEventListener(
+  "resize",
+  resize
+);
+
+
+// =====================================
+// CYBER RAPTOR
+// =====================================
+
+const raptorImg=
+  new Image();
+
+raptorImg.src=
+"8BBBE99D-BE50-463D-AB99-9356374B034D.png";
+
+
+// =====================================
+// GAME STATE
+// =====================================
+
+let state="start";
+
+let score=0;
+
+let high=
+  Number(
+    localStorage.spaceHigh||0
+  );
+
+let time=0;
+
+let difficulty=1;
+
+let screenShake=0;
+
+
+// =====================================
+// PLAYER
+// =====================================
+
+const player={
+
+  x:90,
+
+  y:300,
+
+  targetX:90,
+
+  targetY:300,
+
+  radius:18,
+
+  width:145,
+
+  fireCooldown:0
+};
+
+
+// =====================================
+// ARRAYS
+// =====================================
+
+let stars=[];
+
+let bullets=[];
+
+let meteors=[];
+
+let particles=[];
+
+
+// =====================================
+// INPUT
+// =====================================
+
+let touching=false;
+
+let pointerX=0;
+let pointerY=0;
+
+
+// =====================================
+// STARS
+// =====================================
+
+function createStars(){
+
+  stars=[];
+
+  const count=
+    Math.min(
+      100,
+      Math.floor(
+        W*H/4500
+      )
+    );
+
+  for(let i=0;i<count;i++){
+
+    stars.push({
+
+      x:Math.random()*W,
+
+      y:Math.random()*H,
+
+      size:
+        .5+
+        Math.random()*1.8,
+
+      speed:
+        .25+
+        Math.random()*1.7,
+
+      alpha:
+        .3+
+        Math.random()*.7
+    });
+  }
+}
+
+createStars();
+
+
+// =====================================
+// RESET
+// =====================================
+
+function reset(){
+
+  score=0;
+
+  time=0;
+
+  difficulty=1;
+
+  screenShake=0;
+
+  bullets.length=0;
+
+  meteors.length=0;
+
+  particles.length=0;
+
+  player.x=90;
+
+  player.y=H*.5;
+
+  player.targetX=90;
+
+  player.targetY=H*.5;
+
+  player.fireCooldown=0;
+}
+
+
+// =====================================
+// START
+// =====================================
+
+function startGame(){
+
+  reset();
+
+  state="play";
+}
+
+
+// =====================================
+// SHOOTING
+// =====================================
+
+function shoot(){
+
+  bullets.push({
+
+    x:
+      player.x+
+      55,
+
+    y:
+      player.y-5,
+
+    vx:11,
+
+    radius:4
+  });
+
+
+  player.fireCooldown=7;
+
+
+  // muzzle particles
+
+  for(let i=0;i<2;i++){
+
+    particles.push({
+
+      x:
+        player.x+
+        52,
+
+      y:
+        player.y-5,
+
+      vx:
+        2+
+        Math.random()*2,
+
+      vy:
+        (Math.random()-.5)*2,
+
+      life:9,
+
+      size:
+        2+
+        Math.random()*2,
+
+      type:"laser"
+    });
+  }
+}
+
+
+// =====================================
+// METEORS
+// =====================================
+
+function spawnMeteor(){
+
+  const radius=
+    20+
+    Math.random()*28;
+
+
+  /*
+    Meteors don't use fixed lanes.
+    Every meteor receives its own
+    trajectory.
+  */
+
+  const targetY=
+    Math.random()*H;
+
+
+  const startY=
+    Math.random()*
+    (H+200)-100;
+
+
+  const speed=
+    2.4+
+    difficulty*.20+
+    Math.random()*1.5;
+
+
+  const vx=
+    -speed;
+
+
+  /*
+    Small vertical component means
+    some meteors travel diagonally.
+  */
+
+  let vy=
+    (targetY-startY)/
+    Math.max(
+      180,
+      W
+    )*
+    speed;
+
+
+  vy+=
+    (Math.random()-.5)*
+    1.3;
+
+
+  meteors.push({
+
+    x:
+      W+
+      radius+
+      30,
+
+    y:startY,
+
+    vx,
+
+    vy,
+
+    radius,
+
+    rotation:
+      Math.random()*
+      Math.PI*2,
+
+    spin:
+      (Math.random()-.5)*
+      .06,
+
+    health:
+      radius>38
+      ? 2
+      : 1
+  });
+}
+
+
+// =====================================
+// PARTICLES
+// =====================================
+
+function burst(
+  x,
+  y,
+  amount,
+  type
+){
+
+  for(
+    let i=0;
+    i<amount;
+    i++
+  ){
+
+    particles.push({
+
+      x,
+      y,
+
+      vx:
+        (Math.random()-.5)*7,
+
+      vy:
+        (Math.random()-.5)*7,
+
+      life:
+        14+
+        Math.random()*16,
+
+      size:
+        1+
+        Math.random()*4,
+
+      type
+    });
+  }
+}
+
+
+// =====================================
+// COLLISION
+// =====================================
+
+function hitCircle(
+  ax,
+  ay,
+  ar,
+  bx,
+  by,
+  br
+){
+
+  const dx=ax-bx;
+  const dy=ay-by;
+
+  const r=ar+br;
+
+  return(
+    dx*dx+
+    dy*dy<
+    r*r
+  );
+}
+
+
+// =====================================
+// PLAYER DEATH
+// =====================================
+
+function die(){
+
+  if(state!=="play"){
+    return;
+  }
+
+
+  state="dead";
+
+  touching=false;
+
+  screenShake=12;
+
+
+  burst(
+    player.x,
+    player.y,
+    24,
+    "red"
+  );
+
+
+  if(score>high){
+
+    high=score;
+
+    localStorage.spaceHigh=
+      high;
+  }
+}
+
+
+// =====================================
+// UPDATE STARS
+// =====================================
+
+function updateStars(){
+
+  for(const s of stars){
+
+    s.x-=
+      s.speed*
+      (
+        state==="play"
+        ? 1.25
+        : .35
+      );
+
+
+    if(s.x<-5){
+
+      s.x=W+5;
+
+      s.y=
+        Math.random()*H;
+    }
+  }
+}
+
+
+// =====================================
+// UPDATE
+// =====================================
+
+function update(){
+
+  updateStars();
+
+
+  if(screenShake>0){
+
+    screenShake*=.78;
+
+    if(screenShake<.2){
+      screenShake=0;
+    }
+  }
+
+
+  // PARTICLES
+
+  for(
+    let i=
+      particles.length-1;
+    i>=0;
+    i--
+  ){
+
+    const p=
+      particles[i];
+
+
+    p.x+=p.vx;
+
+    p.y+=p.vy;
+
+    p.life--;
+
+
+    if(p.life<=0){
+
+      particles.splice(
+        i,
+        1
+      );
+    }
+  }
+
+
+  if(state!=="play"){
+    return;
+  }
+
+
+  time++;
+
+
+  /*
+    Difficulty gradually increases.
+  */
+
+  difficulty=
+    1+
+    time/1800;
+
+
+  // PLAYER MOVEMENT
+
+  player.x+=
+    (
+      player.targetX-
+      player.x
+    )*.16;
+
+
+  player.y+=
+    (
+      player.targetY-
+      player.y
+    )*.16;
+
+
+  /*
+    Keep raptor on screen.
+  */
+
+  player.x=
+    Math.max(
+      55,
+      Math.min(
+        W*.58,
+        player.x
+      )
+    );
+
+
+  player.y=
+    Math.max(
+      45,
+      Math.min(
+        H-45,
+        player.y
+      )
+    );
+
+
+  // HOLD TO FIRE
+
+  if(
+    player.fireCooldown>0
+  ){
+
+    player.fireCooldown--;
+  }
+
+
+  if(
+    touching &&
+    player.fireCooldown<=0
+  ){
+
+    shoot();
+  }
+
+
+  // METEOR SPAWNING
+
+  const spawnRate=
+    Math.max(
+      38,
+      82-
+      Math.floor(
+        difficulty*6
+      )
+    );
+
+
+  if(time%spawnRate===0){
+
+    spawnMeteor();
+  }
+
+
+  // BULLETS
+
+  for(
+    let i=
+      bullets.length-1;
+    i>=0;
+    i--
+  ){
+
+    const b=
+      bullets[i];
+
+
+    b.x+=b.vx;
+
+
+    if(b.x>W+30){
+
+      bullets.splice(
+        i,
+        1
+      );
+    }
+  }
+
+
+  // METEORS
+
+  for(
+    let i=
+      meteors.length-1;
+    i>=0;
+    i--
+  ){
+
+    const m=
+      meteors[i];
+
+
+    m.x+=m.vx;
+
+    m.y+=m.vy;
+
+    m.rotation+=
+      m.spin;
+
+
+    // PLAYER COLLISION
+
+    if(
+      hitCircle(
+
+        player.x,
+        player.y,
+        player.radius,
+
+        m.x,
+        m.y,
+        m.radius*.72
+      )
+    ){
+
+      die();
+
+      break;
+    }
+
+
+    // BULLET COLLISION
+
+    let destroyed=false;
+
+
+    for(
+      let j=
+        bullets.length-1;
+      j>=0;
+      j--
+    ){
+
+      const b=
+        bullets[j];
+
+
+      if(
+        hitCircle(
+
+          b.x,
+          b.y,
+          b.radius,
+
+          m.x,
+          m.y,
+          m.radius*.8
+        )
+      ){
+
+        bullets.splice(
+          j,
+          1
+        );
+
+
+        m.health--;
+
+
+        burst(
+          b.x,
+          b.y,
+          4,
+          "rock"
+        );
+
+
+        if(m.health<=0){
+
+          burst(
+            m.x,
+            m.y,
+            14,
+            "rock"
+          );
+
+
+          score+=
+            Math.round(
+              m.radius
+            );
+
+
+          meteors.splice(
+            i,
+            1
+          );
+
+
+          screenShake=3;
+
+
+          destroyed=true;
+
+          break;
+        }
+      }
+    }
+
+
+    if(destroyed){
+      continue;
+    }
+
+
+    if(
+      m.x<
+      -m.radius-50 ||
+
+      m.y<
+      -200 ||
+
+      m.y>
+      H+200
+    ){
+
+      meteors.splice(
+        i,
+        1
+      );
+    }
+  }
+}
+
+
+// =====================================
+// SPACE BACKGROUND
+// =====================================
+
+function drawSpace(){
+
+  /*
+    Dark blue-space gradient.
+  */
+
+  const g=
+    ctx.createLinearGradient(
+      0,
+      0,
+      W,
+      H
+    );
+
+
+  g.addColorStop(
+    0,
+    "#030715"
+  );
+
+  g.addColorStop(
+    .5,
+    "#08122c"
+  );
+
+  g.addColorStop(
+    1,
+    "#160a27"
+  );
+
+
+  ctx.fillStyle=g;
+
+  ctx.fillRect(
+    0,
+    0,
+    W,
+    H
+  );
+
+
+  /*
+    Lightweight nebula glows.
+  */
+
+  const nebula=
+    ctx.createRadialGradient(
+
+      W*.72,
+      H*.28,
+      10,
+
+      W*.72,
+      H*.28,
+      W*.65
+    );
+
+
+  nebula.addColorStop(
+    0,
+    "rgba(76,68,170,.18)"
+  );
+
+
+  nebula.addColorStop(
+    .55,
+    "rgba(27,70,130,.08)"
+  );
+
+
+  nebula.addColorStop(
+    1,
+    "rgba(0,0,0,0)"
+  );
+
+
+  ctx.fillStyle=
+    nebula;
+
+
+  ctx.fillRect(
+    0,
+    0,
+    W,
+    H
+  );
+
+
+  // STARS
+
+  for(const s of stars){
+
+    ctx.globalAlpha=
+      s.alpha;
+
+
+    ctx.fillStyle="#fff";
+
+
+    ctx.fillRect(
+
+      Math.round(s.x),
+
+      Math.round(s.y),
+
+      s.size,
+
+      s.size
+    );
+  }
+
+
+  ctx.globalAlpha=1;
+}
+
+
+// =====================================
+// METEOR DRAWING
+// =====================================
+
+function drawMeteor(m){
+
+  ctx.save();
+
+
+  ctx.translate(
+    m.x,
+    m.y
+  );
+
+
+  ctx.rotate(
+    m.rotation
+  );
+
+
+  /*
+    Main rock.
+  */
+
+  ctx.fillStyle=
+    "#625d61";
+
+
+  ctx.beginPath();
+
+
+  const points=9;
+
+
+  for(
+    let i=0;
+    i<points;
+    i++
+  ){
+
+    const angle=
+      i/
+      points*
+      Math.PI*2;
+
+
+    const variation=
+      1+
+      Math.sin(
+        i*7.3+
+        m.radius
+      )*.13;
+
+
+    const radius=
+      m.radius*
+      variation;
+
+
+    const x=
+      Math.cos(angle)*
+      radius;
+
+
+    const y=
+      Math.sin(angle)*
+      radius;
+
+
+    if(i===0){
+
+      ctx.moveTo(
+        x,
+        y
+      );
+
+    }else{
+
+      ctx.lineTo(
+        x,
+        y
+      );
+    }
+  }
+
+
+  ctx.closePath();
+
+  ctx.fill();
+
+
+  /*
+    Rock highlight.
+  */
+
+  ctx.fillStyle=
+    "#8b8180";
+
+
+  ctx.beginPath();
+
+
+  ctx.arc(
+
+    -m.radius*.25,
+
+    -m.radius*.28,
+
+    m.radius*.25,
+
+    0,
+
+    Math.PI*2
+  );
+
+
+  ctx.fill();
+
+
+  /*
+    Crater.
+  */
+
+  ctx.fillStyle=
+    "#39363c";
+
+
+  ctx.beginPath();
+
+
+  ctx.arc(
+
+    m.radius*.28,
+
+    m.radius*.14,
+
+    m.radius*.19,
+
+    0,
+
+    Math.PI*2
+  );
+
+
+  ctx.fill();
+
+
+  ctx.restore();
+}
+
+
+// =====================================
+// BULLETS
+// =====================================
+
+function drawBullets(){
+
+  for(const b of bullets){
+
+    ctx.fillStyle=
+      "#ff2f2f";
+
+
+    ctx.fillRect(
+
+      b.x-11,
+
+      b.y-2,
+
+      24,
+
+      4
+    );
+
+
+    ctx.fillStyle=
+      "#fff";
+
+
+    ctx.fillRect(
+
+      b.x+6,
+
+      b.y-1,
+
+      8,
+
+      2
+    );
+  }
+}
+
+
+// =====================================
+// PARTICLES
+// =====================================
+
+function drawParticles(){
+
+  for(const p of particles){
+
+    ctx.globalAlpha=
+      Math.max(
+        0,
+        p.life/28
+      );
+
+
+    if(
+      p.type==="red"
+    ){
+
+      ctx.fillStyle=
+        "#ff302d";
+
+    }else if(
+      p.type==="laser"
+    ){
+
+      ctx.fillStyle=
+        "#ff4a43";
+
+    }else{
+
+      ctx.fillStyle=
+        "#b59a82";
+    }
+
+
+    ctx.fillRect(
+
+      p.x,
+
+      p.y,
+
+      p.size,
+
+      p.size
+    );
+  }
+
+
+  ctx.globalAlpha=1;
+}
+
+
+// =====================================
+// PLAYER
+// =====================================
+
+function drawPlayer(){
+
+  ctx.save();
+
+
+  ctx.translate(
+
+    player.x,
+
+    player.y
+  );
+
+
+  /*
+    Small lean based on movement.
+  */
+
+  const dy=
+    player.targetY-
+    player.y;
+
+
+  const angle=
+    Math.max(
+      -.18,
+      Math.min(
+        .18,
+        dy*.003
+      )
+    );
+
+
+  ctx.rotate(
+    angle
+  );
+
+
+  if(
+    raptorImg.complete &&
+    raptorImg.naturalWidth
+  ){
+
+    const w=
+      player.width;
+
+
+    const h=
+      w*
+      raptorImg.naturalHeight/
+      raptorImg.naturalWidth;
+
+
+    ctx.drawImage(
+
+      raptorImg,
+
+      -w*.46,
+
+      -h*.5,
+
+      w,
+
+      h
+    );
+
+  }else{
+
+    ctx.fillStyle=
+      "#d82c2c";
+
+
+    ctx.beginPath();
+
+
+    ctx.arc(
+      0,
+      0,
+      18,
+      0,
+      Math.PI*2
+    );
+
+
+    ctx.fill();
+  }
+
+
+  ctx.restore();
+}
+
+
+// =====================================
+// HUD
+// =====================================
+
+function drawHUD(){
+
+  ctx.textAlign=
+    "center";
+
+
+  ctx.fillStyle=
+    "#fff";
+
+
+  ctx.font=
+    "bold 27px Arial";
+
+
+  ctx.fillText(
+
+    score,
+
+    W/2,
+
+    45
+  );
+
+
+  ctx.font=
+    "bold 13px Arial";
+
+
+  ctx.fillText(
+
+    "BEST "+high,
+
+    W/2,
+
+    66
+  );
+}
+
+
+// =====================================
+// START SCREEN
+// =====================================
+
+function drawStart(){
+
+  ctx.fillStyle=
+    "rgba(2,5,15,.72)";
+
+
+  ctx.fillRect(
+
+    22,
+
+    H*.26,
+
+    W-44,
+
+    275
+  );
+
+
+  ctx.textAlign=
+    "center";
+
+
+  ctx.fillStyle=
+    "#fff";
+
+
+  ctx.font=
+    "bold 34px Arial";
+
+
+  ctx.fillText(
+
+    "DINO INVADERS",
+
+    W/2,
+
+    H*.35
+  );
+
+
+  ctx.fillStyle=
+    "#ff3535";
+
+
+  ctx.font=
+    "bold 27px Arial";
+
+
+  ctx.fillText(
+
+    "SPACE",
+
+    W/2,
+
+    H*.405
+  );
+
+
+  ctx.fillStyle=
+    "#fff";
+
+
+  ctx.font=
+    "16px Arial";
+
+
+  ctx.fillText(
+
+    "DRAG TO FLY",
+
+    W/2,
+
+    H*.49
+  );
+
+
+  ctx.fillText(
+
+    "HOLD TO FIRE",
+
+    W/2,
+
+    H*.53
+  );
+
+
+  ctx.font=
+    "bold 20px Arial";
+
+
+  ctx.fillText(
+
+    "TAP TO LAUNCH",
+
+    W/2,
+
+    H*.61
+  );
+}
+
+
+// =====================================
+// GAME OVER
+// =====================================
+
+function drawDead(){
+
+  ctx.fillStyle=
+    "rgba(2,5,15,.78)";
+
+
+  ctx.fillRect(
+
+    25,
+
+    H*.33,
+
+    W-50,
+
+    205
+  );
+
+
+  ctx.textAlign=
+    "center";
+
+
+  ctx.fillStyle=
+    "#ff3535";
+
+
+  ctx.font=
+    "bold 29px Arial";
+
+
+  ctx.fillText(
+
+    "RAPTOR DOWN",
+
+    W/2,
+
+    H*.41
+  );
+
+
+  ctx.fillStyle=
+    "#fff";
+
+
+  ctx.font=
+    "20px Arial";
+
+
+  ctx.fillText(
+
+    "Score: "+score,
+
+    W/2,
+
+    H*.48
+  );
+
+
+  ctx.font=
+    "bold 19px Arial";
+
+
+  ctx.fillText(
+
+    "TAP TO RELAUNCH",
+
+    W/2,
+
+    H*.56
+  );
+}
+
+
+// =====================================
+// DRAW
+// =====================================
+
+function draw(){
+
+  ctx.save();
+
+
+  if(screenShake>0){
+
+    ctx.translate(
+
+      (Math.random()-.5)*
+      screenShake,
+
+      (Math.random()-.5)*
+      screenShake
+    );
+  }
+
+
+  drawSpace();
+
+
+  for(const m of meteors){
+
+    drawMeteor(m);
+  }
+
+
+  drawBullets();
+
+  drawParticles();
+
+  drawPlayer();
+
+  ctx.restore();
+
+
+  drawHUD();
+
+
+  if(state==="start"){
+    drawStart();
+  }
+
+
+  if(state==="dead"){
+    drawDead();
+  }
+}
+
+
+// =====================================
+// GAME LOOP
+// =====================================
+
+let last=
+  performance.now();
+
+let accumulator=0;
+
+const STEP=
+  1000/60;
+
+
+function loop(now){
+
+  let delta=
+    now-last;
+
+
+  last=now;
+
+
+  if(delta>80){
+    delta=80;
+  }
+
+
+  accumulator+=
+    delta;
+
+
+  while(
+    accumulator>=STEP
+  ){
+
+    update();
+
+    accumulator-=
+      STEP;
+  }
+
+
+  draw();
+
+
+  requestAnimationFrame(
+    loop
+  );
+}
+
+
+requestAnimationFrame(
+  loop
+);
+
+
+// =====================================
+// POINTER CONTROLS
+// =====================================
+
+function setPointer(e){
+
+  const rect=
+    canvas.getBoundingClientRect();
+
+
+  pointerX=
+    e.clientX-
+    rect.left;
+
+
+  pointerY=
+    e.clientY-
+    rect.top;
+
+
+  /*
+    Player follows finger, but we
+    offset upward so the finger
+    doesn't cover the raptor.
+  */
+
+  player.targetX=
+    pointerX-35;
+
+
+  player.targetY=
+    pointerY-55;
+}
+
+
+canvas.addEventListener(
+  "pointerdown",
+  e=>{
+
+    e.preventDefault();
+
+
+    if(
+      state==="start" ||
+      state==="dead"
+    ){
+
+      startGame();
+
+      return;
+    }
+
+
+    touching=true;
+
+    setPointer(e);
+
+
+    if(
+      player.fireCooldown<=0
+    ){
+      shoot();
+    }
+  },
+  {passive:false}
+);
+
+
+canvas.addEventListener(
+  "pointermove",
+  e=>{
+
+    if(!touching){
+      return;
+    }
+
+
+    e.preventDefault();
+
+    setPointer(e);
+
+  },
+  {passive:false}
+);
+
+
+function stopTouch(){
+
+  touching=false;
+}
+
+
+canvas.addEventListener(
+  "pointerup",
+  stopTouch
+);
+
+
+canvas.addEventListener(
+  "pointercancel",
+  stopTouch
+);
+
+</script>
+
+</body>
+</html>
