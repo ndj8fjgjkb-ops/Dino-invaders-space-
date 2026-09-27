@@ -17,7 +17,7 @@ canvas{position:fixed;inset:0;width:100%;height:100%;display:block;touch-action:
 <body>
 <canvas id="game"></canvas>
 <script>
-// DINO INVADERS: SPACE V3.7 — SHIELDS + LEVEL PROGRESSION
+// DINO INVADERS: SPACE V3.8 — PERFORMANCE + STABILITY
 const canvas=document.getElementById("game");
 const ctx=canvas.getContext("2d",{alpha:false,desynchronized:true});
 let W=0,H=0;
@@ -29,7 +29,7 @@ const raptorImg=new Image();
 let raptorReady=false,raptorFailed=false;
 raptorImg.onload=()=>{raptorReady=true;raptorFailed=false};
 raptorImg.onerror=()=>{raptorReady=false;raptorFailed=true};
-raptorImg.src="8BBBE99D-BE50-463D-AB99-9356374B034D.png?v=37";
+raptorImg.src="8BBBE99D-BE50-463D-AB99-9356374B034D.png?v=38";
 
 let state="start",score=0,combatScore=0,distance=0,high=Number(localStorage.spaceHigh||0),gameTime=0,difficulty=1,screenShake=0;
 const player={x:100,y:300,radius:6.8544,width:55.216,fireCooldown:0};
@@ -45,7 +45,7 @@ function resize(){
 addEventListener("resize",resize);
 
 function createStars(){
- stars=[];const count=Math.min(120,Math.floor(W*H/3900));
+ stars=[];const count=Math.min(80,Math.floor(W*H/5200));
  for(let i=0;i<count;i++)stars.push({x:Math.random()*W,y:Math.random()*H,size:.5+Math.random()*1.8,speed:.3+Math.random()*1.8,alpha:.3+Math.random()*.7});
 }
 
@@ -152,7 +152,8 @@ function splitAsteroid(a){
  }
 }
 function burst(x,y,amount,type,power=7){
- for(let i=0;i<amount;i++){const life=14+Math.random()*20;particles.push({x,y,vx:(Math.random()-.5)*power,vy:(Math.random()-.5)*power,life,maxLife:life,size:1+Math.random()*4,type})}
+ const room=Math.max(0,180-particles.length),count=Math.min(amount,room);
+ for(let i=0;i<count;i++){const life=12+Math.random()*16;particles.push({x,y,vx:(Math.random()-.5)*power,vy:(Math.random()-.5)*power,life,maxLife:life,size:1+Math.random()*4,type})}
 }
 function hitCircle(ax,ay,ar,bx,by,br){const dx=ax-bx,dy=ay-by,r=ar+br;return dx*dx+dy*dy<r*r}
 function die(){
@@ -163,9 +164,9 @@ function destroyAsteroid(index){
  const a=asteroids[index];combatScore+=a.points;score=combatScore+Math.floor(distance);
  shockwaves.push({x:a.x,y:a.y,radius:a.radius*.2,maxRadius:a.radius*(a.size===3?1.8:1.5),life:a.size===3?18:14,maxLife:a.size===3?18:14});
  particles.push({x:a.x,y:a.y,vx:0,vy:0,life:8,maxLife:8,size:a.radius*.85,type:"flash"});
- burst(a.x,a.y,a.size===3?42:a.size===2?30:18,"rock",a.size===3?10:7);
- burst(a.x,a.y,a.size===3?24:a.size===2?16:10,"hot",7);
- const debrisCount=a.size===3?12:a.size===2?8:5;
+ burst(a.x,a.y,a.size===3?24:a.size===2?18:12,"rock",a.size===3?10:7);
+ burst(a.x,a.y,a.size===3?14:a.size===2?10:7,"hot",7);
+ const debrisCount=a.size===3?7:a.size===2?5:3;
  for(let i=0;i<debrisCount;i++){const life=24+Math.random()*22;particles.push({
   x:a.x+(Math.random()-.5)*a.radius*.4,y:a.y+(Math.random()-.5)*a.radius*.4,
   vx:(Math.random()-.5)*(a.size===3?12:9),vy:(Math.random()-.5)*(a.size===3?12:9),
@@ -179,7 +180,7 @@ function update(){
  for(const s of stars){s.x-=s.speed*(state==="play"?1.95:.525);if(s.x<-5){s.x=W+5;s.y=Math.random()*H}}
  if(screenShake>0){screenShake*=.78;if(screenShake<.2)screenShake=0}
  for(let i=shockwaves.length-1;i>=0;i--){const s=shockwaves[i];s.radius+=(s.maxRadius-s.radius)*.22;s.life--;if(s.life<=0)shockwaves.splice(i,1)}
- for(let i=particles.length-1;i>=0;i--){const p=particles[i];p.x+=p.vx;p.y+=p.vy;p.vx*=.98;p.vy*=.98;if(p.type==="debris")p.rotation+=p.spin;p.life--;if(p.life<=0)particles.splice(i,1)}
+ for(let i=particles.length-1;i>=0;i--){const p=particles[i];p.x+=p.vx;p.y+=p.vy;p.vx*=.98;p.vy*=.98;if(p.type==="debris")p.rotation+=p.spin;p.life--;if(p.life<=0||p.x<-100||p.x>W+100||p.y<-100||p.y>H+100)particles.splice(i,1)}
  if(state!=="play")return;
  gameTime++;distance+=1/12;score=combatScore+Math.floor(distance);level=1+Math.floor(gameTime/900);difficulty=1+gameTime/1500+level*.08;
  if(level>lastLevel){lastLevel=level;powerMessageText="LEVEL "+level;powerMessage=110;screenShake=Math.max(screenShake,2)}
@@ -248,10 +249,10 @@ function drawAsteroid(a){
  ctx.restore();
 }
 function drawBullets(){
- for(const b of bullets){ctx.shadowColor="#ff3030";ctx.shadowBlur=10;ctx.fillStyle="#ff3030";ctx.fillRect(b.x-5.236,b.y-.952,11.9,1.904);ctx.fillStyle="#fff";ctx.fillRect(b.x+2.38,b.y-.476,4.284,.952);ctx.shadowBlur=0}
+ for(const b of bullets){ctx.fillStyle="#ff3030";ctx.fillRect(b.x-5.236,b.y-.952,11.9,1.904);ctx.fillStyle="#fff";ctx.fillRect(b.x+2.38,b.y-.476,4.284,.952)}
 }
 function drawShockwaves(){
- for(const s of shockwaves){const alpha=Math.max(0,s.life/s.maxLife);ctx.save();ctx.globalAlpha=alpha*.8;ctx.strokeStyle="#ff9b3d";ctx.shadowColor="#ff5a1f";ctx.shadowBlur=14;ctx.lineWidth=Math.max(2,5*alpha);ctx.beginPath();ctx.arc(s.x,s.y,s.radius,0,Math.PI*2);ctx.stroke();ctx.restore()}
+ for(const s of shockwaves){const alpha=Math.max(0,s.life/s.maxLife);ctx.save();ctx.globalAlpha=alpha*.8;ctx.strokeStyle="#ff9b3d";ctx.lineWidth=Math.max(2,5*alpha);ctx.beginPath();ctx.arc(s.x,s.y,s.radius,0,Math.PI*2);ctx.stroke();ctx.restore()}
 }
 function drawParticles(){
  for(const p of particles){
@@ -299,7 +300,7 @@ function draw(){
  drawHUD();if(state==="start")drawStart();if(state==="dead")drawDead();
 }
 let last=performance.now(),accumulator=0;const STEP=1000/60;
-function loop(now){let delta=now-last;last=now;if(delta>80)delta=80;accumulator+=delta;while(accumulator>=STEP){update();accumulator-=STEP}draw();requestAnimationFrame(loop)}
+function loop(now){let delta=now-last;last=now;if(delta>66)delta=66;accumulator+=delta;let steps=0;while(accumulator>=STEP&&steps<3){update();accumulator-=STEP;steps++}if(steps===3&&accumulator>=STEP)accumulator=0;draw();requestAnimationFrame(loop)}
 requestAnimationFrame(loop);
 function touchPosition(touch){const rect=canvas.getBoundingClientRect();return{x:touch.clientX-rect.left,y:touch.clientY-rect.top}}
 canvas.addEventListener("touchstart",function(e){
