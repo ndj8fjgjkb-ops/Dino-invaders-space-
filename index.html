@@ -17,7 +17,7 @@ canvas{position:fixed;inset:0;width:100%;height:100%;display:block;touch-action:
 <body>
 <canvas id="game"></canvas>
 <script>
-// DINO INVADERS: SPACE V3.8 — PERFORMANCE + STABILITY
+// DINO INVADERS: SPACE V3.9 — ENEMY WAVES + HUNTERS
 const canvas=document.getElementById("game");
 const ctx=canvas.getContext("2d",{alpha:false,desynchronized:true});
 let W=0,H=0;
@@ -29,12 +29,12 @@ const raptorImg=new Image();
 let raptorReady=false,raptorFailed=false;
 raptorImg.onload=()=>{raptorReady=true;raptorFailed=false};
 raptorImg.onerror=()=>{raptorReady=false;raptorFailed=true};
-raptorImg.src="8BBBE99D-BE50-463D-AB99-9356374B034D.png?v=38";
+raptorImg.src="8BBBE99D-BE50-463D-AB99-9356374B034D.png?v=39";
 
 let state="start",score=0,combatScore=0,distance=0,high=Number(localStorage.spaceHigh||0),gameTime=0,difficulty=1,screenShake=0;
 const player={x:100,y:300,radius:6.8544,width:55.216,fireCooldown:0};
 let stars=[],bullets=[],asteroids=[],particles=[],shockwaves=[],enemies=[],planets=[],powerups=[];
-let spreadTimer=0,shieldHits=0,powerMessage=0,powerMessageText="",level=1,lastLevel=1;
+let spreadTimer=0,shieldHits=0,powerMessage=0,powerMessageText="",level=1,lastLevel=1,wave=0;
 let moveTouchID=null,lastMoveX=0,lastMoveY=0,firing=false;
 
 function resize(){
@@ -93,9 +93,16 @@ function drawPowerups(){
   ctx.shadowBlur=12;ctx.fillStyle="#fff";ctx.font="bold 16px Arial";ctx.textAlign="center";ctx.textBaseline="middle";ctx.fillText(shield?"S":"3",0,.5);ctx.restore();
  }
 }
-function spawnEnemy(){
- const y=70+Math.random()*Math.max(100,H-140);
- enemies.push({x:W+70,y,baseY:y,vx:-(2.1+Math.random()*.8+difficulty*.12),phase:Math.random()*Math.PI*2,health:2,radius:11.424,points:180});
+function spawnEnemy(type="scout",offset=0){
+ if(enemies.length>=8)return;
+ const y=70+Math.random()*Math.max(100,H-140),hunter=type==="hunter";
+ enemies.push({x:W+70+offset,y,baseY:y,vx:-(hunter?2.7:2.1)-Math.random()*.8-difficulty*.12,phase:Math.random()*Math.PI*2,health:hunter?4:2,radius:hunter?15:11.424,points:hunter?350:180,type});
+}
+function spawnWave(){
+ if(enemies.length>4)return;
+ wave++;const count=Math.min(4,2+Math.floor(level/2));
+ powerMessageText="INVADER WAVE "+wave;powerMessage=100;
+ for(let i=0;i<count;i++)spawnEnemy(level>=2&&i===count-1?"hunter":"scout",i*55);
 }
 function destroyEnemy(index){
  const e=enemies[index];combatScore+=e.points;score=combatScore+Math.floor(distance);
@@ -105,17 +112,17 @@ function destroyEnemy(index){
  enemies.splice(index,1);screenShake=Math.max(screenShake,5);
 }
 function drawEnemy(e){
- ctx.save();ctx.translate(e.x,e.y);
- ctx.shadowColor="#55e8ff";ctx.shadowBlur=14;
- ctx.fillStyle="#162c49";ctx.beginPath();ctx.ellipse(0,0,13.328,6.664,0,0,Math.PI*2);ctx.fill();
- ctx.fillStyle="#59dfff";ctx.beginPath();ctx.ellipse(.952,-3.808,6.188,4.284,0,Math.PI,Math.PI*2);ctx.fill();
- ctx.fillStyle="#9d4dff";ctx.fillRect(-10.472,3.808,4.76,1.904);ctx.fillRect(5.712,3.808,4.76,1.904);
- ctx.fillStyle="#ff426f";ctx.beginPath();ctx.arc(-8.568,0,1.428,0,Math.PI*2);ctx.arc(8.568,0,1.428,0,Math.PI*2);ctx.fill();
+ ctx.save();ctx.translate(e.x,e.y);const hunter=e.type==="hunter";
+ ctx.shadowColor=hunter?"#ff4bdb":"#55e8ff";ctx.shadowBlur=10;
+ ctx.fillStyle=hunter?"#42164d":"#162c49";ctx.beginPath();ctx.ellipse(0,0,hunter?17:13.328,hunter?8:6.664,0,0,Math.PI*2);ctx.fill();
+ ctx.fillStyle=hunter?"#ff66e6":"#59dfff";ctx.beginPath();ctx.ellipse(.952,hunter?-5:-3.808,hunter?8:6.188,hunter?5:4.284,0,Math.PI,Math.PI*2);ctx.fill();
+ ctx.fillStyle=hunter?"#ff9a42":"#9d4dff";ctx.fillRect(hunter?-14:-10.472,hunter?5:3.808,hunter?6:4.76,1.904);ctx.fillRect(hunter?8:5.712,hunter?5:3.808,hunter?6:4.76,1.904);
+ ctx.fillStyle="#ff426f";ctx.beginPath();ctx.arc(hunter?-11:-8.568,0,1.428,0,Math.PI*2);ctx.arc(hunter?11:8.568,0,1.428,0,Math.PI*2);ctx.fill();
  ctx.shadowBlur=0;ctx.restore();
 }
 
 function reset(){
- score=0;combatScore=0;distance=0;gameTime=0;difficulty=1;screenShake=0;bullets=[];asteroids=[];particles=[];shockwaves=[];enemies=[];powerups=[];spreadTimer=0;shieldHits=0;powerMessage=0;powerMessageText="";level=1;lastLevel=1;
+ score=0;combatScore=0;distance=0;gameTime=0;difficulty=1;screenShake=0;bullets=[];asteroids=[];particles=[];shockwaves=[];enemies=[];powerups=[];spreadTimer=0;shieldHits=0;powerMessage=0;powerMessageText="";level=1;lastLevel=1;wave=0;
  player.x=Math.min(100,W*.25);player.y=H*.5;player.fireCooldown=0;moveTouchID=null;firing=false;
 }
 function startGame(){if(!raptorReady)return;reset();state="play"}
@@ -190,7 +197,8 @@ function update(){
  player.x=Math.max(50,Math.min(W-65,player.x));player.y=Math.max(50,Math.min(H-65,player.y));
  if(player.fireCooldown>0)player.fireCooldown--;if(firing&&player.fireCooldown<=0)shoot();
  const spawnRate=Math.max(28,62-Math.floor(difficulty*5));if(gameTime%spawnRate===0)spawnAsteroid();
- if(gameTime>240 && gameTime%Math.max(210,360-Math.floor(difficulty*12))===0)spawnEnemy();
+ if(gameTime>240 && gameTime%Math.max(260,390-Math.floor(difficulty*10))===0)spawnEnemy();
+ if(gameTime>=600&&gameTime%900===0)spawnWave();
  for(let i=bullets.length-1;i>=0;i--){const b=bullets[i];b.x+=b.vx;b.y+=b.vy||0;if(b.x>W+40||b.y<-40||b.y>H+40)bullets.splice(i,1)}
  for(let i=powerups.length-1;i>=0;i--){const p=powerups[i];p.x+=p.vx;
   if(hitCircle(player.x,player.y,player.radius+5,p.x,p.y,p.radius)){
@@ -200,7 +208,7 @@ function update(){
   if(p.x<-40)powerups.splice(i,1);
  }
  for(let i=enemies.length-1;i>=0;i--){
-  const e=enemies[i];e.x+=e.vx;e.y=e.baseY+Math.sin(gameTime*.045+e.phase)*34;
+  const e=enemies[i];e.x+=e.vx;e.y=e.baseY+Math.sin(gameTime*(e.type==="hunter"?.065:.045)+e.phase)*(e.type==="hunter"?48:34);
   if(hitCircle(player.x,player.y,player.radius,e.x,e.y,e.radius)){
    if(shieldHits>0){shieldHits--;burst(player.x,player.y,24,"hot",7);shockwaves.push({x:player.x,y:player.y,radius:8,maxRadius:70,life:18,maxLife:18});enemies.splice(i,1);screenShake=7;continue}
    die();break}
