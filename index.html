@@ -17,7 +17,7 @@ canvas{position:fixed;inset:0;width:100%;height:100%;display:block;touch-action:
 <body>
 <canvas id="game"></canvas>
 <script>
-// DINO INVADERS: SPACE V6.17 — PLASMA CORE
+// DINO INVADERS: SPACE V6.18 — ELITE HUNTERS
 const canvas=document.getElementById("game");
 const ctx=canvas.getContext("2d",{alpha:false,desynchronized:true});
 let W=0,H=0;
@@ -127,7 +127,8 @@ function drawPowerups(){
 function spawnEnemy(type="scout",offset=0){
  if(enemies.length>=10)return;
  const y=70+Math.random()*Math.max(100,H-140),hunter=type==="hunter",boss=type==="boss"||type==="dreadnought",dread=type==="dreadnought",gunner=type==="gunner",charger=type==="charger";
- enemies.push({x:W+70+offset,y,baseY:y,vx:boss?-1.25:-(gunner?1.7:hunter?2.7:2.1)-Math.random()*.8-difficulty*.12,phase:Math.random()*Math.PI*2,health:dread?55:boss?30:gunner?5:hunter?4:charger?3:2,maxHealth:dread?55:boss?30:gunner?5:hunter?4:charger?3:2,radius:dread?40:boss?32:gunner?16:hunter?15:charger?13:11.424,points:dread?5000:boss?2500:gunner?500:hunter?350:charger?300:180,type,shotTimer:70+Math.random()*80});
+ const elite=!boss&&level>=5&&Math.random()<Math.min(.18,.035+level*.008);const hp=dread?55:boss?30:gunner?5:hunter?4:charger?3:2;
+ enemies.push({x:W+70+offset,y,baseY:y,vx:boss?-1.25:-(gunner?1.7:hunter?2.7:2.1)-Math.random()*.8-difficulty*.12,phase:Math.random()*Math.PI*2,health:elite?hp*2:hp,maxHealth:elite?hp*2:hp,radius:dread?40:boss?32:gunner?16:hunter?15:charger?13:11.424,points:(dread?5000:boss?2500:gunner?500:hunter?350:charger?300:180)*(elite?2:1),type,elite,shotTimer:70+Math.random()*80});
 }
 function spawnBoss(){
  if(bossSpawned)return;bossSpawned=true;bossCount++;enemies.length=0;enemyBullets.length=0;
@@ -143,14 +144,14 @@ function spawnWave(){
 function addCombo(){combo=Math.min(30,combo+1);comboTimer=150;maxCombo=Math.max(maxCombo,combo)}
 function comboMult(){return 1+Math.min(2,Math.floor(combo/5)*.25)}
 function destroyEnemy(index){
- const e=enemies[index];addCombo();if(e.type!=="boss"&&e.type!=="dreadnought")invaderKills++;combatScore+=Math.round(e.points*comboMult());runXP+=(e.type==="boss"||e.type==="dreadnought")?10:e.type==="gunner"?4:e.type==="hunter"?3:e.type==="charger"?2:1;score=combatScore+Math.floor(distance);
+ const e=enemies[index];addCombo();if(e.type!=="boss"&&e.type!=="dreadnought")invaderKills++;combatScore+=Math.round(e.points*comboMult());runXP+=((e.type==="boss"||e.type==="dreadnought")?10:e.type==="gunner"?4:e.type==="hunter"?3:e.type==="charger"?2:1)+(e.elite?3:0);if(e.elite&&Math.random()<.45)spawnPowerup(Math.random()<.35?"overdrive":"spread");score=combatScore+Math.floor(distance);
  if(shockwaves.length<14)shockwaves.push({x:e.x,y:e.y,radius:8,maxRadius:55,life:15,maxLife:15});
  particles.push({x:e.x,y:e.y,vx:0,vy:0,life:8,maxLife:8,size:34,type:"flash"});
  burst(e.x,e.y,24,"hot",8);burst(e.x,e.y,18,"rock",7);
  enemies.splice(index,1);screenShake=Math.max(screenShake,5);
 }
 function drawEnemy(e){
- ctx.save();ctx.translate(e.x,e.y);const hunter=e.type==="hunter",dread=e.type==="dreadnought",boss=e.type==="boss"||dread,gunner=e.type==="gunner",charger=e.type==="charger";
+ ctx.save();ctx.translate(e.x,e.y);if(e.elite){ctx.strokeStyle="#ffd45b";ctx.lineWidth=2;ctx.shadowColor="#ffd45b";ctx.shadowBlur=14;ctx.beginPath();ctx.arc(0,0,e.radius+7,0,Math.PI*2);ctx.stroke();ctx.shadowBlur=0}const hunter=e.type==="hunter",dread=e.type==="dreadnought",boss=e.type==="boss"||dread,gunner=e.type==="gunner",charger=e.type==="charger";
  if(boss){
   ctx.shadowColor=dread?"#8f65ff":"#ff3c54";ctx.shadowBlur=16;ctx.fillStyle=dread?"#24164d":"#541527";ctx.beginPath();ctx.ellipse(0,0,dread?46:38,dread?23:19,0,0,Math.PI*2);ctx.fill();
   ctx.fillStyle=dread?"#8f65ff":"#ff405c";ctx.beginPath();ctx.ellipse(0,dread?-10:-8,dread?28:22,dread?14:12,0,Math.PI,Math.PI*2);ctx.fill();if(e.health<=e.maxHealth*.5){ctx.globalAlpha=.75+.25*Math.sin(gameTime*.18);ctx.strokeStyle="#fff";ctx.lineWidth=2;ctx.beginPath();ctx.ellipse(0,0,dread?50:42,dread?27:23,0,0,Math.PI*2);ctx.stroke();ctx.globalAlpha=1}
@@ -212,7 +213,7 @@ function die(){
  if(state!=="play")return;state="dead";firing=false;moveTouchID=null;screenShake=13;burst(player.x,player.y,32,"red",9);
  if(score>high){high=score;localStorage.spaceHigh=high}
  if(level>bestLevel){bestLevel=level;localStorage.dinoBestLevel=bestLevel}
- lastCredits=Math.max(1,Math.floor(score/1000)+Math.floor(distance/100)+bossesDefeated*5)+missionBonusCredits;credits+=lastCredits;runs++;localStorage.dinoCredits=credits;localStorage.dinoRuns=runs
+ const depthBonus=Math.max(0,Math.floor((level-1)/3));lastCredits=Math.max(1,Math.floor(score/1000)+Math.floor(distance/100)+bossesDefeated*5+depthBonus)+missionBonusCredits;credits+=lastCredits;runs++;localStorage.dinoCredits=credits;localStorage.dinoRuns=runs
 }
 function destroyAsteroid(index){
  const a=asteroids[index];addCombo();asteroidKills++;combatScore+=Math.round(a.points*comboMult());runXP+=a.size===3?2:1;score=combatScore+Math.floor(distance);
@@ -411,7 +412,7 @@ function drawStart(){
  ctx.textAlign="right";ctx.fillStyle="#70ff9c";ctx.font="700 10px system-ui,sans-serif";ctx.fillText("READY",W-m-14,heroTop+25);ctx.fillStyle="#9fb7d7";ctx.fillText("DRAG • FIRE • SURVIVE",W-m-14,heroTop+42);
  const launchY=Math.min(H-148,heroTop+heroH+14);button(m+18,launchY,W-2*m-36,58,"LAUNCH  •  TAP TO START","#168f38","#075724","#8dff8f");
  const hangY=launchY+70;button(m+18,hangY,(W-2*m-46)*.62,46,"TEX'S HANGAR","#075f83","#153665","#6deaff");button(m+28+(W-2*m-46)*.62,hangY,(W-2*m-46)*.38,46,"LOADOUT","#49206f","#22143f","#c783ff");
- ctx.textAlign="center";ctx.fillStyle="#7189aa";ctx.font="700 9px system-ui,sans-serif";ctx.fillText("V6.17 • PLASMA CORE",W/2,Math.min(H-10,hangY+64));
+ ctx.textAlign="center";ctx.fillStyle="#7189aa";ctx.font="700 9px system-ui,sans-serif";ctx.fillText("V6.18 • ELITE HUNTERS",W/2,Math.min(H-10,hangY+64));
 }
 function drawDead(){
  panel(25,H*.27,W-50,310,"#160b22","#07172d","#ff4e76");ctx.textAlign="center";ctx.fillStyle="#ff5275";ctx.font=gameFont(31);ctx.shadowColor="#ff3d69";ctx.shadowBlur=12;ctx.fillText("RAPTOR DOWN",W/2,H*.35);ctx.shadowBlur=0;
