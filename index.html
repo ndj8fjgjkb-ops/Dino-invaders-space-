@@ -17,7 +17,7 @@ canvas{position:fixed;inset:0;width:100%;height:100%;display:block;touch-action:
 <body>
 <canvas id="game"></canvas>
 <script>
-// DINO INVADERS: SPACE V9.1 — DISTINCT SKINS
+// DINO INVADERS: SPACE V9.2 — FINAL FRONTIER
 const canvas=document.getElementById("game");
 const ctx=canvas.getContext("2d",{alpha:false,desynchronized:true});
 let W=0,H=0;
@@ -136,9 +136,9 @@ function drawPowerups(){
 }
 function spawnEnemy(type="scout",offset=0){
  if(enemies.length>=10)return;
- const y=70+Math.random()*Math.max(100,H-140),hunter=type==="hunter",boss=type==="boss"||type==="dreadnought",dread=type==="dreadnought",gunner=type==="gunner",charger=type==="charger",stalker=type==="stalker";
- const elite=!boss&&level>=5&&Math.random()<Math.min(.18,.035+level*.008);const hp=dread?55:boss?30:gunner?5:hunter?4:stalker?5:charger?3:2;
- enemies.push({x:stalker&&Math.random()<.55?W*.38+Math.random()*W*.5:W+70+offset,y:stalker&&Math.random()<.5?-45:H+45,baseY:y,vx:boss?-1.25:stalker?-1.05:-(gunner?1.7:hunter?2.7:2.1)-Math.random()*.8-difficulty*.12,phase:Math.random()*Math.PI*2,health:elite?hp*2:hp,maxHealth:elite?hp*2:hp,radius:dread?40:boss?32:gunner?16:hunter?15:stalker?17:charger?13:11.424,points:(dread?5000:boss?2500:gunner?500:stalker?650:hunter?350:charger?300:180)*(elite?2:1),type,elite,shotTimer:70+Math.random()*80});const ne=enemies[enemies.length-1];if(stalker)ne.baseY=ne.y;
+ const y=70+Math.random()*Math.max(100,H-140),hunter=type==="hunter",boss=type==="boss"||type==="dreadnought",dread=type==="dreadnought",gunner=type==="gunner",charger=type==="charger",stalker=type==="stalker",bomber=type==="bomber",warden=type==="warden";
+ const elite=!boss&&level>=5&&Math.random()<Math.min(.18,.035+level*.008);const hp=dread?70:boss?36:warden?9:bomber?6:gunner?5:hunter?4:stalker?5:charger?3:2;
+ enemies.push({x:stalker&&Math.random()<.55?W*.38+Math.random()*W*.5:W+70+offset,y:stalker&&Math.random()<.5?-45:H+45,baseY:y,vx:boss?-1.25:stalker?-1.05:-(warden?1.15:bomber?1.45:gunner?1.7:hunter?2.7:2.1)-Math.random()*.8-difficulty*.12,phase:Math.random()*Math.PI*2,health:elite?hp*2:hp,maxHealth:elite?hp*2:hp,radius:dread?44:boss?34:warden?21:bomber?18:gunner?16:hunter?15:stalker?17:charger?13:11.424,points:(dread?6500:boss?3200:warden?950:bomber?750:gunner?500:stalker?650:hunter?350:charger?300:180)*(elite?2:1),type,elite,shotTimer:70+Math.random()*80});const ne=enemies[enemies.length-1];if(stalker)ne.baseY=ne.y;
 }
 function bossBounty(){missionBonusCredits+=5+bossesDefeated*2;runXP+=5;powerMessageText="BOSS CORE +"+(5+bossesDefeated*2)+" CREDITS";powerMessage=180}
 function spawnBoss(){
@@ -150,25 +150,27 @@ function spawnWave(){
  if(enemies.length>=10)return;
  wave++;const count=Math.min(10-enemies.length,3+Math.floor(level/2));
  powerMessageText="INVADER WAVE "+wave;powerMessage=100;
- for(let i=0;i<count;i++){let type=i===Math.floor(count/2)&&wave%2===0?"stalker":sector>=4&&i===1?"charger":sector>=3&&i===0?"gunner":sector>=2&&(i===count-1||sector>=3&&i%3===2)?"hunter":"scout";spawnEnemy(type,i*48)}
+ for(let i=0;i<count;i++){let type=sector>=5&&i===0&&wave%2===1?"warden":sector>=4&&i===1&&wave%3===0?"bomber":i===Math.floor(count/2)&&wave%2===0?"stalker":sector>=4&&i===1?"charger":sector>=3&&i===0?"gunner":sector>=2&&(i===count-1||sector>=3&&i%3===2)?"hunter":"scout";spawnEnemy(type,i*48)}
 }
 function addCombo(){combo=Math.min(30,combo+1);comboTimer=150;maxCombo=Math.max(maxCombo,combo)}
 function comboMult(){return 1+Math.min(2,Math.floor(combo/5)*.5)}
 function destroyEnemy(index){
- const e=enemies[index];addCombo();if(e.type!=="boss"&&e.type!=="dreadnought"){invaderKills++;sectorKills++;totalKills++;localStorage.dinoTotalKills=totalKills}combatScore+=Math.round(e.points*comboMult());runXP+=((e.type==="boss"||e.type==="dreadnought")?10:e.type==="gunner"?4:e.type==="hunter"?3:e.type==="stalker"?4:e.type==="charger"?2:1)+(e.elite?3:0)+magnetLevel*.25;if(e.elite&&Math.random()<.45)spawnPowerup(Math.random()<.35?"overdrive":"spread");score=combatScore+Math.floor(distance);
+ const e=enemies[index];addCombo();if(e.type!=="boss"&&e.type!=="dreadnought"){invaderKills++;sectorKills++;totalKills++;localStorage.dinoTotalKills=totalKills}combatScore+=Math.round(e.points*comboMult());runXP+=((e.type==="boss"||e.type==="dreadnought")?10:e.type==="warden"?6:e.type==="bomber"?5:e.type==="gunner"?4:e.type==="hunter"?3:e.type==="stalker"?4:e.type==="charger"?2:1)+(e.elite?3:0)+magnetLevel*.25;if(e.elite&&Math.random()<.45)spawnPowerup(Math.random()<.35?"overdrive":"spread");score=combatScore+Math.floor(distance);
  if(shockwaves.length<14)shockwaves.push({x:e.x,y:e.y,radius:8,maxRadius:55,life:15,maxLife:15});
  particles.push({x:e.x,y:e.y,vx:0,vy:0,life:8,maxLife:8,size:34,type:"flash"});
  burst(e.x,e.y,24,"hot",8);burst(e.x,e.y,18,"rock",7);
  enemies.splice(index,1);screenShake=Math.max(screenShake,5);
 }
 function drawEnemy(e){
- ctx.save();ctx.translate(e.x,e.y);if(e.elite){ctx.strokeStyle="#ffd45b";ctx.lineWidth=2;ctx.shadowColor="#ffd45b";ctx.shadowBlur=14;ctx.beginPath();ctx.arc(0,0,e.radius+7,0,Math.PI*2);ctx.stroke();ctx.shadowBlur=0}const hunter=e.type==="hunter",dread=e.type==="dreadnought",boss=e.type==="boss"||dread,gunner=e.type==="gunner",charger=e.type==="charger",stalker=e.type==="stalker";
+ ctx.save();ctx.translate(e.x,e.y);if(e.elite){ctx.strokeStyle="#ffd45b";ctx.lineWidth=2;ctx.shadowColor="#ffd45b";ctx.shadowBlur=14;ctx.beginPath();ctx.arc(0,0,e.radius+7,0,Math.PI*2);ctx.stroke();ctx.shadowBlur=0}const hunter=e.type==="hunter",dread=e.type==="dreadnought",boss=e.type==="boss"||dread,gunner=e.type==="gunner",charger=e.type==="charger",stalker=e.type==="stalker",bomber=e.type==="bomber",warden=e.type==="warden";
  if(boss){
   ctx.shadowColor=dread?"#8f65ff":"#ff3c54";ctx.shadowBlur=16;ctx.fillStyle=dread?"#24164d":"#541527";ctx.beginPath();ctx.ellipse(0,0,dread?46:38,dread?23:19,0,0,Math.PI*2);ctx.fill();
   ctx.fillStyle=dread?"#8f65ff":"#ff405c";ctx.beginPath();ctx.ellipse(0,dread?-10:-8,dread?28:22,dread?14:12,0,Math.PI,Math.PI*2);ctx.fill();if(e.health<=e.maxHealth*.5){ctx.globalAlpha=.75+.25*Math.sin(gameTime*.18);ctx.strokeStyle="#fff";ctx.lineWidth=2;ctx.beginPath();ctx.ellipse(0,0,dread?50:42,dread?27:23,0,0,Math.PI*2);ctx.stroke();ctx.globalAlpha=1}
   ctx.fillStyle="#ffc04d";for(let x=-24;x<=24;x+=12){ctx.beginPath();ctx.arc(x,8,2.5,0,Math.PI*2);ctx.fill()}
   ctx.fillStyle="#fff";ctx.fillRect(dread?-36:-28,dread?30:24,dread?72:56,4);ctx.fillStyle=dread?"#9c78ff":"#ff405c";ctx.fillRect(dread?-36:-28,dread?30:24,(dread?72:56)*(e.health/e.maxHealth),4);ctx.shadowBlur=0;ctx.restore();return;
  }
+ if(warden){ctx.shadowColor="#56ffb0";ctx.shadowBlur=16;ctx.fillStyle="#123d38";ctx.beginPath();ctx.moveTo(-20,-14);ctx.lineTo(17,-10);ctx.lineTo(23,0);ctx.lineTo(17,10);ctx.lineTo(-20,14);ctx.closePath();ctx.fill();ctx.strokeStyle="#6dffc0";ctx.lineWidth=3;ctx.stroke();ctx.fillStyle="#fff";ctx.fillRect(-3,-4,14,8);ctx.shadowBlur=0;ctx.restore();return}
+ if(bomber){ctx.shadowColor="#ff8c35";ctx.shadowBlur=15;ctx.fillStyle="#4d2014";ctx.beginPath();ctx.ellipse(0,0,21,12,0,0,Math.PI*2);ctx.fill();ctx.fillStyle="#ff713d";ctx.beginPath();ctx.arc(4,0,6,0,Math.PI*2);ctx.fill();ctx.fillStyle="#ffd45b";ctx.fillRect(-18,-3,8,6);ctx.shadowBlur=0;ctx.restore();return}
  if(stalker){ctx.shadowColor="#ff334f";ctx.shadowBlur=15;ctx.fillStyle="#40101c";ctx.beginPath();ctx.moveTo(-18,-11);ctx.lineTo(17,0);ctx.lineTo(-18,11);ctx.closePath();ctx.fill();ctx.strokeStyle="#ff5b72";ctx.lineWidth=2;ctx.stroke();ctx.fillStyle="#ff334f";ctx.beginPath();ctx.arc(-3,0,4,0,Math.PI*2);ctx.fill();ctx.fillStyle="#fff";ctx.beginPath();ctx.arc(-2,0,1.5,0,Math.PI*2);ctx.fill();ctx.shadowBlur=0;ctx.restore();return}
  if(charger){ctx.shadowColor="#ff8b35";ctx.shadowBlur=12;ctx.fillStyle="#54250f";ctx.beginPath();ctx.moveTo(-18,0);ctx.lineTo(8,-10);ctx.lineTo(18,0);ctx.lineTo(8,10);ctx.closePath();ctx.fill();ctx.fillStyle="#ff9a3d";ctx.fillRect(-8,-3,18,6);ctx.shadowBlur=0;ctx.restore();return}
  if(gunner){ctx.shadowColor="#ffd34d";ctx.shadowBlur=10;ctx.fillStyle="#493d12";ctx.beginPath();ctx.ellipse(0,0,18,9,0,0,Math.PI*2);ctx.fill();ctx.fillStyle="#ffd34d";ctx.fillRect(-7,-12,14,7);ctx.fillStyle="#ff6b3d";ctx.fillRect(-20,-2,8,4);ctx.shadowBlur=0;ctx.restore();return}
@@ -257,7 +259,7 @@ function update(){
  if(state!=="play")return;
  if(resumeGrace>0)resumeGrace--;
  gameTime++;distance+=1/12;score=combatScore+Math.floor(distance);updateMission();
-level=1+Math.floor(gameTime/600);sector=Math.min(5,1+Math.floor((level-1)/2));difficulty=1+gameTime/900+level*.16+sector*.06;if(sector>maxSector){maxSector=sector;localStorage.dinoMaxSector=maxSector}if(sector>lastSector){lastSector=sector;sectorKills=0;powerMessageText="SECTOR "+sector+" • "+SECTOR_NAMES[sector-1];powerMessage=180;screenShake=4}
+level=1+Math.floor(gameTime/600);sector=Math.min(5,1+Math.floor((level-1)/2));difficulty=1+gameTime/900+level*.16+sector*.06;if(sector>maxSector){maxSector=sector;localStorage.dinoMaxSector=maxSector}if(sector>lastSector){lastSector=sector;sectorKills=0;const reward=sector*2;missionBonusCredits+=reward;powerMessageText="SECTOR "+sector+" • "+SECTOR_NAMES[sector-1]+" • +"+reward+" CR";powerMessage=180;screenShake=4}
  if(level>lastLevel){lastLevel=level;powerMessageText="LEVEL "+level;powerMessage=110;screenShake=Math.max(screenShake,2)}
  if(spreadTimer>0)spreadTimer--;if(overdriveTimer>0)overdriveTimer--;if(meteorStormTimer>0)meteorStormTimer--;if(powerMessage>0)powerMessage--;if(comboTimer>0){comboTimer--;if(comboTimer===0)combo=0}
  const nextUpgrade=12+upgradeTier*5;
@@ -268,7 +270,7 @@ level=1+Math.floor(gameTime/600);sector=Math.min(5,1+Math.floor((level-1)/2));di
  if(player.fireCooldown>0)player.fireCooldown--;if(firing&&player.fireCooldown<=0)shoot();
  const preBoss=enemies.some(e=>e.type==="boss"||e.type==="dreadnought");if(gameTime>=nextMeteorStorm&&!preBoss){meteorStormTimer=360;nextMeteorStorm=gameTime+1800;powerMessageText="METEOR STORM!";powerMessage=150;screenShake=4}const spawnRate=meteorStormTimer>0?Math.max(10,28-Math.floor(difficulty*2)):Math.max(20,58-Math.floor(difficulty*6));if(gameTime%spawnRate===0&&asteroids.length<(preBoss?10:meteorStormTimer>0?24:22))spawnAsteroid();
  const bossActive=enemies.some(e=>e.type==="boss"||e.type==="dreadnought");
- if(!bossActive&&gameTime>180 && gameTime%Math.max(150,300-Math.floor(difficulty*13))===0){const r=Math.random();spawnEnemy(level>=8&&r<.12?"charger":level>=6&&r<.28?"gunner":level>=2&&r<Math.min(.68,.28+level*.035)?"hunter":"scout")}
+ if(!bossActive&&gameTime>180 && gameTime%Math.max(150,300-Math.floor(difficulty*13))===0){const r=Math.random();spawnEnemy(level>=9&&r<.08?"warden":level>=7&&r<.17?"bomber":level>=8&&r<.28?"charger":level>=6&&r<.42?"gunner":level>=2&&r<Math.min(.74,.42+level*.03)?"hunter":"scout")}
  if(!bossActive&&(gameTime===360||gameTime%600===0))spawnWave();
  if(level>=nextBossLevel&&!bossActive){bossSpawned=false;spawnBoss();nextBossLevel+=5}
  for(let i=bullets.length-1;i>=0;i--){const b=bullets[i];b.x+=b.vx*GAME_SPEED;b.y+=(b.vy||0)*GAME_SPEED;if(b.x>W+40||b.y<-40||b.y>H+40)bullets.splice(i,1)}
@@ -285,7 +287,7 @@ level=1+Math.floor(gameTime/600);sector=Math.min(5,1+Math.floor((level-1)/2));di
  for(let i=enemies.length-1;i>=0;i--){
   const e=enemies[i];
   if(e.type==="boss"||e.type==="dreadnought"){if(e.x>W*.76)e.x+=e.vx*GAME_SPEED;e.baseY=H*.5;e.y=e.baseY+Math.sin(gameTime*(e.type==="dreadnought"?.035:.025)+e.phase)*Math.min(e.type==="dreadnought"?145:110,H*.28);
-   if(e.x<W*.9){e.shotTimer--;if(e.shotTimer<=0&&enemyBullets.length<16){const enraged=e.health<=e.maxHealth*.5;if(e.type==="dreadnought"){const spread=enraged?3:2;for(let a=-spread;a<=spread&&enemyBullets.length<16;a++){const ang=Math.PI+a*(enraged?.15:.18);enemyBullets.push({x:e.x-32,y:e.y,vx:Math.cos(ang)*(enraged?5:4.4),vy:Math.sin(ang)*(enraged?5:4.4),radius:4})}e.shotTimer=enraged?58:90}else{const dx=player.x-e.x,dy=player.y-e.y,len=Math.hypot(dx,dy)||1,s=(enraged?5:4.1)+Math.min(1.5,level*.08);enemyBullets.push({x:e.x-30,y:e.y-7,vx:dx/len*s,vy:dy/len*s,radius:4.5});if((level>=7||enraged)&&enemyBullets.length<16)enemyBullets.push({x:e.x-30,y:e.y+7,vx:dx/len*s,vy:dy/len*s+.55,radius:4});e.shotTimer=enraged?Math.max(35,62-level):Math.max(48,86-level*2)}}}
+   if(e.x<W*.9){e.shotTimer-=e.type==="dreadnought"&&e.health<=e.maxHealth*.35?1.7:1;if(e.shotTimer<=0&&enemyBullets.length<16){const enraged=e.health<=e.maxHealth*.5;if(e.type==="dreadnought"){const spread=enraged?3:2;for(let a=-spread;a<=spread&&enemyBullets.length<16;a++){const ang=Math.PI+a*(enraged?.15:.18);enemyBullets.push({x:e.x-32,y:e.y,vx:Math.cos(ang)*(enraged?5:4.4),vy:Math.sin(ang)*(enraged?5:4.4),radius:4})}e.shotTimer=enraged?58:90}else{const dx=player.x-e.x,dy=player.y-e.y,len=Math.hypot(dx,dy)||1,s=(enraged?5:4.1)+Math.min(1.5,level*.08);enemyBullets.push({x:e.x-30,y:e.y-7,vx:dx/len*s,vy:dy/len*s,radius:4.5});if((level>=7||enraged)&&enemyBullets.length<16)enemyBullets.push({x:e.x-30,y:e.y+7,vx:dx/len*s,vy:dy/len*s+.55,radius:4});e.shotTimer=enraged?Math.max(35,62-level):Math.max(48,86-level*2)}}}
   }
   else{if(e.type==="stalker"){const dx=player.x-e.x,dy=player.y-e.y,len=Math.hypot(dx,dy)||1,s=1.35+Math.min(.55,difficulty*.05);e.x+=dx/len*s*GAME_SPEED;e.y+=dy/len*s*GAME_SPEED;e.baseY=e.y}else if(e.type==="charger"&&e.x<W*.82){const dx=player.x-e.x,dy=player.y-e.y,len=Math.hypot(dx,dy)||1;e.x+=dx/len*(4.6+difficulty*.12)*GAME_SPEED;e.y+=dy/len*(4.6+difficulty*.12)*GAME_SPEED}else{e.x+=e.vx*GAME_SPEED;e.y=e.baseY+Math.sin(gameTime*(e.type==="hunter"?.065:.045)+e.phase)*(e.type==="hunter"?48:34)}}
   if(e.type==="gunner"&&e.x<W*.92){e.shotTimer--;if(e.shotTimer<=0&&enemyBullets.length<16){const dx=player.x-e.x,dy=player.y-e.y,len=Math.hypot(dx,dy)||1,s=4.2+Math.min(2,difficulty*.12);enemyBullets.push({x:e.x-15,y:e.y,vx:dx/len*s,vy:dy/len*s,radius:4});e.shotTimer=Math.max(55,115-level*3)}}
@@ -451,7 +453,7 @@ function drawStart(){
  ctx.textAlign="right";ctx.fillStyle="#70ff9c";ctx.font="700 10px system-ui,sans-serif";ctx.fillText("READY",W-m-14,heroTop+25);ctx.fillStyle="#9fb7d7";ctx.font="700 9px system-ui,sans-serif";ctx.fillText("DRAG • FIRE",W-m-14,heroTop+42);
  const launchY=Math.min(H-148,heroTop+heroH+14);button(m+18,launchY,W-2*m-36,58,"LAUNCH  •  TAP TO START","#168f38","#075724","#8dff8f");
  const hangY=launchY+70,bw=(W-2*m-52)/3;button(m+18,hangY,bw,46,"HANGAR","#075f83","#153665","#6deaff");button(m+22+bw,hangY,bw,46,"SKINS","#49206f","#22143f","#c783ff");button(m+26+bw*2,hangY,bw,46,"UPGRADES","#60420d","#332508","#ffd45b");
- ctx.textAlign="center";ctx.fillStyle="#7189aa";ctx.font="700 9px system-ui,sans-serif";ctx.fillText("V9.1 • DISTINCT SKINS",W/2,Math.min(H-10,hangY+64));
+ ctx.textAlign="center";ctx.fillStyle="#7189aa";ctx.font="700 9px system-ui,sans-serif";ctx.fillText("V9.2 • FINAL FRONTIER",W/2,Math.min(H-10,hangY+64));
 }
 function drawVictory(){panel(22,H*.22,W-44,350,"#07152d","#2c1848","#ffd45b");ctx.textAlign="center";ctx.fillStyle="#ffd45b";ctx.font=gameFont(30);ctx.shadowColor="#ff9d35";ctx.shadowBlur=14;ctx.fillText("LEVEL 10 CLEARED",W/2,H*.30);ctx.shadowBlur=0;ctx.fillStyle="#fff";ctx.font=gameFont(20);ctx.fillText("TEX SAVED THE CORE",W/2,H*.355);ctx.font="14px Arial";ctx.fillText("Score "+score+"  •  Distance "+Math.floor(distance),W/2,H*.405);ctx.fillText("Bosses "+bossesDefeated+"  •  Upgrades "+upgradeTier,W/2,H*.445);ctx.fillStyle="#7dff9d";ctx.font="bold 16px Arial";ctx.fillText("+25 CAMPAIGN CREDITS",W/2,H*.495);ctx.fillStyle="#8cecff";ctx.font="bold 13px Arial";ctx.fillText("CAMPAIGN WINS "+campaignWins+"   •   TOTAL KILLS "+totalKills,W/2,H*.535);button(34,H*.59,W-68,50,"CONTINUE ENDLESS","#168f38","#075724","#8dff8f");button(34,H*.67,W-68,46,"MAIN MENU","#075f83","#153665","#6deaff")}
 function drawDead(){
