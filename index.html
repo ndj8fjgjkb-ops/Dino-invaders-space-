@@ -17,7 +17,7 @@ canvas{position:fixed;inset:0;width:100%;height:100%;display:block;touch-action:
 <body>
 <canvas id="game"></canvas>
 <script>
-// DINO INVADERS: SPACE V7.1 — PURSUIT
+// DINO INVADERS: SPACE V7.2 — CONTROLLED CHAOS
 const canvas=document.getElementById("game");
 const ctx=canvas.getContext("2d",{alpha:false,desynchronized:true});
 let W=0,H=0;
@@ -34,7 +34,7 @@ const milkyImg=new Image();let milkyReady=false;milkyImg.onload=()=>milkyReady=t
 
 let hangarMessage="",hangarMessageTimer=0;let campaignWins=Number(localStorage.dinoCampaignWins||0),campaignCleared=false;
 let state="start",score=0,combatScore=0,distance=0,high=Number(localStorage.spaceHigh||0),credits=Number(localStorage.dinoCredits||0),bestLevel=Number(localStorage.dinoBestLevel||1),runs=Number(localStorage.dinoRuns||0),permShield=Number(localStorage.permShield||0),permRapid=Number(localStorage.permRapid||0),permPower=Number(localStorage.permPower||0),lastCredits=0,gameTime=0,difficulty=1,screenShake=0;
-const player={x:100,y:300,radius:5,width:55,hitX:2,hitY:1,fireCooldown:0};
+const GAME_SPEED=.69;const player={x:100,y:300,radius:5,width:55,hitX:2,hitY:1,fireCooldown:0};
 let stars=[],bullets=[],enemyBullets=[],asteroids=[],particles=[],shockwaves=[],enemies=[],planets=[],galaxies=[],powerups=[];
 let spreadTimer=0,shieldHits=0,powerMessage=0,powerMessageText="",combo=0,comboTimer=0,maxCombo=0,overdriveTimer=0,level=1,lastLevel=1,wave=0,bossSpawned=false,nextBossLevel=5,runXP=0,upgradeTier=0,rapidLevel=0,powerLevel=0,spreadLevel=0,pierceLevel=0,plasmaLevel=0,upgradeChoices=[],bossCount=0,bossesDefeated=0,weaponEvolved=false;
 let mission=null,missionBonusCredits=0,asteroidKills=0,invaderKills=0,meteorStormTimer=0,nextMeteorStorm=1800;
@@ -260,23 +260,23 @@ level=1+Math.floor(gameTime/600);difficulty=1+gameTime/900+level*.16;
  if(!bossActive&&gameTime>180 && gameTime%Math.max(150,300-Math.floor(difficulty*13))===0){const r=Math.random();spawnEnemy(level>=8&&r<.12?"charger":level>=6&&r<.28?"gunner":level>=2&&r<Math.min(.68,.28+level*.035)?"hunter":"scout")}
  if(!bossActive&&(gameTime===360||gameTime%600===0))spawnWave();
  if(level>=nextBossLevel&&!bossActive){bossSpawned=false;spawnBoss();nextBossLevel+=5}
- for(let i=bullets.length-1;i>=0;i--){const b=bullets[i];b.x+=b.vx;b.y+=b.vy||0;if(b.x>W+40||b.y<-40||b.y>H+40)bullets.splice(i,1)}
- for(let i=enemyBullets.length-1;i>=0;i--){const b=enemyBullets[i];b.x+=b.vx;b.y+=b.vy;if(hitPlayer(b.x,b.y,b.radius)){if(shieldHits>0){shieldHits--;burst(b.x,b.y,12,"hot",5);enemyBullets.splice(i,1);screenShake=4;continue}die();break}if(b.x<-30||b.y<-30||b.y>H+30)enemyBullets.splice(i,1)}
+ for(let i=bullets.length-1;i>=0;i--){const b=bullets[i];b.x+=b.vx*GAME_SPEED;b.y+=(b.vy||0)*GAME_SPEED;if(b.x>W+40||b.y<-40||b.y>H+40)bullets.splice(i,1)}
+ for(let i=enemyBullets.length-1;i>=0;i--){const b=enemyBullets[i];b.x+=b.vx*GAME_SPEED;b.y+=b.vy*GAME_SPEED;if(hitPlayer(b.x,b.y,b.radius)){if(shieldHits>0){shieldHits--;burst(b.x,b.y,12,"hot",5);enemyBullets.splice(i,1);screenShake=4;continue}die();break}if(b.x<-30||b.y<-30||b.y>H+30)enemyBullets.splice(i,1)}
  for(let i=powerups.length-1;i>=0;i--){const p=powerups[i];p.x+=p.vx;
   if(hitCircle(player.x,player.y,player.radius+5,p.x,p.y,p.radius)){
    if(p.type==="shield"){shieldHits=Math.min(2,shieldHits+1);powerMessageText="SHIELD READY!"}
    else if(p.type==="overdrive"){overdriveTimer=480;powerMessageText="RAPTOR OVERDRIVE!"}
    else if(p.type==="core"){runXP+=6;combatScore+=750;score=combatScore+Math.floor(distance);powerMessageText="BOSS CORE +750 SCORE +6 XP"}
-   else{spreadTimer=600;powerMessageText="SPREAD SHOT!"}
+   else{spreadTimer=90;powerMessageText="TRI BURST!"}
    powerMessage=90;burst(p.x,p.y,20,"hot",6);powerups.splice(i,1);screenShake=Math.max(screenShake,3);continue}
   if(p.x<-40)powerups.splice(i,1);
  }
  for(let i=enemies.length-1;i>=0;i--){
   const e=enemies[i];
-  if(e.type==="boss"||e.type==="dreadnought"){if(e.x>W*.76)e.x+=e.vx;e.baseY=H*.5;e.y=e.baseY+Math.sin(gameTime*(e.type==="dreadnought"?.035:.025)+e.phase)*Math.min(e.type==="dreadnought"?145:110,H*.28);
+  if(e.type==="boss"||e.type==="dreadnought"){if(e.x>W*.76)e.x+=e.vx*GAME_SPEED;e.baseY=H*.5;e.y=e.baseY+Math.sin(gameTime*(e.type==="dreadnought"?.035:.025)+e.phase)*Math.min(e.type==="dreadnought"?145:110,H*.28);
    if(e.x<W*.9){e.shotTimer--;if(e.shotTimer<=0&&enemyBullets.length<16){const enraged=e.health<=e.maxHealth*.5;if(e.type==="dreadnought"){const spread=enraged?3:2;for(let a=-spread;a<=spread&&enemyBullets.length<16;a++){const ang=Math.PI+a*(enraged?.15:.18);enemyBullets.push({x:e.x-32,y:e.y,vx:Math.cos(ang)*(enraged?5:4.4),vy:Math.sin(ang)*(enraged?5:4.4),radius:4})}e.shotTimer=enraged?58:90}else{const dx=player.x-e.x,dy=player.y-e.y,len=Math.hypot(dx,dy)||1,s=(enraged?5:4.1)+Math.min(1.5,level*.08);enemyBullets.push({x:e.x-30,y:e.y-7,vx:dx/len*s,vy:dy/len*s,radius:4.5});if((level>=7||enraged)&&enemyBullets.length<16)enemyBullets.push({x:e.x-30,y:e.y+7,vx:dx/len*s,vy:dy/len*s+.55,radius:4});e.shotTimer=enraged?Math.max(35,62-level):Math.max(48,86-level*2)}}}
   }
-  else{if(e.type==="stalker"){const dx=player.x-e.x,dy=player.y-e.y,len=Math.hypot(dx,dy)||1,s=1.35+Math.min(.55,difficulty*.05);e.x+=dx/len*s;e.y+=dy/len*s;e.baseY=e.y}else if(e.type==="charger"&&e.x<W*.82){const dx=player.x-e.x,dy=player.y-e.y,len=Math.hypot(dx,dy)||1;e.x+=dx/len*(4.6+difficulty*.12);e.y+=dy/len*(4.6+difficulty*.12)}else{e.x+=e.vx;e.y=e.baseY+Math.sin(gameTime*(e.type==="hunter"?.065:.045)+e.phase)*(e.type==="hunter"?48:34)}}
+  else{if(e.type==="stalker"){const dx=player.x-e.x,dy=player.y-e.y,len=Math.hypot(dx,dy)||1,s=1.35+Math.min(.55,difficulty*.05);e.x+=dx/len*s*GAME_SPEED;e.y+=dy/len*s*GAME_SPEED;e.baseY=e.y}else if(e.type==="charger"&&e.x<W*.82){const dx=player.x-e.x,dy=player.y-e.y,len=Math.hypot(dx,dy)||1;e.x+=dx/len*(4.6+difficulty*.12)*GAME_SPEED;e.y+=dy/len*(4.6+difficulty*.12)*GAME_SPEED}else{e.x+=e.vx*GAME_SPEED;e.y=e.baseY+Math.sin(gameTime*(e.type==="hunter"?.065:.045)+e.phase)*(e.type==="hunter"?48:34)}}
   if(e.type==="gunner"&&e.x<W*.92){e.shotTimer--;if(e.shotTimer<=0&&enemyBullets.length<16){const dx=player.x-e.x,dy=player.y-e.y,len=Math.hypot(dx,dy)||1,s=4.2+Math.min(2,difficulty*.12);enemyBullets.push({x:e.x-15,y:e.y,vx:dx/len*s,vy:dy/len*s,radius:4});e.shotTimer=Math.max(55,115-level*3)}}
   if(hitPlayer(e.x,e.y,e.radius)){
    if(shieldHits>0){shieldHits--;burst(player.x,player.y,24,"hot",7);if(shockwaves.length<14)shockwaves.push({x:player.x,y:player.y,radius:8,maxRadius:70,life:18,maxLife:18});const bossHit=e.type==="boss"||e.type==="dreadnought";if(bossHit){e.health-=5;player.x=Math.max(50,player.x-28);if(e.health<=0){const bossName=e.type==="dreadnought"?"DREADNOUGHT":"MOTHERSHIP";destroyEnemy(i);bossesDefeated++;bossBounty();spawnPowerup("core")}}else enemies.splice(i,1);screenShake=7;continue}
@@ -292,7 +292,7 @@ level=1+Math.floor(gameTime/600);difficulty=1+gameTime/900+level*.16;
   if(e.x<-80)enemies.splice(i,1);
  }
  for(let i=asteroids.length-1;i>=0;i--){
-  const a=asteroids[i];a.x+=a.vx;a.y+=a.vy;a.rotation+=a.spin;
+  const a=asteroids[i];a.x+=a.vx*GAME_SPEED;a.y+=a.vy*GAME_SPEED;a.rotation+=a.spin*GAME_SPEED;
   if(hitPlayer(a.x,a.y,a.radius*.7)){
    if(shieldHits>0){shieldHits--;burst(player.x,player.y,24,"hot",7);if(shockwaves.length<14)shockwaves.push({x:player.x,y:player.y,radius:8,maxRadius:70,life:18,maxLife:18});destroyAsteroid(i);continue}
    die();break}
@@ -429,7 +429,7 @@ function drawStart(){
  ctx.textAlign="right";ctx.fillStyle="#70ff9c";ctx.font="700 10px system-ui,sans-serif";ctx.fillText("READY",W-m-14,heroTop+25);ctx.fillStyle="#9fb7d7";ctx.font="700 9px system-ui,sans-serif";ctx.fillText("DRAG • FIRE",W-m-14,heroTop+42);
  const launchY=Math.min(H-148,heroTop+heroH+14);button(m+18,launchY,W-2*m-36,58,"LAUNCH  •  TAP TO START","#168f38","#075724","#8dff8f");
  const hangY=launchY+70;button(m+18,hangY,(W-2*m-46)*.62,46,"TEX'S HANGAR","#075f83","#153665","#6deaff");button(m+28+(W-2*m-46)*.62,hangY,(W-2*m-46)*.38,46,"LOADOUT","#49206f","#22143f","#c783ff");
- ctx.textAlign="center";ctx.fillStyle="#7189aa";ctx.font="700 9px system-ui,sans-serif";ctx.fillText("V7.1 • PURSUIT",W/2,Math.min(H-10,hangY+64));
+ ctx.textAlign="center";ctx.fillStyle="#7189aa";ctx.font="700 9px system-ui,sans-serif";ctx.fillText("V7.2 • CONTROLLED CHAOS",W/2,Math.min(H-10,hangY+64));
 }
 function drawVictory(){panel(22,H*.22,W-44,350,"#07152d","#2c1848","#ffd45b");ctx.textAlign="center";ctx.fillStyle="#ffd45b";ctx.font=gameFont(30);ctx.shadowColor="#ff9d35";ctx.shadowBlur=14;ctx.fillText("SECTOR 10 CLEARED",W/2,H*.30);ctx.shadowBlur=0;ctx.fillStyle="#fff";ctx.font=gameFont(20);ctx.fillText("TEX SAVED THE CORE",W/2,H*.355);ctx.font="14px Arial";ctx.fillText("Score "+score+"  •  Distance "+Math.floor(distance),W/2,H*.405);ctx.fillText("Bosses "+bossesDefeated+"  •  Upgrades "+upgradeTier,W/2,H*.445);ctx.fillStyle="#7dff9d";ctx.font="bold 16px Arial";ctx.fillText("+25 CAMPAIGN CREDITS",W/2,H*.495);ctx.fillStyle="#8cecff";ctx.font="bold 13px Arial";ctx.fillText("CAMPAIGN WINS "+campaignWins,W/2,H*.535);button(34,H*.59,W-68,50,"CONTINUE ENDLESS","#168f38","#075724","#8dff8f");button(34,H*.67,W-68,46,"MAIN MENU","#075f83","#153665","#6deaff")}
 function drawDead(){
