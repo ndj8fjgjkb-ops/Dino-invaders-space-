@@ -13,11 +13,11 @@ content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,vie
 html,body{position:fixed;inset:0;width:100%;height:100%;margin:0;overflow:hidden;overscroll-behavior:none;touch-action:none;background:#02040d}
 canvas{position:fixed;inset:0;width:100%;height:100%;display:block;touch-action:none;-webkit-tap-highlight-color:transparent}
 </style>
-<meta name="dino-build" content="V12.55-Release-Balance"></head>
+<meta name="dino-build" content="V12.56-Release-Candidate"></head>
 <body>
 <canvas id="game"></canvas>
 <script>
-// DINO INVADERS: SPACE V12.55 — RELEASE BALANCE
+// DINO INVADERS: SPACE V12.56 — RELEASE CANDIDATE
 const canvas=document.getElementById("game");
 const ctx=canvas.getContext("2d",{alpha:false,desynchronized:true});
 let W=0,H=0;
@@ -25,6 +25,7 @@ document.addEventListener("touchmove",e=>e.preventDefault(),{passive:false});
 document.addEventListener("gesturestart",e=>e.preventDefault(),{passive:false});
 document.addEventListener("gesturechange",e=>e.preventDefault(),{passive:false});
 document.addEventListener("contextmenu",e=>e.preventDefault());
+let lastTouchEnd=0;document.addEventListener("touchend",e=>{const now=Date.now();if(now-lastTouchEnd<280)e.preventDefault();lastTouchEnd=now},{passive:false});
 
 const raptorImg=new Image();
 let raptorReady=false,raptorFailed=false,texCrop={x:0,y:0,w:1,h:1};
@@ -108,7 +109,7 @@ function resize(){
  createStars();createPlanets();createGalaxies();
  player.x=Math.max(55,Math.min(W-65,player.x));player.y=Math.max(55,Math.min(H-65,player.y));
 }
-addEventListener("resize",resize);
+addEventListener("resize",resize);addEventListener("orientationchange",()=>setTimeout(resize,180));
 
 function createStars(){
  stars=[];const count=Math.min(80,Math.floor(W*H/5200));
@@ -283,7 +284,7 @@ function reset(){
  score=0;combatScore=0;distance=0;gameTime=0;campaignCleared=false;missionBonusCredits=0;asteroidKills=0;invaderKills=0;mission=null;meteorStormTimer=0;nextMeteorStorm=1800;difficulty=1;screenShake=0;bullets=[];enemyBullets=[];asteroids=[];particles=[];shockwaves=[];enemies=[];powerups=[];scorePops=[];spreadTimer=0;shieldHits=0;powerMessage=0;powerMessageText="";combo=0;comboTimer=0;maxCombo=0;overdriveTimer=0;level=1;lastLevel=1;wave=0;bossSpawned=false;nextBossLevel=5;bossCount=0;bossesDefeated=0;weaponEvolved=false;runXP=0;upgradeTier=0;rapidLevel=0;powerLevel=0;spreadLevel=0;pierceLevel=0;plasmaLevel=0;armorLevel=0;magnetLevel=0;critLevel=0;thrusterLevel=0;upgradeChoices=[];shieldHits=0;
  player.x=Math.min(100,W*.25);player.y=H*.5;player.fireCooldown=0;moveTouchID=null;firing=false;resumeGrace=0;sector=1;lastSector=1;sectorKills=0;
 }
-function startGame(){if(!raptorReady)return;sfx("select");reset();state="play";if(audioReady){tone(98,.24,"sine",.025,0,"music",300);tone(147,.28,"triangle",.016,.10,"music",520)}}
+function startGame(){if(!raptorReady){powerMessageText="LOADING RAPTOR...";powerMessage=90;return}sfx("select");reset();state="play";if(audioReady){if(audioCtx&&audioCtx.state==="suspended")audioCtx.resume();tone(98,.24,"sine",.025,0,"music",300);tone(147,.28,"triangle",.016,.10,"music",520)}}
 
 function campaignVictory(){spawnPowerup("shield")}
 function addBullet(b){if(bullets.length<60)bullets.push(b)}
@@ -340,9 +341,7 @@ function hitPlayer(bx,by,br=0){
 }
 function die(){
  if(state!=="play")return;sfx("hurt");const pilotArmor=0;if((armorLevel>0||pilotArmor>0)&&Math.random()<(armorLevel*.12+pilotArmor*.08)){powerMessageText="ARMOR DEFLECT!";powerMessage=90;resumeGrace=45;screenShake=5;return}state="dead";firing=false;moveTouchID=null;screenShake=13;burst(player.x,player.y,32,"red",9);
- if(score>high){high=score;localStorage.spaceHigh=high}
- if(level>bestLevel){bestLevel=level;localStorage.dinoBestLevel=bestLevel}
- lastCredits=0;runs++;localStorage.dinoRuns=runs;const runSeconds=gameTime/60;if(runSeconds>bestRunTime){bestRunTime=runSeconds;localStorage.dinoBestRunTime=bestRunTime}if(distance>bestRunDistance){bestRunDistance=distance;localStorage.dinoBestRunDistance=bestRunDistance}
+ if(score>high)high=score;if(level>bestLevel)bestLevel=level;lastCredits=0;runs++;const runSeconds=gameTime/60;if(runSeconds>bestRunTime)bestRunTime=runSeconds;if(distance>bestRunDistance)bestRunDistance=distance;try{localStorage.spaceHigh=high;localStorage.dinoBestLevel=bestLevel;localStorage.dinoRuns=runs;localStorage.dinoBestRunTime=bestRunTime;localStorage.dinoBestRunDistance=bestRunDistance}catch(_){}
 }
 function destroyAsteroid(index){
  const a=asteroids[index];sfx("boom");addCombo();asteroidKills++;combatScore+=Math.round(a.points*comboMult());score=combatScore+Math.floor(distance);
@@ -536,7 +535,7 @@ function drawStart(){
  const pulse=.55+.25*Math.sin(gameTime*.06);ctx.globalAlpha=pulse;ctx.strokeStyle="#ff7b38";ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(m+24,heroTop+heroH-22);ctx.lineTo(W*.32,heroTop+heroH-22);ctx.moveTo(W*.68,heroTop+heroH-22);ctx.lineTo(W-m-24,heroTop+heroH-22);ctx.stroke();ctx.globalAlpha=1;
  button(m+9,launchY,pw-18,60,"START RUN","#16994a","#07562c","#97ffc0");
  ctx.fillStyle="#d3e8f4";ctx.font="800 13px system-ui,sans-serif";ctx.fillText("HOLD TO FIRE  •  DRAG TO MOVE",W/2,launchY+88);
- ctx.fillStyle="#91aabd";ctx.font="bold 11px system-ui,sans-serif";ctx.fillText("VERSION 12.55",W/2,H-53);ctx.fillStyle="#fff";ctx.font="bold 13px system-ui,sans-serif";ctx.fillText("Built by Curtis Company Limited",W/2,H-35);
+ ctx.fillStyle="#91aabd";ctx.font="bold 11px system-ui,sans-serif";ctx.fillText("VERSION 12.56",W/2,H-53);ctx.fillStyle="#fff";ctx.font="bold 13px system-ui,sans-serif";ctx.fillText("Built by Curtis Company Limited",W/2,H-35);
  ctx.restore();
 }
 function drawVictory(){drawDead()}
