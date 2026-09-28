@@ -17,7 +17,7 @@ canvas{position:fixed;inset:0;width:100%;height:100%;display:block;touch-action:
 <body>
 <canvas id="game"></canvas>
 <script>
-// DINO INVADERS: SPACE V12.48 — AUDIO BALANCE
+// DINO INVADERS: SPACE V12.49 — CINEMATIC COMBAT AUDIO
 const canvas=document.getElementById("game");
 const ctx=canvas.getContext("2d",{alpha:false,desynchronized:true});
 let W=0,H=0;
@@ -35,13 +35,13 @@ const milkyImg=new Image();let milkyReady=false;milkyImg.onload=()=>milkyReady=t
 let audioCtx=null,masterGain=null,musicGain=null,sfxGain=null,compressor=null,audioReady=false,musicTimer=null,musicStep=0,lastLaserAt=0;
 function initAudio(){if(audioReady){if(audioCtx&&audioCtx.state==="suspended")audioCtx.resume();return}try{
  audioCtx=new (window.AudioContext||window.webkitAudioContext)();masterGain=audioCtx.createGain();musicGain=audioCtx.createGain();sfxGain=audioCtx.createGain();compressor=audioCtx.createDynamicsCompressor();
- masterGain.gain.value=.50;musicGain.gain.value=.34;sfxGain.gain.value=.16;
+ masterGain.gain.value=.44;musicGain.gain.value=.22;sfxGain.gain.value=.18;
  compressor.threshold.value=-18;compressor.knee.value=18;compressor.ratio.value=7;compressor.attack.value=.004;compressor.release.value=.18;
  musicGain.connect(masterGain);sfxGain.connect(masterGain);masterGain.connect(compressor);compressor.connect(audioCtx.destination);
  audioReady=true;audioCtx.resume();startMenuMusic()
 }catch(e){}}
 function tone(freq,dur=.08,type="sine",vol=.08,when=0,target="sfx",cutoff=0){if(!audioReady||!audioCtx)return;const o=audioCtx.createOscillator(),g=audioCtx.createGain(),bus=target==="music"?musicGain:sfxGain,t=audioCtx.currentTime+when;o.type=type;o.frequency.setValueAtTime(freq,t);g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(Math.max(.0002,vol),t+.008);g.gain.exponentialRampToValueAtTime(.0001,t+dur);if(cutoff){const f=audioCtx.createBiquadFilter();f.type="lowpass";f.frequency.value=cutoff;o.connect(f);f.connect(g)}else o.connect(g);g.connect(bus);o.start(t);o.stop(t+dur+.03)}
-function noiseBurst(dur=.16,vol=.05,cutoff=700){if(!audioReady||!audioCtx)return;const frames=Math.max(1,Math.floor(audioCtx.sampleRate*dur)),buf=audioCtx.createBuffer(1,frames,audioCtx.sampleRate),d=buf.getChannelData(0);for(let i=0;i<frames;i++)d[i]=(Math.random()*2-1)*(1-i/frames);const src=audioCtx.createBufferSource(),f=audioCtx.createBiquadFilter(),g=audioCtx.createGain();src.buffer=buf;f.type="lowpass";f.frequency.value=cutoff;g.gain.setValueAtTime(vol,audioCtx.currentTime);g.gain.exponentialRampToValueAtTime(.0001,audioCtx.currentTime+dur);src.connect(f);f.connect(g);g.connect(sfxGain);src.start()}
+function noiseBurst(dur=.16,vol=.05,cutoff=700,target="sfx"){if(!audioReady||!audioCtx)return;const frames=Math.max(1,Math.floor(audioCtx.sampleRate*dur)),buf=audioCtx.createBuffer(1,frames,audioCtx.sampleRate),d=buf.getChannelData(0);for(let i=0;i<frames;i++)d[i]=(Math.random()*2-1)*(1-i/frames);const src=audioCtx.createBufferSource(),f=audioCtx.createBiquadFilter(),g=audioCtx.createGain();src.buffer=buf;f.type="lowpass";f.frequency.value=cutoff;g.gain.setValueAtTime(vol,audioCtx.currentTime);g.gain.exponentialRampToValueAtTime(.0001,audioCtx.currentTime+dur);src.connect(f);f.connect(g);g.connect(target==="music"?musicGain:sfxGain);src.start()}
 function sfx(name){if(!audioReady)return;
  if(name==="laser"){const now=audioCtx.currentTime;if(now-lastLaserAt<.05)return;lastLaserAt=now;tone(520,.045,"sine",.026,0,"sfx",1500);tone(310,.065,"triangle",.014,.006,"sfx",950)}
  else if(name==="boom"){noiseBurst(.16,.042,650);tone(82,.18,"sine",.052,0,"sfx",300);tone(128,.09,"triangle",.018,.025,"sfx",500)}
@@ -53,9 +53,18 @@ function sfx(name){if(!audioReady)return;
  else if(name==="combo"){tone(760,.06,"sine",.03);tone(1140,.10,"triangle",.022,.05)}
  else if(name==="win"){[392,523,659,784].forEach((n,i)=>tone(n,.24,"sine",.045,i*.12))}
 }
-function ambientPad(root,when=0){tone(root,1.05,"sine",.060,when,"music",650);tone(root*1.5,1.18,"sine",.030,when+.08,"music",900);tone(root/2,1.35,"triangle",.024,when,"music",340)}
-function startMenuMusic(){if(!audioReady||musicTimer)return;const roots=[110,110,98,123.47,110,146.83,98,82.41];musicStep=0;ambientPad(roots[0]);musicTimer=setInterval(()=>{if(state!=="start")return;const n=roots[++musicStep%roots.length];ambientPad(n);if(musicStep%2===0)tone(n*2.5,.65,"sine",.012,.22,"music",900)},1050)}
-function combatMusicPulse(){if(!audioReady||state!=="play")return;const boss=enemies.some(e=>e.type==="boss"||e.type==="dreadnought"),intensity=Math.min(3,Math.floor(level/3)+(meteorStormTimer>0?1:0)+(boss?1:0)),root=boss?61.74:level>=7?73.42:level>=4?82.41:98,step=Math.floor(gameTime/30)%8,notes=boss?[1,1,1.5,1.25,1,1.75,1.5,1.25]:[1,1.5,1.25,1.75,1,1.5,2,1.25];tone(root*notes[step],.42,"triangle",.034+intensity*.004,0,"music",boss?650:850);tone(root*2*notes[step],.22,"sine",.014+intensity*.002,.02,"music",1500);if(step%2===0)tone(root/2,.46,"sine",.032+intensity*.003,0,"music",300);if(intensity>=2&&step%2===1)tone(root*3,.12,"triangle",.012,0,"music",1700);if(boss&&step===0)tone(root/4,.62,"sine",.034,0,"music",180)}
+function ambientPad(root,when=0){tone(root/2,1.45,"sine",.030,when,"music",260);tone(root,1.10,"triangle",.027,when+.04,"music",720);tone(root*1.5,.55,"sine",.012,when+.28,"music",1250)}
+function startMenuMusic(){if(!audioReady||musicTimer)return;const roots=[73.42,82.41,65.41,73.42,61.74,82.41,73.42,55];musicStep=0;ambientPad(roots[0]);musicTimer=setInterval(()=>{if(state!=="start")return;const n=roots[++musicStep%roots.length];ambientPad(n);if(musicStep%4===2)tone(n*2,.28,"triangle",.010,.18,"music",1100)},1280)}
+function combatMusicPulse(){if(!audioReady||state!=="play")return;
+ const boss=enemies.some(e=>e.type==="boss"||e.type==="dreadnought"),storm=meteorStormTimer>0,intensity=Math.min(3,Math.floor(level/3)+(storm?1:0)+(boss?1:0));
+ const root=boss?55:level>=7?61.74:level>=4?65.41:73.42,step=Math.floor(gameTime/30)%16;
+ const bass=[1,1,1.5,1,1,1.25,1.5,1,1,.75,1.5,1.25,1,1.5,1.25,.75],motif=[2,0,2.25,0,2.5,0,2.25,0,3,0,2.5,0,2.25,0,2,0];
+ tone(root*bass[step],.24,"sawtooth",.020+intensity*.002,0,"music",420);
+ tone(root/2,.18,"sine",.024+intensity*.002,0,"music",190);
+ if(motif[step])tone(root*motif[step],.20,"triangle",.012+intensity*.001,.025,"music",1350);
+ if((step%4===0)||(storm&&step%2===0)){noiseBurst(.055,.007+intensity*.001,900,"music")}
+ if(boss&&step%4===0)tone(root/4,.48,"sine",.027,0,"music",150)
+}
 let hangarMessage="",hangarMessageTimer=0;let campaignWins=Number(localStorage.dinoCampaignWins||0),campaignCleared=false;
 let state="start",score=0,combatScore=0,distance=0,high=Number(localStorage.spaceHigh||0),bestRunTime=Number(localStorage.dinoBestRunTime||0),bestRunDistance=Number(localStorage.dinoBestRunDistance||0),credits=Number(localStorage.dinoCredits||0),bestLevel=Number(localStorage.dinoBestLevel||1),runs=Number(localStorage.dinoRuns||0),permShield=Number(localStorage.permShield||0),permRapid=Number(localStorage.permRapid||0),permPower=Number(localStorage.permPower||0),lastCredits=0,gameTime=0,difficulty=1,screenShake=0;
 const GAME_SPEED=.69;const player={x:100,y:300,radius:5,width:55,hitX:2,hitY:1,fireCooldown:0};
@@ -516,7 +525,7 @@ function drawStart(){
  const pulse=.55+.25*Math.sin(gameTime*.06);ctx.globalAlpha=pulse;ctx.strokeStyle="#ff7b38";ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(m+24,heroTop+heroH-22);ctx.lineTo(W*.32,heroTop+heroH-22);ctx.moveTo(W*.68,heroTop+heroH-22);ctx.lineTo(W-m-24,heroTop+heroH-22);ctx.stroke();ctx.globalAlpha=1;
  button(m+9,launchY,pw-18,60,"START RUN","#16994a","#07562c","#97ffc0");
  ctx.fillStyle="#d3e8f4";ctx.font="800 13px system-ui,sans-serif";ctx.fillText("HOLD TO FIRE  •  DRAG TO MOVE",W/2,launchY+88);
- ctx.fillStyle="#91aabd";ctx.font="bold 11px system-ui,sans-serif";ctx.fillText("VERSION 12.48",W/2,H-53);ctx.fillStyle="#fff";ctx.font="bold 13px system-ui,sans-serif";ctx.fillText("Built by Curtis Company Limited",W/2,H-35);
+ ctx.fillStyle="#91aabd";ctx.font="bold 11px system-ui,sans-serif";ctx.fillText("VERSION 12.49",W/2,H-53);ctx.fillStyle="#fff";ctx.font="bold 13px system-ui,sans-serif";ctx.fillText("Built by Curtis Company Limited",W/2,H-35);
  ctx.restore();
 }
 function drawVictory(){drawDead()}
