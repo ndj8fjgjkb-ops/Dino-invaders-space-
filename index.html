@@ -17,7 +17,7 @@ canvas{position:fixed;inset:0;width:100%;height:100%;display:block;touch-action:
 <body>
 <canvas id="game"></canvas>
 <script>
-// DINO INVADERS: SPACE V10.4 — SPACE AUDIO
+// DINO INVADERS: SPACE V10.5 — DINO SPRITES
 const canvas=document.getElementById("game");
 const ctx=canvas.getContext("2d",{alpha:false,desynchronized:true});
 let W=0,H=0;
@@ -182,17 +182,7 @@ function destroyEnemy(index){
  burst(e.x,e.y,24,"hot",8);burst(e.x,e.y,18,"rock",7);
  enemies.splice(index,1);screenShake=Math.max(screenShake,5);
 }
-function drawInvaderDino(kind,accent,body){
- ctx.shadowColor=accent;ctx.shadowBlur=12;ctx.fillStyle=body;ctx.strokeStyle=accent;ctx.lineWidth=2;
- if(kind==="ptera"){ctx.beginPath();ctx.moveTo(-25,2);ctx.lineTo(-7,-16);ctx.lineTo(1,-4);ctx.lineTo(20,-18);ctx.lineTo(13,1);ctx.lineTo(30,4);ctx.lineTo(10,9);ctx.lineTo(-8,7);ctx.closePath();ctx.fill();ctx.stroke()}
- else if(kind==="trike"){ctx.beginPath();ctx.ellipse(0,1,19,10,0,0,Math.PI*2);ctx.fill();ctx.beginPath();ctx.moveTo(12,-9);ctx.lineTo(25,-5);ctx.lineTo(23,8);ctx.lineTo(11,8);ctx.closePath();ctx.fill();ctx.fillStyle=accent;ctx.beginPath();ctx.moveTo(18,-7);ctx.lineTo(34,-13);ctx.lineTo(23,-2);ctx.fill();ctx.beginPath();ctx.moveTo(13,-8);ctx.lineTo(17,-20);ctx.lineTo(20,-7);ctx.fill()}
- else if(kind==="stego"){ctx.beginPath();ctx.ellipse(0,2,21,9,0,0,Math.PI*2);ctx.fill();ctx.fillStyle=accent;for(let x=-15;x<14;x+=8){ctx.beginPath();ctx.moveTo(x,-6);ctx.lineTo(x+4,-17);ctx.lineTo(x+8,-6);ctx.fill()}ctx.fillStyle=body;ctx.beginPath();ctx.moveTo(16,-2);ctx.lineTo(31,1);ctx.lineTo(16,6);ctx.fill()}
- else if(kind==="anky"){ctx.beginPath();ctx.ellipse(0,2,22,11,0,0,Math.PI*2);ctx.fill();ctx.fillStyle=accent;for(let x=-14;x<16;x+=8){ctx.beginPath();ctx.moveTo(x,-7);ctx.lineTo(x+4,-14);ctx.lineTo(x+7,-6);ctx.fill()}ctx.fillStyle=body;ctx.fillRect(-32,-1,13,5);ctx.beginPath();ctx.arc(-34,1,6,0,Math.PI*2);ctx.fill()}
- else if(kind==="spino"){ctx.beginPath();ctx.ellipse(0,1,21,9,0,0,Math.PI*2);ctx.fill();ctx.beginPath();ctx.moveTo(13,-5);ctx.lineTo(31,-3);ctx.lineTo(31,4);ctx.lineTo(13,6);ctx.fill();ctx.fillStyle=accent;ctx.beginPath();ctx.moveTo(-15,-6);ctx.lineTo(-5,-20);ctx.lineTo(4,-7);ctx.lineTo(11,-18);ctx.lineTo(15,-5);ctx.closePath();ctx.fill()}
- else if(kind==="rex"){ctx.beginPath();ctx.ellipse(-2,1,19,10,0,0,Math.PI*2);ctx.fill();ctx.beginPath();ctx.moveTo(10,-7);ctx.lineTo(29,-5);ctx.lineTo(33,2);ctx.lineTo(14,6);ctx.closePath();ctx.fill();ctx.fillStyle=accent;ctx.fillRect(0,-13,10,5)}
- else{ctx.beginPath();ctx.ellipse(-2,1,17,8,0,0,Math.PI*2);ctx.fill();ctx.beginPath();ctx.moveTo(9,-6);ctx.lineTo(26,-4);ctx.lineTo(29,2);ctx.lineTo(12,5);ctx.closePath();ctx.fill();ctx.beginPath();ctx.moveTo(-14,2);ctx.lineTo(-30,8);ctx.lineTo(-17,-3);ctx.fill()}
- ctx.fillStyle="#fff";ctx.beginPath();ctx.arc(17,-3,1.7,0,Math.PI*2);ctx.fill();ctx.shadowBlur=0
-}
+function drawInvaderDino(kind,accent,body){dinoShape(kind,accent,body,.62)}
 function drawEnemy(e){
  ctx.save();ctx.translate(e.x,e.y);if(e.elite){ctx.strokeStyle="#ffd45b";ctx.lineWidth=2;ctx.shadowColor="#ffd45b";ctx.shadowBlur=12;ctx.beginPath();ctx.arc(0,0,e.radius+6,0,Math.PI*2);ctx.stroke();ctx.shadowBlur=0}
  const dread=e.type==="dreadnought",boss=e.type==="boss"||dread;
@@ -394,16 +384,28 @@ function drawParticles(){
  }
  ctx.globalAlpha=1;
 }
-function drawDinoPilot(s){
- const a=s.accent;ctx.save();ctx.shadowColor=a;ctx.shadowBlur=10;ctx.strokeStyle=a;ctx.lineWidth=2;
- if(s.mode==="rex"){ctx.fillStyle="#6a321d";ctx.beginPath();ctx.ellipse(1,0,25,14,0,0,Math.PI*2);ctx.fill();ctx.beginPath();ctx.moveTo(15,-10);ctx.lineTo(34,-7);ctx.lineTo(39,1);ctx.lineTo(20,5);ctx.closePath();ctx.fill();ctx.fillStyle="#fff";ctx.beginPath();ctx.arc(28,-4,2,0,Math.PI*2);ctx.fill();ctx.fillStyle=a;ctx.fillRect(3,-17,13,7)}
- else if(s.mode==="trike"){ctx.fillStyle="#344b58";ctx.beginPath();ctx.ellipse(0,1,27,14,0,0,Math.PI*2);ctx.fill();ctx.beginPath();ctx.moveTo(15,-12);ctx.lineTo(34,-6);ctx.lineTo(30,9);ctx.lineTo(14,10);ctx.closePath();ctx.fill();ctx.fillStyle="#d7f2ff";ctx.beginPath();ctx.moveTo(25,-8);ctx.lineTo(43,-15);ctx.lineTo(30,-2);ctx.fill();ctx.beginPath();ctx.moveTo(18,-10);ctx.lineTo(24,-24);ctx.lineTo(26,-8);ctx.fill()}
- else if(s.mode==="stego"){ctx.fillStyle="#35583b";ctx.beginPath();ctx.ellipse(0,2,29,13,0,0,Math.PI*2);ctx.fill();ctx.fillStyle=a;for(let x=-18;x<=12;x+=10){ctx.beginPath();ctx.moveTo(x,-9);ctx.lineTo(x+6,-25);ctx.lineTo(x+11,-8);ctx.fill()}ctx.fillStyle="#35583b";ctx.beginPath();ctx.moveTo(20,-4);ctx.lineTo(37,0);ctx.lineTo(20,7);ctx.fill()}
- else if(s.mode==="spino"){ctx.fillStyle="#592b31";ctx.beginPath();ctx.ellipse(0,2,27,13,0,0,Math.PI*2);ctx.fill();ctx.beginPath();ctx.moveTo(17,-7);ctx.lineTo(39,-4);ctx.lineTo(39,4);ctx.lineTo(17,7);ctx.fill();ctx.fillStyle=a;ctx.beginPath();ctx.moveTo(-18,-8);ctx.lineTo(-5,-30);ctx.lineTo(8,-10);ctx.lineTo(15,-25);ctx.lineTo(20,-7);ctx.closePath();ctx.fill()}
- else if(s.mode==="ptera"){ctx.fillStyle="#48365e";ctx.beginPath();ctx.moveTo(-31,4);ctx.lineTo(-5,-20);ctx.lineTo(2,-4);ctx.lineTo(27,-25);ctx.lineTo(17,2);ctx.lineTo(37,5);ctx.lineTo(15,10);ctx.lineTo(1,5);ctx.lineTo(-15,15);ctx.closePath();ctx.fill();ctx.fillStyle=a;ctx.beginPath();ctx.arc(15,0,3,0,Math.PI*2);ctx.fill()}
- else if(s.mode==="anky"){ctx.fillStyle="#59481f";ctx.beginPath();ctx.ellipse(0,2,28,15,0,0,Math.PI*2);ctx.fill();ctx.fillStyle=a;for(let x=-18;x<20;x+=9){ctx.beginPath();ctx.moveTo(x,-9);ctx.lineTo(x+4,-18);ctx.lineTo(x+8,-8);ctx.fill()}ctx.fillStyle="#59481f";ctx.fillRect(-40,-2,18,6);ctx.beginPath();ctx.arc(-43,1,8,0,Math.PI*2);ctx.fill()}
- ctx.fillStyle="#263247";ctx.fillRect(-8,-7,17,14);ctx.fillStyle=a;ctx.fillRect(6,-4,15,8);ctx.restore()
+function dinoShape(kind,accent,body,scale=1){
+ ctx.save();ctx.scale(scale,scale);ctx.lineJoin="round";ctx.lineCap="round";ctx.strokeStyle="#10131b";ctx.lineWidth=2.4;ctx.fillStyle=body;ctx.shadowColor=accent;ctx.shadowBlur=7;
+ // connected body + tail
+ ctx.beginPath();ctx.moveTo(-7,-10);ctx.bezierCurveTo(-18,-13,-27,-8,-30,-2);ctx.lineTo(-46,5);ctx.quadraticCurveTo(-28,6,-19,8);ctx.bezierCurveTo(-10,14,7,14,16,7);ctx.lineTo(17,-4);ctx.bezierCurveTo(10,-10,2,-12,-7,-10);ctx.closePath();ctx.fill();ctx.stroke();
+ if(kind==="ptera"){ctx.beginPath();ctx.moveTo(-12,-3);ctx.quadraticCurveTo(-5,-31,8,-9);ctx.quadraticCurveTo(19,-30,23,-2);ctx.lineTo(15,6);ctx.lineTo(-5,5);ctx.closePath();ctx.fill();ctx.stroke();ctx.beginPath();ctx.moveTo(12,-6);ctx.lineTo(34,-2);ctx.lineTo(15,4);ctx.closePath();ctx.fill();ctx.stroke()}
+ else{ // neck and recognizable head
+  ctx.beginPath();ctx.moveTo(9,-7);ctx.quadraticCurveTo(15,-15,23,-14);ctx.lineTo(38,-10);ctx.quadraticCurveTo(43,-6,39,0);ctx.lineTo(25,4);ctx.quadraticCurveTo(17,5,12,1);ctx.closePath();ctx.fill();ctx.stroke();
+  if(kind==="trike"){ctx.fillStyle=accent;ctx.beginPath();ctx.moveTo(19,-14);ctx.lineTo(12,-26);ctx.lineTo(27,-17);ctx.closePath();ctx.fill();ctx.stroke();ctx.beginPath();ctx.moveTo(33,-10);ctx.lineTo(48,-17);ctx.lineTo(38,-5);ctx.closePath();ctx.fill();ctx.stroke()}
+  if(kind==="rex"){ctx.beginPath();ctx.moveTo(22,2);ctx.lineTo(39,1);ctx.lineTo(29,8);ctx.closePath();ctx.fill();ctx.stroke();ctx.beginPath();ctx.moveTo(10,1);ctx.lineTo(23,8);ctx.stroke()}
+ }
+ // legs are attached, not floating
+ if(kind!=="ptera"){ctx.strokeStyle=body;ctx.lineWidth=7;ctx.beginPath();ctx.moveTo(-9,8);ctx.lineTo(-12,21);ctx.lineTo(-4,21);ctx.moveTo(9,8);ctx.lineTo(12,20);ctx.lineTo(20,20);ctx.stroke();ctx.strokeStyle="#10131b";ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(-12,20);ctx.lineTo(-3,20);ctx.moveTo(12,20);ctx.lineTo(21,20);ctx.stroke()}
+ // species features
+ ctx.fillStyle=accent;ctx.strokeStyle="#10131b";ctx.lineWidth=1.6;
+ if(kind==="stego")for(let x=-20;x<=7;x+=9){ctx.beginPath();ctx.moveTo(x,-9);ctx.lineTo(x+5,-22);ctx.lineTo(x+10,-9);ctx.closePath();ctx.fill();ctx.stroke()}
+ if(kind==="spino"){ctx.beginPath();ctx.moveTo(-20,-9);ctx.quadraticCurveTo(-5,-31,12,-9);ctx.closePath();ctx.fill();ctx.stroke()}
+ if(kind==="anky"){for(let x=-17;x<=7;x+=8){ctx.beginPath();ctx.arc(x,-7,3,0,Math.PI*2);ctx.fill()}ctx.fillStyle=body;ctx.beginPath();ctx.arc(-47,5,7,0,Math.PI*2);ctx.fill();ctx.stroke()}
+ ctx.fillStyle="#fff";ctx.beginPath();ctx.arc(kind==="ptera"?15:31,-8,2,0,Math.PI*2);ctx.fill();ctx.fillStyle="#111";ctx.beginPath();ctx.arc(kind==="ptera"?15.5:31.5,-8,1,0,Math.PI*2);ctx.fill();
+ // integrated space harness
+ ctx.fillStyle="#263247";ctx.fillRect(-5,-9,13,16);ctx.strokeStyle=accent;ctx.strokeRect(-5,-9,13,16);ctx.fillStyle=accent;ctx.fillRect(7,-4,10,7);ctx.restore()
 }
+function drawDinoPilot(s){const body=s.mode==="rex"?"#713a25":s.mode==="trike"?"#3e5961":s.mode==="stego"?"#3f6746":s.mode==="spino"?"#66343a":s.mode==="ptera"?"#51406b":"#675627";dinoShape(s.mode,s.accent,body,.78)}
 function drawPlayer(){
  if(!raptorReady)return;const skin=SKINS[selectedSkin]||SKINS[0];ctx.save();ctx.translate(Math.round(player.x),Math.round(player.y));
  if(shieldHits>0){ctx.strokeStyle="rgba(100,255,150,.8)";ctx.shadowColor="#68ff8c";ctx.shadowBlur=18;ctx.lineWidth=2;ctx.beginPath();ctx.arc(0,0,24,0,Math.PI*2);ctx.stroke();ctx.shadowBlur=0}
@@ -479,7 +481,7 @@ function drawStart(){
  ctx.textAlign="right";ctx.fillStyle="#70ff9c";ctx.font="700 10px system-ui,sans-serif";ctx.fillText("READY",W-m-14,heroTop+25);ctx.fillStyle="#9fb7d7";ctx.font="700 9px system-ui,sans-serif";ctx.fillText("DRAG • FIRE",W-m-14,heroTop+42);
  const launchY=Math.min(H-148,heroTop+heroH+14);button(m+18,launchY,W-2*m-36,58,"LAUNCH  •  TAP TO START","#168f38","#075724","#8dff8f");
  const hangY=launchY+70,bw=(W-2*m-52)/3;button(m+18,hangY,bw,46,"HANGAR","#075f83","#153665","#6deaff");button(m+22+bw,hangY,bw,46,"SKINS","#49206f","#22143f","#c783ff");button(m+26+bw*2,hangY,bw,46,"UPGRADES","#60420d","#332508","#ffd45b");
- ctx.textAlign="center";ctx.fillStyle="#7189aa";ctx.font="700 9px system-ui,sans-serif";ctx.fillText("V10.4 • SPACE AUDIO",W/2,Math.min(H-10,hangY+64));
+ ctx.textAlign="center";ctx.fillStyle="#7189aa";ctx.font="700 9px system-ui,sans-serif";ctx.fillText("V10.5 • DINO SPRITES",W/2,Math.min(H-10,hangY+64));
 }
 function drawVictory(){panel(22,H*.22,W-44,350,"#07152d","#2c1848","#ffd45b");ctx.textAlign="center";ctx.fillStyle="#ffd45b";ctx.font=gameFont(30);ctx.shadowColor="#ff9d35";ctx.shadowBlur=14;ctx.fillText("LEVEL 10 CLEARED",W/2,H*.30);ctx.shadowBlur=0;ctx.fillStyle="#fff";ctx.font=gameFont(20);ctx.fillText("TEX SAVED THE CORE",W/2,H*.355);ctx.font="14px Arial";ctx.fillText("Score "+score+"  •  Distance "+Math.floor(distance),W/2,H*.405);ctx.fillText("Bosses "+bossesDefeated+"  •  Upgrades "+upgradeTier,W/2,H*.445);ctx.fillStyle="#7dff9d";ctx.font="bold 16px Arial";ctx.fillText("+25 CAMPAIGN CREDITS",W/2,H*.495);ctx.fillStyle="#8cecff";ctx.font="bold 13px Arial";ctx.fillText("CAMPAIGN WINS "+campaignWins+"   •   TOTAL KILLS "+totalKills,W/2,H*.535);ctx.fillStyle="#ffd45b";ctx.font="bold 11px Arial";ctx.fillText(SKINS.filter(s=>s.unlock()).length+"/"+SKINS.length+" SKINS UNLOCKED  •  BEST COMBO "+bestComboEver+"x",W/2,H*.565);button(34,H*.59,W-68,50,"CONTINUE ENDLESS","#168f38","#075724","#8dff8f");button(34,H*.67,W-68,46,"MAIN MENU","#075f83","#153665","#6deaff")}
 function drawDead(){
