@@ -17,7 +17,7 @@ canvas{position:fixed;inset:0;width:100%;height:100%;display:block;touch-action:
 <body>
 <canvas id="game"></canvas>
 <script>
-// DINO INVADERS: SPACE V6.26 — UPGRADE IMPACT
+// DINO INVADERS: SPACE V7.0 — GALACTIC CAMPAIGN
 const canvas=document.getElementById("game");
 const ctx=canvas.getContext("2d",{alpha:false,desynchronized:true});
 let W=0,H=0;
@@ -32,7 +32,7 @@ raptorImg.onerror=()=>{raptorReady=false;raptorFailed=true};
 raptorImg.src="./tex-v2.webp?asset=31b83a83e249e9d61039e91749b002e94051a453";
 const milkyImg=new Image();let milkyReady=false;milkyImg.onload=()=>milkyReady=true;milkyImg.onerror=()=>milkyReady=false;milkyImg.src="https://upload.wikimedia.org/wikipedia/commons/f/f5/Galactic_Center_Of_Milky_Way..jpg";
 
-let hangarMessage="",hangarMessageTimer=0;
+let hangarMessage="",hangarMessageTimer=0;let campaignWins=Number(localStorage.dinoCampaignWins||0),campaignCleared=false;
 let state="start",score=0,combatScore=0,distance=0,high=Number(localStorage.spaceHigh||0),credits=Number(localStorage.dinoCredits||0),bestLevel=Number(localStorage.dinoBestLevel||1),runs=Number(localStorage.dinoRuns||0),permShield=Number(localStorage.permShield||0),permRapid=Number(localStorage.permRapid||0),permPower=Number(localStorage.permPower||0),lastCredits=0,gameTime=0,difficulty=1,screenShake=0;
 const player={x:100,y:300,radius:5,width:55,hitX:2,hitY:1,fireCooldown:0};
 let stars=[],bullets=[],enemyBullets=[],asteroids=[],particles=[],shockwaves=[],enemies=[],planets=[],galaxies=[],powerups=[];
@@ -170,10 +170,11 @@ function drawEnemy(e){
 }
 
 function reset(){
- score=0;combatScore=0;distance=0;gameTime=0;missionBonusCredits=0;asteroidKills=0;invaderKills=0;mission=null;meteorStormTimer=0;nextMeteorStorm=1800;difficulty=1;screenShake=0;bullets=[];enemyBullets=[];asteroids=[];particles=[];shockwaves=[];enemies=[];powerups=[];spreadTimer=0;shieldHits=0;powerMessage=0;powerMessageText="";combo=0;comboTimer=0;maxCombo=0;overdriveTimer=0;level=1;lastLevel=1;wave=0;bossSpawned=false;nextBossLevel=5;bossCount=0;bossesDefeated=0;weaponEvolved=false;runXP=0;upgradeTier=0;rapidLevel=permRapid;powerLevel=permPower;spreadLevel=0;pierceLevel=0;plasmaLevel=0;upgradeChoices=[];shieldHits=permShield;
+ score=0;combatScore=0;distance=0;gameTime=0;campaignCleared=false;missionBonusCredits=0;asteroidKills=0;invaderKills=0;mission=null;meteorStormTimer=0;nextMeteorStorm=1800;difficulty=1;screenShake=0;bullets=[];enemyBullets=[];asteroids=[];particles=[];shockwaves=[];enemies=[];powerups=[];spreadTimer=0;shieldHits=0;powerMessage=0;powerMessageText="";combo=0;comboTimer=0;maxCombo=0;overdriveTimer=0;level=1;lastLevel=1;wave=0;bossSpawned=false;nextBossLevel=5;bossCount=0;bossesDefeated=0;weaponEvolved=false;runXP=0;upgradeTier=0;rapidLevel=permRapid;powerLevel=permPower;spreadLevel=0;pierceLevel=0;plasmaLevel=0;upgradeChoices=[];shieldHits=permShield;
  player.x=Math.min(100,W*.25);player.y=H*.5;player.fireCooldown=0;moveTouchID=null;firing=false;rollMission();
 }
 function startGame(){if(!raptorReady)return;reset();state="play"}
+function campaignVictory(){if(campaignCleared)return;campaignCleared=true;campaignWins++;localStorage.dinoCampaignWins=campaignWins;missionBonusCredits+=25;credits+=25;localStorage.dinoCredits=credits;state="victory";firing=false;moveTouchID=null;powerMessageText="GALACTIC CORE SECURED";powerMessage=180;screenShake=10}
 function addBullet(b){if(bullets.length<60)bullets.push(b)}
 function shoot(){
  if(state!=="play"||bullets.length>=60)return;
@@ -283,7 +284,7 @@ level=1+Math.floor(gameTime/600);difficulty=1+gameTime/900+level*.16;
   for(let j=bullets.length-1;j>=0;j--){const b=bullets[j];
    if(hitCircle(b.x,b.y,b.radius,e.x,e.y,e.radius)){
     if((b.pierce||0)>0)b.pierce--;else bullets.splice(j,1);e.health-=1+powerLevel;burst(b.x,b.y,7,"hot",4);
-    if(e.health<=0){const wasBoss=e.type==="boss"||e.type==="dreadnought";const bossName=e.type==="dreadnought"?"DREADNOUGHT":"MOTHERSHIP";destroyEnemy(i);if(wasBoss){bossesDefeated++;powerMessageText=bossName+" DESTROYED!";powerMessage=180;spawnPowerup("shield")}enemyRemoved=true;break}
+    if(e.health<=0){const wasBoss=e.type==="boss"||e.type==="dreadnought";const bossName=e.type==="dreadnought"?"DREADNOUGHT":"MOTHERSHIP";destroyEnemy(i);if(wasBoss){bossesDefeated++;powerMessageText=bossName+" DESTROYED!";powerMessage=180;if(level>=10&&!campaignCleared){campaignVictory()}else spawnPowerup("shield")}enemyRemoved=true;break}
    }
   }
   if(enemyRemoved)continue;
@@ -421,15 +422,16 @@ function drawStart(){
  const m=14,top=Math.max(26,H*.055),logoY=top+24;
  ctx.textAlign="center";ctx.fillStyle="#ff8b22";ctx.font=gameFont(Math.min(38,W*.095));ctx.shadowColor="#ff4d16";ctx.shadowBlur=14;ctx.fillText("DINO INVADERS",W/2,logoY);ctx.fillStyle="#72eaff";ctx.font=gameFont(Math.min(25,W*.064));ctx.shadowColor="#2bbcff";ctx.fillText("S P A C E",W/2,logoY+28);ctx.shadowBlur=0;
  const statsY=logoY+48,statsH=62;panel(m,statsY,W-2*m,statsH,"rgba(5,18,40,.94)","rgba(16,33,67,.94)","#38d9ff");
- const stats=[["HIGH",high],["BEST LV",bestLevel],["RUNS",runs],["CREDITS",credits]];for(let i=0;i<4;i++){const x=m+(W-2*m)*(i+.5)/4;ctx.fillStyle=i===3?"#ffd45b":"#8cecff";ctx.font="700 9px system-ui,sans-serif";ctx.fillText(stats[i][0],x,statsY+20);ctx.fillStyle="#fff";ctx.font=gameFont(16);ctx.fillText(stats[i][1],x,statsY+43)}
+ const stats=[["HIGH",high],["BEST LV",bestLevel],["WINS",campaignWins],["CREDITS",credits]];for(let i=0;i<4;i++){const x=m+(W-2*m)*(i+.5)/4;ctx.fillStyle=i===3?"#ffd45b":"#8cecff";ctx.font="700 9px system-ui,sans-serif";ctx.fillText(stats[i][0],x,statsY+20);ctx.fillStyle="#fff";ctx.font=gameFont(16);ctx.fillText(stats[i][1],x,statsY+43)}
  const heroTop=statsY+76,heroBottom=Math.min(H*.64,heroTop+220),heroH=Math.max(130,heroBottom-heroTop);panel(m,heroTop,W-2*m,heroH,"rgba(5,13,30,.76)","rgba(30,14,53,.84)","#ff8a28");
  if(raptorReady){const w=Math.min(W*.58,210),h=w*texCrop.h/texCrop.w;ctx.save();ctx.translate(W*.50,heroTop+heroH*.49);ctx.shadowColor="#4eeaff";ctx.shadowBlur=24;ctx.drawImage(raptorImg,texCrop.x,texCrop.y,texCrop.w,texCrop.h,-w*.5,-h*.5,w,h);ctx.restore();ctx.shadowBlur=0}
  ctx.textAlign="left";ctx.fillStyle="#ffb23f";ctx.font=gameFont(16);ctx.fillText("TEX",m+14,heroTop+25);ctx.fillStyle="#bfeeff";ctx.font="700 10px system-ui,sans-serif";ctx.fillText("RAPTOR ACE",m+14,heroTop+42);
  ctx.textAlign="right";ctx.fillStyle="#70ff9c";ctx.font="700 10px system-ui,sans-serif";ctx.fillText("READY",W-m-14,heroTop+25);ctx.fillStyle="#9fb7d7";ctx.font="700 9px system-ui,sans-serif";ctx.fillText("DRAG • FIRE",W-m-14,heroTop+42);
  const launchY=Math.min(H-148,heroTop+heroH+14);button(m+18,launchY,W-2*m-36,58,"LAUNCH  •  TAP TO START","#168f38","#075724","#8dff8f");
  const hangY=launchY+70;button(m+18,hangY,(W-2*m-46)*.62,46,"TEX'S HANGAR","#075f83","#153665","#6deaff");button(m+28+(W-2*m-46)*.62,hangY,(W-2*m-46)*.38,46,"LOADOUT","#49206f","#22143f","#c783ff");
- ctx.textAlign="center";ctx.fillStyle="#7189aa";ctx.font="700 9px system-ui,sans-serif";ctx.fillText("V6.26 • UPGRADE IMPACT",W/2,Math.min(H-10,hangY+64));
+ ctx.textAlign="center";ctx.fillStyle="#7189aa";ctx.font="700 9px system-ui,sans-serif";ctx.fillText("V7.0 • GALACTIC CAMPAIGN",W/2,Math.min(H-10,hangY+64));
 }
+function drawVictory(){panel(22,H*.22,W-44,350,"#07152d","#2c1848","#ffd45b");ctx.textAlign="center";ctx.fillStyle="#ffd45b";ctx.font=gameFont(30);ctx.shadowColor="#ff9d35";ctx.shadowBlur=14;ctx.fillText("SECTOR 10 CLEARED",W/2,H*.30);ctx.shadowBlur=0;ctx.fillStyle="#fff";ctx.font=gameFont(20);ctx.fillText("TEX SAVED THE CORE",W/2,H*.355);ctx.font="14px Arial";ctx.fillText("Score "+score+"  •  Distance "+Math.floor(distance),W/2,H*.405);ctx.fillText("Bosses "+bossesDefeated+"  •  Upgrades "+upgradeTier,W/2,H*.445);ctx.fillStyle="#7dff9d";ctx.font="bold 16px Arial";ctx.fillText("+25 CAMPAIGN CREDITS",W/2,H*.495);ctx.fillStyle="#8cecff";ctx.font="bold 13px Arial";ctx.fillText("CAMPAIGN WINS "+campaignWins,W/2,H*.535);button(34,H*.59,W-68,50,"CONTINUE ENDLESS","#168f38","#075724","#8dff8f");button(34,H*.67,W-68,46,"MAIN MENU","#075f83","#153665","#6deaff")}
 function drawDead(){
  panel(25,H*.27,W-50,310,"#160b22","#07172d","#ff4e76");ctx.textAlign="center";ctx.fillStyle="#ff5275";ctx.font=gameFont(31);ctx.shadowColor="#ff3d69";ctx.shadowBlur=12;ctx.fillText("RAPTOR DOWN",W/2,H*.35);ctx.shadowBlur=0;
  ctx.fillStyle="#fff";ctx.font="20px Arial";ctx.fillText("SCORE "+score,W/2,H*.405);ctx.font="15px Arial";ctx.fillText("Distance "+Math.floor(distance)+"   •   Level "+level,W/2,H*.45);ctx.fillText("Bosses "+bossesDefeated+"   •   Upgrades "+upgradeTier,W/2,H*.49);ctx.fillStyle="#66eaff";ctx.font="bold 13px Arial";ctx.fillText("BEST COMBO "+maxCombo+"x",W/2,H*.515);
@@ -439,14 +441,14 @@ function drawDead(){
 function draw(){
  ctx.save();if(screenShake>0)ctx.translate((Math.random()-.5)*screenShake,(Math.random()-.5)*screenShake);
  drawSpace();for(const a of asteroids)drawAsteroid(a);for(const e of enemies)drawEnemy(e);drawPowerups();drawBullets();drawShockwaves();drawParticles();drawPlayer();ctx.restore();
- if(state==="play"||state==="upgrade"||state==="paused")drawHUD();if(state==="start")drawStart();if(state==="hangar")drawHangar();if(state==="loadout")drawLoadout();if(state==="manual")drawManual();if(state==="paused")drawPause();if(state==="upgrade")drawUpgrade();if(state==="dead")drawDead();
+ if(state==="play"||state==="upgrade"||state==="paused")drawHUD();if(state==="start")drawStart();if(state==="hangar")drawHangar();if(state==="loadout")drawLoadout();if(state==="manual")drawManual();if(state==="paused")drawPause();if(state==="upgrade")drawUpgrade();if(state==="victory")drawVictory();if(state==="dead")drawDead();
 }
 let last=performance.now(),accumulator=0;const STEP=1000/60;
 function loop(now){let delta=now-last;last=now;if(delta>66)delta=66;accumulator+=delta;let steps=0;while(accumulator>=STEP&&steps<3){update();accumulator-=STEP;steps++}if(steps===3&&accumulator>=STEP)accumulator=0;draw();requestAnimationFrame(loop)}
 requestAnimationFrame(loop);
 function touchPosition(touch){const rect=canvas.getBoundingClientRect();return{x:touch.clientX-rect.left,y:touch.clientY-rect.top}}
 canvas.addEventListener("touchstart",function(e){
- e.preventDefault();if(state==="paused"){for(const touch of e.changedTouches){const p=touchPosition(touch);if(p.y>=H*.48&&p.y<=H*.57){state="play";return}}return}if(state==="play"){for(const touch of e.changedTouches){const p=touchPosition(touch);if(p.x>=W-62&&p.y>=64&&p.y<=114){state="paused";firing=false;moveTouchID=null;return}}}if(state==="start"){for(const touch of e.changedTouches){const p=touchPosition(touch),top=Math.max(26,H*.055),statsY=top+72,heroTop=statsY+76,heroBottom=Math.min(H*.64,heroTop+220),heroH=Math.max(130,heroBottom-heroTop),launchY=Math.min(H-148,heroTop+heroH+14),hangY=launchY+70;if(p.y>=launchY&&p.y<=launchY+58){startGame();return}if(p.y>=hangY&&p.y<=hangY+46){const bw=(W-80)/3;if(p.x<36+bw)state="hangar";else if(p.x<40+bw*2)state="loadout";else state="manual";return}}return}if(state==="dead"){for(const touch of e.changedTouches){const p=touchPosition(touch);if(p.y>=H*.615&&p.y<=H*.615+48){if(p.x<W*.5)startGame();else{state="start";firing=false;moveTouchID=null}return}}return}if(state==="hangar"){for(const touch of e.changedTouches){const p=touchPosition(touch);if(chooseHangar(p.y))break}return}if(state==="loadout"){for(const touch of e.changedTouches){const p=touchPosition(touch);if(chooseLoadout(p.y))break}return}if(state==="manual"){for(const touch of e.changedTouches){const p=touchPosition(touch);if(chooseManual(p.y))break}return}if(state==="upgrade"){for(const touch of e.changedTouches){const p=touchPosition(touch);if(chooseUpgrade(p.y))break}return}
+ e.preventDefault();if(state==="victory"){for(const touch of e.changedTouches){const p=touchPosition(touch);if(p.y>=H*.57&&p.y<=H*.655){state="play";nextBossLevel=Math.max(nextBossLevel,15);return}if(p.y>=H*.655&&p.y<=H*.75){state="start";return}}return}if(state==="paused"){for(const touch of e.changedTouches){const p=touchPosition(touch);if(p.y>=H*.48&&p.y<=H*.57){state="play";return}}return}if(state==="play"){for(const touch of e.changedTouches){const p=touchPosition(touch);if(p.x>=W-62&&p.y>=64&&p.y<=114){state="paused";firing=false;moveTouchID=null;return}}}if(state==="start"){for(const touch of e.changedTouches){const p=touchPosition(touch),top=Math.max(26,H*.055),statsY=top+72,heroTop=statsY+76,heroBottom=Math.min(H*.64,heroTop+220),heroH=Math.max(130,heroBottom-heroTop),launchY=Math.min(H-148,heroTop+heroH+14),hangY=launchY+70;if(p.y>=launchY&&p.y<=launchY+58){startGame();return}if(p.y>=hangY&&p.y<=hangY+46){const bw=(W-80)/3;if(p.x<36+bw)state="hangar";else if(p.x<40+bw*2)state="loadout";else state="manual";return}}return}if(state==="dead"){for(const touch of e.changedTouches){const p=touchPosition(touch);if(p.y>=H*.615&&p.y<=H*.615+48){if(p.x<W*.5)startGame();else{state="start";firing=false;moveTouchID=null}return}}return}if(state==="hangar"){for(const touch of e.changedTouches){const p=touchPosition(touch);if(chooseHangar(p.y))break}return}if(state==="loadout"){for(const touch of e.changedTouches){const p=touchPosition(touch);if(chooseLoadout(p.y))break}return}if(state==="manual"){for(const touch of e.changedTouches){const p=touchPosition(touch);if(chooseManual(p.y))break}return}if(state==="upgrade"){for(const touch of e.changedTouches){const p=touchPosition(touch);if(chooseUpgrade(p.y))break}return}
  for(const touch of e.changedTouches){const p=touchPosition(touch);
   if(moveTouchID===null){
    moveTouchID=touch.identifier;lastMoveX=p.x;lastMoveY=p.y;firing=true;
