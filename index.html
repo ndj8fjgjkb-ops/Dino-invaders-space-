@@ -264,7 +264,7 @@ level=1+Math.floor(gameTime/600);difficulty=1+gameTime/900+level*.16;
   if(hitCircle(player.x,player.y,player.radius+5,p.x,p.y,p.radius)){
    if(p.type==="shield"){shieldHits=Math.min(2,shieldHits+1);powerMessageText="SHIELD READY!"}
    else if(p.type==="overdrive"){overdriveTimer=480;powerMessageText="RAPTOR OVERDRIVE!"}
-   else{spreadTimer=600;powerMessageText="SPREAD SHOT!"}
+   else if(p.type==="core"){runXP+=6;combatScore+=750;score=combatScore+Math.floor(distance);powerMessageText="BOSS CORE +750 SCORE +6 XP"}\n   else{spreadTimer=600;powerMessageText="SPREAD SHOT!"}
    powerMessage=90;burst(p.x,p.y,20,"hot",6);powerups.splice(i,1);screenShake=Math.max(screenShake,3);continue}
   if(p.x<-40)powerups.splice(i,1);
  }
