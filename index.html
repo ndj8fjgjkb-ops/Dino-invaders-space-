@@ -17,7 +17,7 @@ canvas{position:fixed;inset:0;width:100%;height:100%;display:block;touch-action:
 <body>
 <canvas id="game"></canvas>
 <script>
-// DINO INVADERS: SPACE V12.35 — SCORE SURVIVAL STATS
+// DINO INVADERS: SPACE V12.36 — ENEMY FLIGHT SYSTEM
 const canvas=document.getElementById("game");
 const ctx=canvas.getContext("2d",{alpha:false,desynchronized:true});
 let W=0,H=0;
@@ -167,7 +167,7 @@ function spawnEnemy(type="scout",offset=0){
  if(enemies.length>=10)return;
  const y=70+Math.random()*Math.max(100,H-140),hunter=type==="hunter",boss=type==="boss"||type==="dreadnought",dread=type==="dreadnought",gunner=type==="gunner",charger=type==="charger",stalker=type==="stalker",bomber=type==="bomber",warden=type==="warden";
  const elite=!boss&&level>=5&&Math.random()<Math.min(.18,.035+level*.008);const hp=dread?70:boss?36:warden?9:bomber?6:gunner?5:hunter?4:stalker?5:charger?3:2;
- enemies.push({x:stalker&&Math.random()<.55?W*.38+Math.random()*W*.5:W+70+offset,y:stalker&&Math.random()<.5?-45:H+45,baseY:y,vx:boss?-1.25:stalker?-1.05:-(warden?1.15:bomber?1.45:gunner?1.7:hunter?2.7:2.1)-Math.random()*.8-difficulty*.12,phase:Math.random()*Math.PI*2,health:elite?hp*2:hp,maxHealth:elite?hp*2:hp,radius:dread?44:boss?34:warden?21:bomber?18:gunner?16:hunter?15:stalker?17:charger?13:11.424,points:(dread?6500:boss?3200:warden?950:bomber?750:gunner?500:stalker?650:hunter?350:charger?300:180)*(elite?2:1),type,elite,shotTimer:70+Math.random()*80});const ne=enemies[enemies.length-1];if(stalker)ne.baseY=ne.y;
+ enemies.push({x:stalker&&Math.random()<.55?W*.38+Math.random()*W*.5:W+70+offset,y:stalker&&Math.random()<.5?-45:H+45,baseY:y,vx:boss?-1.25:stalker?-1.05:-(warden?1.15:bomber?1.45:gunner?1.7:hunter?2.7:2.1)-Math.random()*.8-difficulty*.12,phase:Math.random()*Math.PI*2,health:elite?hp*2:hp,maxHealth:elite?hp*2:hp,radius:dread?44:boss?34:warden?21:bomber?18:gunner?16:hunter?15:stalker?17:charger?13:11.424,points:(dread?6500:boss?3200:warden?950:bomber?750:gunner?500:stalker?650:hunter?350:charger?300:180)*(elite?2:1),type,elite,shotTimer:70+Math.random()*80,flightPhase:Math.random()*Math.PI*2,flightAmp:8+Math.random()*8,flightRate:.032+Math.random()*.018,bank:0,diveCooldown:150+Math.random()*180,diveTimer:0,diveDir:Math.random()<.5?-1:1});const ne=enemies[enemies.length-1];if(stalker)ne.baseY=ne.y;
 }
 function bossBounty(){bossesLifetime++;localStorage.dinoBossesLifetime=bossesLifetime;powerMessageText="BOSS DESTROYED";powerMessage=150}
 function spawnBoss(){
@@ -206,9 +206,9 @@ function drawEnemy(e){
  // Standard enemy roster intentionally uses only two visual species.
  // Boss visuals above remain unchanged.
  if(e.type==="stalker"||e.type==="bomber"||e.type==="warden")drawInvaderDino("ptera","#ff5471","#401522");
- else if(regEnemyBodyImg.complete&&regEnemyBodyImg.naturalWidth&&regWingLeftImg.complete&&regWingLeftImg.naturalWidth&&regWingRightImg.complete&&regWingRightImg.naturalWidth){const bob=Math.sin(gameTime*.09+e.phase)*1.1,bank=Math.sin(gameTime*.045+e.phase)*.018,bw=72,bh=bw*approvedFlyingEnemyImg.naturalHeight/approvedFlyingEnemyImg.naturalWidth;
+ else if(regEnemyBodyImg.complete&&regEnemyBodyImg.naturalWidth&&regWingLeftImg.complete&&regWingLeftImg.naturalWidth&&regWingRightImg.complete&&regWingRightImg.naturalWidth){const flap=Math.sin(gameTime*.16+(e.flightPhase||e.phase)),bob=Math.sin(gameTime*.09+(e.flightPhase||e.phase))*1.8,bank=(e.bank||0)+Math.sin(gameTime*.045+e.phase)*.012,bw=72,bh=bw*approvedFlyingEnemyImg.naturalHeight/approvedFlyingEnemyImg.naturalWidth;
 // V12.21 approved precomposed flying enemy. Preserve the verified silhouette; animate only the whole sprite.
-if(approvedFlyingEnemyImg.complete&&approvedFlyingEnemyImg.naturalWidth){ctx.save();ctx.translate(0,bob);ctx.rotate(bank);ctx.scale(-1,1);ctx.shadowColor="#ff5a35";ctx.shadowBlur=2;ctx.drawImage(approvedFlyingEnemyImg,-bw*.5,-bh*.5,bw,bh);ctx.restore()}
+if(approvedFlyingEnemyImg.complete&&approvedFlyingEnemyImg.naturalWidth){ctx.save();ctx.translate(0,bob);ctx.rotate(bank);ctx.scale(-1,1+flap*.025);ctx.shadowColor="#ff5a35";ctx.shadowBlur=2+Math.max(0,flap)*2;ctx.drawImage(approvedFlyingEnemyImg,-bw*.5,-bh*.5,bw,bh);ctx.restore()}
 else{const fbw=66,fbh=fbw*mainEnemyImg.naturalHeight/mainEnemyImg.naturalWidth;ctx.save();ctx.translate(0,bob);ctx.drawImage(mainEnemyImg,-fbw*.5,-fbh*.5,fbw,fbh);ctx.restore()}
 }else if(mainEnemyImg.complete&&mainEnemyImg.naturalWidth){const w=96,h=w*mainEnemyImg.naturalHeight/mainEnemyImg.naturalWidth;ctx.save();ctx.shadowColor="#ff4a3d";ctx.shadowBlur=2;ctx.drawImage(mainEnemyImg,-w*.5,-h*.5,w,h);ctx.restore()}
  else drawInvaderDino("rex","#ff4a3d","#421418");
@@ -332,7 +332,17 @@ level=1+Math.floor(gameTime/600);sector=Math.min(5,1+Math.floor((level-1)/2));di
   if(e.type==="boss"||e.type==="dreadnought"){if(e.x>W*.76)e.x+=e.vx*GAME_SPEED;e.baseY=H*.5;e.y=e.baseY+Math.sin(gameTime*(e.type==="dreadnought"?.035:.025)+e.phase)*Math.min(e.type==="dreadnought"?145:110,H*.28);
    if(e.x<W*.9){e.shotTimer-=e.type==="dreadnought"&&e.health<=e.maxHealth*.35?1.7:1;if(e.shotTimer<=0&&enemyBullets.length<16){const enraged=e.health<=e.maxHealth*.5;if(e.type==="dreadnought"){const spread=enraged?3:2;for(let a=-spread;a<=spread&&enemyBullets.length<16;a++){const ang=Math.PI+a*(enraged?.15:.18);enemyBullets.push({x:e.x-32,y:e.y,vx:Math.cos(ang)*(enraged?5:4.4),vy:Math.sin(ang)*(enraged?5:4.4),radius:4})}e.shotTimer=enraged?58:90}else{const dx=player.x-e.x,dy=player.y-e.y,len=Math.hypot(dx,dy)||1,s=(enraged?5:4.1)+Math.min(1.5,level*.08);enemyBullets.push({x:e.x-30,y:e.y-7,vx:dx/len*s,vy:dy/len*s,radius:4.5});if((level>=7||enraged)&&enemyBullets.length<16)enemyBullets.push({x:e.x-30,y:e.y+7,vx:dx/len*s,vy:dy/len*s+.55,radius:4});e.shotTimer=enraged?Math.max(35,62-level):Math.max(48,86-level*2)}}}
   }
-  else{if(e.type==="stalker"){const dx=player.x-e.x,dy=player.y-e.y,len=Math.hypot(dx,dy)||1,s=1.35+Math.min(.55,difficulty*.05);e.x+=dx/len*s*GAME_SPEED;e.y+=dy/len*s*GAME_SPEED;e.baseY=e.y}else if(e.type==="charger"&&e.x<W*.82){const dx=player.x-e.x,dy=player.y-e.y,len=Math.hypot(dx,dy)||1;e.x+=dx/len*(4.6+difficulty*.12)*GAME_SPEED;e.y+=dy/len*(4.6+difficulty*.12)*GAME_SPEED}else{e.x+=e.vx*GAME_SPEED;e.y=e.baseY+Math.sin(gameTime*(e.type==="hunter"?.065:.045)+e.phase)*(e.type==="hunter"?48:34)}}
+  else{
+   const fp=e.flightPhase||e.phase,fr=e.flightRate||.04,fa=e.flightAmp||10;
+   if(e.type==="stalker"){const dx=player.x-e.x,dy=player.y-e.y,len=Math.hypot(dx,dy)||1,s=1.35+Math.min(.55,difficulty*.05);e.x+=dx/len*s*GAME_SPEED;e.y+=dy/len*s*GAME_SPEED;e.baseY=e.y;e.bank+=(Math.max(-.12,Math.min(.12,dy/180))-e.bank)*.08}
+   else if(e.type==="charger"&&e.x<W*.82){const dx=player.x-e.x,dy=player.y-e.y,len=Math.hypot(dx,dy)||1;e.x+=dx/len*(4.6+difficulty*.12)*GAME_SPEED;e.y+=dy/len*(4.6+difficulty*.12)*GAME_SPEED;e.bank+=(Math.max(-.16,Math.min(.16,dy/150))-e.bank)*.10}
+   else{
+    e.x+=e.vx*GAME_SPEED;
+    if(e.diveTimer>0){e.diveTimer--;const t=1-e.diveTimer/54;e.y+=e.diveDir*Math.sin(t*Math.PI)*3.2;e.bank+=(e.diveDir*.15-e.bank)*.10}
+    else{e.diveCooldown--;if(e.diveCooldown<=0&&e.x<W*.82&&e.x>W*.38&&(e.type==="hunter"||e.type==="scout")){e.diveTimer=54;e.diveDir=player.y>=e.y?1:-1;e.diveCooldown=190+Math.random()*220}
+     const primary=Math.sin(gameTime*fr+fp)*(e.type==="hunter"?fa*1.55:fa),secondary=Math.sin(gameTime*fr*.47+fp*1.7)*fa*.38,target=e.baseY+primary+secondary;e.y+=(target-e.y)*.12;e.bank+=(Math.max(-.10,Math.min(.10,(target-e.y)/55))-e.bank)*.08}
+   }
+  }
   if(e.type==="gunner"&&e.x<W*.92){e.shotTimer--;if(e.shotTimer<=0&&enemyBullets.length<16){const dx=player.x-e.x,dy=player.y-e.y,len=Math.hypot(dx,dy)||1,s=4.2+Math.min(2,difficulty*.12);enemyBullets.push({x:e.x-15,y:e.y,vx:dx/len*s,vy:dy/len*s,radius:4});e.shotTimer=Math.max(55,115-level*3)}}
   if(resumeGrace<=0&&hitPlayer(e.x,e.y,e.radius)){
    if(shieldHits>0){shieldHits--;burst(player.x,player.y,24,"hot",7);if(shockwaves.length<14)shockwaves.push({x:player.x,y:player.y,radius:8,maxRadius:70,life:18,maxLife:18});const bossHit=e.type==="boss"||e.type==="dreadnought";if(bossHit){e.health-=5;player.x=Math.max(50,player.x-28);if(e.health<=0){const bossName=e.type==="dreadnought"?"VOID SPINOSAUR":"WAR T-REX";destroyEnemy(i);bossesDefeated++;bossBounty();spawnPowerup("core")}}else enemies.splice(i,1);screenShake=7;continue}
@@ -459,7 +469,7 @@ function drawStart(){
  const pulse=.55+.25*Math.sin(gameTime*.06);ctx.globalAlpha=pulse;ctx.strokeStyle="#ff7b38";ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(m+24,heroTop+heroH-22);ctx.lineTo(W*.32,heroTop+heroH-22);ctx.moveTo(W*.68,heroTop+heroH-22);ctx.lineTo(W-m-24,heroTop+heroH-22);ctx.stroke();ctx.globalAlpha=1;
  button(m+9,launchY,pw-18,60,"START RUN","#16994a","#07562c","#97ffc0");
  ctx.fillStyle="#d3e8f4";ctx.font="800 13px system-ui,sans-serif";ctx.fillText("HOLD TO FIRE  •  DRAG TO MOVE",W/2,launchY+88);
- ctx.fillStyle="#91aabd";ctx.font="bold 11px system-ui,sans-serif";ctx.fillText("VERSION 12.35",W/2,H-53);ctx.fillStyle="#fff";ctx.font="bold 13px system-ui,sans-serif";ctx.fillText("Built by Curtis Company Limited",W/2,H-35);
+ ctx.fillStyle="#91aabd";ctx.font="bold 11px system-ui,sans-serif";ctx.fillText("VERSION 12.36",W/2,H-53);ctx.fillStyle="#fff";ctx.font="bold 13px system-ui,sans-serif";ctx.fillText("Built by Curtis Company Limited",W/2,H-35);
  ctx.restore();
 }
 function drawVictory(){drawDead()}
