@@ -213,7 +213,8 @@ function burst(x,y,amount,type,power=7){
  const room=Math.max(0,180-particles.length),count=Math.min(amount,room);
  for(let i=0;i<count;i++){const life=12+Math.random()*16;particles.push({x,y,vx:(Math.random()-.5)*power,vy:(Math.random()-.5)*power,life,maxLife:life,size:1+Math.random()*4,type})}
 }
-function hitCircle(ax,ay,ar,bx,by,br){const dx=ax-bx,dy=ay-by,r=ar+br;return dx*dx+dy*dy<r*r}\nfunction hitPlayer(bx,by,br=0){return hitCircle(player.x+player.hitX,player.y+player.hitY,player.radius,bx,by,br)}
+function hitCircle(ax,ay,ar,bx,by,br){const dx=ax-bx,dy=ay-by,r=ar+br;return dx*dx+dy*dy<r*r}
+function hitPlayer(bx,by,br=0){return hitCircle(player.x+player.hitX,player.y+player.hitY,player.radius,bx,by,br)}
 function die(){
  if(state!=="play")return;state="dead";firing=false;moveTouchID=null;screenShake=13;burst(player.x,player.y,32,"red",9);
  if(score>high){high=score;localStorage.spaceHigh=high}
