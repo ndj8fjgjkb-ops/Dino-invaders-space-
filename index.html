@@ -17,7 +17,7 @@ canvas{position:fixed;inset:0;width:100%;height:100%;display:block;touch-action:
 <body>
 <canvas id="game"></canvas>
 <script>
-// DINO INVADERS: SPACE V4.1 — MINI BOSS
+// DINO INVADERS: SPACE V5.0 — COMPLETE RUN SYSTEM
 const canvas=document.getElementById("game");
 const ctx=canvas.getContext("2d",{alpha:false,desynchronized:true});
 let W=0,H=0;
@@ -29,12 +29,12 @@ const raptorImg=new Image();
 let raptorReady=false,raptorFailed=false;
 raptorImg.onload=()=>{raptorReady=true;raptorFailed=false};
 raptorImg.onerror=()=>{raptorReady=false;raptorFailed=true};
-raptorImg.src="8BBBE99D-BE50-463D-AB99-9356374B034D.png?v=41";
+raptorImg.src="8BBBE99D-BE50-463D-AB99-9356374B034D.png?v=50";
 
 let state="start",score=0,combatScore=0,distance=0,high=Number(localStorage.spaceHigh||0),gameTime=0,difficulty=1,screenShake=0;
 const player={x:100,y:300,radius:6.8544,width:55.216,fireCooldown:0};
 let stars=[],bullets=[],asteroids=[],particles=[],shockwaves=[],enemies=[],planets=[],powerups=[];
-let spreadTimer=0,shieldHits=0,powerMessage=0,powerMessageText="",level=1,lastLevel=1,wave=0,bossSpawned=false;
+let spreadTimer=0,shieldHits=0,powerMessage=0,powerMessageText="",level=1,lastLevel=1,wave=0,bossSpawned=false,runXP=0,upgradeTier=0,rapidLevel=0,powerLevel=0,spreadLevel=0;
 let moveTouchID=null,lastMoveX=0,lastMoveY=0,firing=false;
 
 function resize(){
@@ -110,7 +110,7 @@ function spawnWave(){
  for(let i=0;i<count;i++)spawnEnemy(level>=2&&(i===count-1||level>=4&&i%3===2)?"hunter":"scout",i*48);
 }
 function destroyEnemy(index){
- const e=enemies[index];combatScore+=e.points;score=combatScore+Math.floor(distance);
+ const e=enemies[index];combatScore+=e.points;runXP+=e.type==="boss"?10:e.type==="hunter"?3:1;score=combatScore+Math.floor(distance);
  shockwaves.push({x:e.x,y:e.y,radius:8,maxRadius:55,life:15,maxLife:15});
  particles.push({x:e.x,y:e.y,vx:0,vy:0,life:8,maxLife:8,size:34,type:"flash"});
  burst(e.x,e.y,24,"hot",8);burst(e.x,e.y,18,"rock",7);
@@ -133,7 +133,7 @@ function drawEnemy(e){
 }
 
 function reset(){
- score=0;combatScore=0;distance=0;gameTime=0;difficulty=1;screenShake=0;bullets=[];asteroids=[];particles=[];shockwaves=[];enemies=[];powerups=[];spreadTimer=0;shieldHits=0;powerMessage=0;powerMessageText="";level=1;lastLevel=1;wave=0;bossSpawned=false;
+ score=0;combatScore=0;distance=0;gameTime=0;difficulty=1;screenShake=0;bullets=[];asteroids=[];particles=[];shockwaves=[];enemies=[];powerups=[];spreadTimer=0;shieldHits=0;powerMessage=0;powerMessageText="";level=1;lastLevel=1;wave=0;bossSpawned=false;runXP=0;upgradeTier=0;rapidLevel=0;powerLevel=0;spreadLevel=0;
  player.x=Math.min(100,W*.25);player.y=H*.5;player.fireCooldown=0;moveTouchID=null;firing=false;
 }
 function startGame(){if(!raptorReady)return;reset();state="play"}
@@ -144,13 +144,13 @@ function shoot(){
   bullets.push({x:player.x+31,y:player.y-3,vx:11.7,vy:-2.35,radius:1.904});
   bullets.push({x:player.x+31,y:player.y-3,vx:11.7,vy:2.35,radius:1.904});
  }else bullets.push({x:player.x+31,y:player.y-3,vx:12,vy:0,radius:1.904});
- player.fireCooldown=7;
+ player.fireCooldown=Math.max(3,7-rapidLevel);
  for(let i=0;i<3;i++)particles.push({x:player.x+30,y:player.y-3,vx:2+Math.random()*3,vy:(Math.random()-.5)*2,life:10,maxLife:10,size:2+Math.random()*2,type:"laser"});
 }
 function makeAsteroid(x,y,size,vx,vy){
  let radius,health,points;
- if(size===3){radius=22.848+Math.random()*4.76;health=3;points=100}
- else if(size===2){radius=14.756+Math.random()*3.332;health=2;points=60}
+ if(size===3){radius=22.848+Math.random()*4.76;health=Math.max(1,3-powerLevel);points=100}
+ else if(size===2){radius=14.756+Math.random()*3.332;health=Math.max(1,2-powerLevel);points=60}
  else{radius=8.092+Math.random()*2.38;health=1;points=30}
  const shape=[],count=9+Math.floor(Math.random()*3);
  for(let i=0;i<count;i++)shape.push(.78+Math.random()*.35);
@@ -179,7 +179,7 @@ function die(){
  if(score>high){high=score;localStorage.spaceHigh=high}
 }
 function destroyAsteroid(index){
- const a=asteroids[index];combatScore+=a.points;score=combatScore+Math.floor(distance);
+ const a=asteroids[index];combatScore+=a.points;runXP+=a.size===3?2:1;score=combatScore+Math.floor(distance);
  shockwaves.push({x:a.x,y:a.y,radius:a.radius*.2,maxRadius:a.radius*(a.size===3?1.8:1.5),life:a.size===3?18:14,maxLife:a.size===3?18:14});
  particles.push({x:a.x,y:a.y,vx:0,vy:0,life:8,maxLife:8,size:a.radius*.85,type:"flash"});
  burst(a.x,a.y,a.size===3?24:a.size===2?18:12,"rock",a.size===3?10:7);
@@ -203,6 +203,13 @@ function update(){
  gameTime++;distance+=1/12;score=combatScore+Math.floor(distance);level=1+Math.floor(gameTime/600);difficulty=1+gameTime/900+level*.16;
  if(level>lastLevel){lastLevel=level;powerMessageText="LEVEL "+level;powerMessage=110;screenShake=Math.max(screenShake,2)}
  if(spreadTimer>0)spreadTimer--;if(powerMessage>0)powerMessage--;
+ const nextUpgrade=(upgradeTier+1)*12;
+ if(runXP>=nextUpgrade){upgradeTier++;runXP=0;const pick=upgradeTier%3;
+  if(pick===0){rapidLevel=Math.min(3,rapidLevel+1);powerMessageText="UPGRADE: RAPID FIRE"}
+  else if(pick===1){powerLevel=Math.min(2,powerLevel+1);powerMessageText="UPGRADE: LASER POWER"}
+  else{spreadLevel=Math.min(2,spreadLevel+1);spreadTimer=Math.max(spreadTimer,900+spreadLevel*300);powerMessageText="UPGRADE: SPREAD"}
+  powerMessage=150;screenShake=Math.max(screenShake,3)
+ }
  if(gameTime===300||gameTime%780===0)spawnPowerup("spread");
  if(gameTime===540||gameTime%1200===0)spawnPowerup("shield");
  player.x=Math.max(50,Math.min(W-65,player.x));player.y=Math.max(50,Math.min(H-65,player.y));
@@ -211,6 +218,7 @@ function update(){
  if(gameTime>180 && gameTime%Math.max(150,300-Math.floor(difficulty*13))===0)spawnEnemy(level>=2&&Math.random()<Math.min(.55,.15+level*.035)?"hunter":"scout");
  if(gameTime===360||gameTime%600===0)spawnWave();
  if(level>=5&&!bossSpawned)spawnBoss();
+ if(level>=10&&bossSpawned&&!enemies.some(e=>e.type==="boss")&&gameTime%1200===0){bossSpawned=false;spawnBoss()}
  for(let i=bullets.length-1;i>=0;i--){const b=bullets[i];b.x+=b.vx;b.y+=b.vy||0;if(b.x>W+40||b.y<-40||b.y>H+40)bullets.splice(i,1)}
  for(let i=powerups.length-1;i>=0;i--){const p=powerups[i];p.x+=p.vx;
   if(hitCircle(player.x,player.y,player.radius+5,p.x,p.y,p.radius)){
@@ -304,7 +312,7 @@ function drawPlayer(){
  ctx.restore();
  ctx.imageSmoothingEnabled=oldSmooth;ctx.imageSmoothingQuality=oldQuality;
 }
-function drawHUD(){ctx.textAlign="center";ctx.textBaseline="alphabetic";ctx.fillStyle="#fff";ctx.font="bold 27px Arial";ctx.fillText(score,W/2,42);ctx.font="bold 12px Arial";ctx.fillText("DIST "+Math.floor(distance)+"   •   BEST "+high+"   •   LV "+level,W/2,62);let hudY=79;if(spreadTimer>0){ctx.fillStyle="#67f7ff";ctx.font="bold 11px Arial";ctx.fillText("SPREAD "+Math.ceil(spreadTimer/60)+"s",W/2,hudY);hudY+=15}if(shieldHits>0){ctx.fillStyle="#7dff9d";ctx.font="bold 11px Arial";ctx.fillText("SHIELD "+shieldHits,W/2,hudY)}if(powerMessage>0){ctx.globalAlpha=Math.min(1,powerMessage/20);ctx.fillStyle="#fff";ctx.font="bold 20px Arial";ctx.fillText(powerMessageText,W/2,H*.18);ctx.globalAlpha=1}}
+function drawHUD(){ctx.textAlign="center";ctx.textBaseline="alphabetic";ctx.fillStyle="#fff";ctx.font="bold 27px Arial";ctx.fillText(score,W/2,42);ctx.font="bold 12px Arial";ctx.fillText("DIST "+Math.floor(distance)+"   •   BEST "+high+"   •   LV "+level+"   •   XP "+runXP+"/"+((upgradeTier+1)*12),W/2,62);let hudY=79;if(spreadTimer>0){ctx.fillStyle="#67f7ff";ctx.font="bold 11px Arial";ctx.fillText("SPREAD "+Math.ceil(spreadTimer/60)+"s",W/2,hudY);hudY+=15}if(shieldHits>0){ctx.fillStyle="#7dff9d";ctx.font="bold 11px Arial";ctx.fillText("SHIELD "+shieldHits,W/2,hudY)}if(powerMessage>0){ctx.globalAlpha=Math.min(1,powerMessage/20);ctx.fillStyle="#fff";ctx.font="bold 20px Arial";ctx.fillText(powerMessageText,W/2,H*.18);ctx.globalAlpha=1}}
 function drawStart(){
  ctx.fillStyle="rgba(2,5,15,.78)";ctx.fillRect(22,H*.25,W-44,285);ctx.textAlign="center";ctx.fillStyle="#fff";ctx.font="bold 32px Arial";ctx.fillText("DINO INVADERS",W/2,H*.34);
  ctx.fillStyle="#ff3535";ctx.font="bold 27px Arial";ctx.fillText("SPACE",W/2,H*.395);
