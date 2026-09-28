@@ -1,0 +1,15 @@
+{
+  "name": "Dino Invaders: Space",
+  "short_name": "Dino Invaders",
+  "description": "Endless arcade score attack. Survive, destroy invaders, dodge meteors, and chase the high score.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#02040d",
+  "theme_color": "#02040d",
+  "categories": [
+    "games",
+    "entertainment"
+  ]
+}
