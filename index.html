@@ -249,7 +249,7 @@ function update(){
   else{e.x+=e.vx;e.y=e.baseY+Math.sin(gameTime*(e.type==="hunter"?.065:.045)+e.phase)*(e.type==="hunter"?48:34)}
   if(e.type==="gunner"&&e.x<W*.92){e.shotTimer--;if(e.shotTimer<=0&&enemyBullets.length<16){const dx=player.x-e.x,dy=player.y-e.y,len=Math.hypot(dx,dy)||1,s=4.2+Math.min(2,difficulty*.12);enemyBullets.push({x:e.x-15,y:e.y,vx:dx/len*s,vy:dy/len*s,radius:4});e.shotTimer=Math.max(55,115-level*3)}}
   if(hitCircle(player.x,player.y,player.radius,e.x,e.y,e.radius)){
-   if(shieldHits>0){shieldHits--;burst(player.x,player.y,24,"hot",7);if(shockwaves.length<14)shockwaves.push({x:player.x,y:player.y,radius:8,maxRadius:70,life:18,maxLife:18});enemies.splice(i,1);screenShake=7;continue}
+   if(shieldHits>0){shieldHits--;burst(player.x,player.y,24,"hot",7);if(shockwaves.length<14)shockwaves.push({x:player.x,y:player.y,radius:8,maxRadius:70,life:18,maxLife:18});const bossHit=e.type==="boss"||e.type==="dreadnought";if(bossHit){e.health-=5;player.x=Math.max(50,player.x-28);if(e.health<=0){const bossName=e.type==="dreadnought"?"DREADNOUGHT":"MOTHERSHIP";destroyEnemy(i);bossesDefeated++;powerMessageText=bossName+" DESTROYED!";powerMessage=180;spawnPowerup("shield")}}else enemies.splice(i,1);screenShake=7;continue}
    die();break}
   let enemyRemoved=false;
   for(let j=bullets.length-1;j>=0;j--){const b=bullets[j];
