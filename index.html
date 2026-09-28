@@ -17,7 +17,7 @@ canvas{position:fixed;inset:0;width:100%;height:100%;display:block;touch-action:
 <body>
 <canvas id="game"></canvas>
 <script>
-// DINO INVADERS: SPACE V6.15 — RAPTOR OVERDRIVE
+// DINO INVADERS: SPACE V6.16 — FIELD MISSIONS
 const canvas=document.getElementById("game");
 const ctx=canvas.getContext("2d",{alpha:false,desynchronized:true});
 let W=0,H=0;
@@ -37,7 +37,10 @@ let state="start",score=0,combatScore=0,distance=0,high=Number(localStorage.spac
 const player={x:100,y:300,radius:7.5,width:82,fireCooldown:0};
 let stars=[],bullets=[],enemyBullets=[],asteroids=[],particles=[],shockwaves=[],enemies=[],planets=[],galaxies=[],powerups=[];
 let spreadTimer=0,shieldHits=0,powerMessage=0,powerMessageText="",combo=0,comboTimer=0,maxCombo=0,overdriveTimer=0,level=1,lastLevel=1,wave=0,bossSpawned=false,nextBossLevel=5,runXP=0,upgradeTier=0,rapidLevel=0,powerLevel=0,spreadLevel=0,pierceLevel=0,upgradeChoices=[],bossCount=0,bossesDefeated=0,weaponEvolved=false;
+let mission=null,missionBonusCredits=0,asteroidKills=0,invaderKills=0;
 let moveTouchID=null,lastMoveX=0,lastMoveY=0,firing=false;
+function rollMission(){const pool=[{type:"asteroid",target:12,label:"DESTROY 12 ASTEROIDS"},{type:"invader",target:6,label:"DEFEAT 6 INVADERS"},{type:"combo",target:10,label:"REACH 10x COMBO"},{type:"distance",target:100,label:"TRAVEL 100 DIST"}];mission={...pool[Math.floor(Math.random()*pool.length)],progress:0,reward:3+Math.floor(level/3)}}
+function updateMission(){if(!mission)return;if(mission.type==="asteroid")mission.progress=asteroidKills;else if(mission.type==="invader")mission.progress=invaderKills;else if(mission.type==="combo")mission.progress=maxCombo;else mission.progress=Math.floor(distance);if(mission.progress>=mission.target){missionBonusCredits+=mission.reward;powerMessageText="MISSION COMPLETE +"+mission.reward+" CREDITS";powerMessage=150;rollMission()}}
 
 function resize(){
  W=innerWidth;H=innerHeight;canvas.width=W;canvas.height=H;ctx.imageSmoothingEnabled=true;
@@ -140,7 +143,7 @@ function spawnWave(){
 function addCombo(){combo=Math.min(30,combo+1);comboTimer=150;maxCombo=Math.max(maxCombo,combo)}
 function comboMult(){return 1+Math.min(2,Math.floor(combo/5)*.25)}
 function destroyEnemy(index){
- const e=enemies[index];addCombo();combatScore+=Math.round(e.points*comboMult());runXP+=(e.type==="boss"||e.type==="dreadnought")?10:e.type==="gunner"?4:e.type==="hunter"?3:e.type==="charger"?2:1;score=combatScore+Math.floor(distance);
+ const e=enemies[index];addCombo();if(e.type!=="boss"&&e.type!=="dreadnought")invaderKills++;combatScore+=Math.round(e.points*comboMult());runXP+=(e.type==="boss"||e.type==="dreadnought")?10:e.type==="gunner"?4:e.type==="hunter"?3:e.type==="charger"?2:1;score=combatScore+Math.floor(distance);
  if(shockwaves.length<14)shockwaves.push({x:e.x,y:e.y,radius:8,maxRadius:55,life:15,maxLife:15});
  particles.push({x:e.x,y:e.y,vx:0,vy:0,life:8,maxLife:8,size:34,type:"flash"});
  burst(e.x,e.y,24,"hot",8);burst(e.x,e.y,18,"rock",7);
@@ -165,8 +168,8 @@ function drawEnemy(e){
 }
 
 function reset(){
- score=0;combatScore=0;distance=0;gameTime=0;difficulty=1;screenShake=0;bullets=[];enemyBullets=[];asteroids=[];particles=[];shockwaves=[];enemies=[];powerups=[];spreadTimer=0;shieldHits=0;powerMessage=0;powerMessageText="";combo=0;comboTimer=0;maxCombo=0;overdriveTimer=0;level=1;lastLevel=1;wave=0;bossSpawned=false;nextBossLevel=5;bossCount=0;bossesDefeated=0;weaponEvolved=false;runXP=0;upgradeTier=0;rapidLevel=permRapid;powerLevel=permPower;spreadLevel=0;pierceLevel=0;upgradeChoices=[];shieldHits=permShield;
- player.x=Math.min(100,W*.25);player.y=H*.5;player.fireCooldown=0;moveTouchID=null;firing=false;
+ score=0;combatScore=0;distance=0;gameTime=0;missionBonusCredits=0;asteroidKills=0;invaderKills=0;mission=null;difficulty=1;screenShake=0;bullets=[];enemyBullets=[];asteroids=[];particles=[];shockwaves=[];enemies=[];powerups=[];spreadTimer=0;shieldHits=0;powerMessage=0;powerMessageText="";combo=0;comboTimer=0;maxCombo=0;overdriveTimer=0;level=1;lastLevel=1;wave=0;bossSpawned=false;nextBossLevel=5;bossCount=0;bossesDefeated=0;weaponEvolved=false;runXP=0;upgradeTier=0;rapidLevel=permRapid;powerLevel=permPower;spreadLevel=0;pierceLevel=0;upgradeChoices=[];shieldHits=permShield;
+ player.x=Math.min(100,W*.25);player.y=H*.5;player.fireCooldown=0;moveTouchID=null;firing=false;rollMission();
 }
 function startGame(){if(!raptorReady)return;reset();state="play"}
 function addBullet(b){if(bullets.length<60)bullets.push(b)}
@@ -209,10 +212,10 @@ function die(){
  if(state!=="play")return;state="dead";firing=false;moveTouchID=null;screenShake=13;burst(player.x,player.y,32,"red",9);
  if(score>high){high=score;localStorage.spaceHigh=high}
  if(level>bestLevel){bestLevel=level;localStorage.dinoBestLevel=bestLevel}
- lastCredits=Math.max(1,Math.floor(score/1000)+Math.floor(distance/100)+bossesDefeated*5);credits+=lastCredits;runs++;localStorage.dinoCredits=credits;localStorage.dinoRuns=runs
+ lastCredits=Math.max(1,Math.floor(score/1000)+Math.floor(distance/100)+bossesDefeated*5)+missionBonusCredits;credits+=lastCredits;runs++;localStorage.dinoCredits=credits;localStorage.dinoRuns=runs
 }
 function destroyAsteroid(index){
- const a=asteroids[index];addCombo();combatScore+=Math.round(a.points*comboMult());runXP+=a.size===3?2:1;score=combatScore+Math.floor(distance);
+ const a=asteroids[index];addCombo();asteroidKills++;combatScore+=Math.round(a.points*comboMult());runXP+=a.size===3?2:1;score=combatScore+Math.floor(distance);
  if(shockwaves.length<14)shockwaves.push({x:a.x,y:a.y,radius:a.radius*.2,maxRadius:a.radius*(a.size===3?1.8:1.5),life:a.size===3?18:14,maxLife:a.size===3?18:14});
  particles.push({x:a.x,y:a.y,vx:0,vy:0,life:8,maxLife:8,size:a.radius*.85,type:"flash"});
  burst(a.x,a.y,a.size===3?24:a.size===2?18:12,"rock",a.size===3?10:7);
@@ -233,7 +236,7 @@ function update(){
  for(let i=shockwaves.length-1;i>=0;i--){const s=shockwaves[i];s.radius+=(s.maxRadius-s.radius)*.22;s.life--;if(s.life<=0)shockwaves.splice(i,1)}
  for(let i=particles.length-1;i>=0;i--){const p=particles[i];p.x+=p.vx;p.y+=p.vy;p.vx*=.98;p.vy*=.98;if(p.type==="debris")p.rotation+=p.spin;p.life--;if(p.life<=0||p.x<-100||p.x>W+100||p.y<-100||p.y>H+100)particles.splice(i,1)}
  if(state!=="play")return;
- gameTime++;distance+=1/12;score=combatScore+Math.floor(distance);level=1+Math.floor(gameTime/600);difficulty=1+gameTime/900+level*.16;
+ gameTime++;distance+=1/12;score=combatScore+Math.floor(distance);updateMission();level=1+Math.floor(gameTime/600);difficulty=1+gameTime/900+level*.16;
  if(level>lastLevel){lastLevel=level;powerMessageText="LEVEL "+level;powerMessage=110;screenShake=Math.max(screenShake,2)}
  if(spreadTimer>0)spreadTimer--;if(overdriveTimer>0)overdriveTimer--;if(powerMessage>0)powerMessage--;if(comboTimer>0){comboTimer--;if(comboTimer===0)combo=0}
  const nextUpgrade=12+upgradeTier*5;
@@ -356,7 +359,7 @@ function gameFont(size,weight="700"){return weight+" "+size+"px Impact, Haettens
 function panel(x,y,w,h,a="#07152d",b="#162b55",stroke="#58dfff"){const g=ctx.createLinearGradient(x,y,x+w,y+h);g.addColorStop(0,a);g.addColorStop(1,b);ctx.fillStyle=g;ctx.beginPath();ctx.roundRect(x,y,w,h,14);ctx.fill();ctx.strokeStyle=stroke;ctx.lineWidth=2;ctx.shadowColor=stroke;ctx.shadowBlur=10;ctx.stroke();ctx.shadowBlur=0}
 function button(x,y,w,h,label,c1="#0e5f86",c2="#152d69",stroke="#71edff"){const g=ctx.createLinearGradient(x,y,x,y+h);g.addColorStop(0,c1);g.addColorStop(1,c2);ctx.fillStyle=g;ctx.beginPath();ctx.roundRect(x,y,w,h,12);ctx.fill();ctx.strokeStyle=stroke;ctx.lineWidth=2;ctx.shadowColor=stroke;ctx.shadowBlur=12;ctx.stroke();ctx.shadowBlur=0;ctx.fillStyle="#fff";ctx.font=gameFont(16);ctx.textAlign="center";ctx.fillText(label,x+w/2,y+h*.64)}
 function drawHUD(){ctx.textAlign="left";ctx.textBaseline="alphabetic";ctx.fillStyle="rgba(120,230,255,.72)";ctx.font="700 9px system-ui,sans-serif";ctx.fillText("V6.3 NEW TEX",8,H-10);ctx.textAlign="center";ctx.fillStyle="#fff";ctx.font=gameFont(29);ctx.shadowColor="#49dfff";ctx.shadowBlur=8;ctx.fillText(score,W/2,42);ctx.shadowBlur=0;ctx.font=gameFont(11,"600");ctx.fillText("DIST "+Math.floor(distance)+"   •   BEST "+high+"   •   LV "+level+"   •   XP "+runXP+"/"+(12+upgradeTier*5),W/2,62);
- const boss=enemies.find(e=>e.type==="boss"||e.type==="dreadnought");if(boss){const bw=Math.min(260,W*.62),bx=(W-bw)/2,by=76;ctx.fillStyle="rgba(0,0,0,.55)";ctx.fillRect(bx-2,by-2,bw+4,12);ctx.fillStyle="#fff";ctx.fillRect(bx,by,bw,8);ctx.fillStyle=boss.type==="dreadnought"?"#9c78ff":"#ff405c";ctx.fillRect(bx,by,bw*(boss.health/boss.maxHealth),8);ctx.fillStyle="#fff";ctx.font="bold 10px Arial";const phase=boss.health<=boss.maxHealth*.5?" • PHASE 2":"";ctx.fillText((boss.type==="dreadnought"?"DREADNOUGHT":"MOTHERSHIP")+phase,W/2,by+23)}let hudY=79;if(overdriveTimer>0){ctx.fillStyle="#82aaff";ctx.font="bold 12px Arial";ctx.fillText("OVERDRIVE "+Math.ceil(overdriveTimer/60)+"s",W/2,hudY);hudY+=15}if(spreadTimer>0){ctx.fillStyle="#67f7ff";ctx.font="bold 11px Arial";ctx.fillText("SPREAD "+Math.ceil(spreadTimer/60)+"s",W/2,hudY);hudY+=15}if(shieldHits>0){ctx.fillStyle="#7dff9d";ctx.font="bold 11px Arial";ctx.fillText("SHIELD "+shieldHits,W/2,hudY);hudY+=15}if(combo>=2){ctx.fillStyle=combo>=10?"#ffd45b":"#66eaff";ctx.font=gameFont(combo>=10?15:12);ctx.shadowColor=combo>=10?"#ff8a22":"#35bfff";ctx.shadowBlur=8;ctx.fillText("COMBO "+combo+"  x"+comboMult().toFixed(2),W/2,hudY);ctx.shadowBlur=0}if(powerMessage>0){ctx.globalAlpha=Math.min(1,powerMessage/20);ctx.fillStyle="#fff";ctx.font="bold 20px Arial";ctx.fillText(powerMessageText,W/2,H*.18);ctx.globalAlpha=1}}
+ const boss=enemies.find(e=>e.type==="boss"||e.type==="dreadnought");if(boss){const bw=Math.min(260,W*.62),bx=(W-bw)/2,by=76;ctx.fillStyle="rgba(0,0,0,.55)";ctx.fillRect(bx-2,by-2,bw+4,12);ctx.fillStyle="#fff";ctx.fillRect(bx,by,bw,8);ctx.fillStyle=boss.type==="dreadnought"?"#9c78ff":"#ff405c";ctx.fillRect(bx,by,bw*(boss.health/boss.maxHealth),8);ctx.fillStyle="#fff";ctx.font="bold 10px Arial";const phase=boss.health<=boss.maxHealth*.5?" • PHASE 2":"";ctx.fillText((boss.type==="dreadnought"?"DREADNOUGHT":"MOTHERSHIP")+phase,W/2,by+23)}let hudY=79;if(overdriveTimer>0){ctx.fillStyle="#82aaff";ctx.font="bold 12px Arial";ctx.fillText("OVERDRIVE "+Math.ceil(overdriveTimer/60)+"s",W/2,hudY);hudY+=15}if(spreadTimer>0){ctx.fillStyle="#67f7ff";ctx.font="bold 11px Arial";ctx.fillText("SPREAD "+Math.ceil(spreadTimer/60)+"s",W/2,hudY);hudY+=15}if(shieldHits>0){ctx.fillStyle="#7dff9d";ctx.font="bold 11px Arial";ctx.fillText("SHIELD "+shieldHits,W/2,hudY);hudY+=15}if(combo>=2){ctx.fillStyle=combo>=10?"#ffd45b":"#66eaff";ctx.font=gameFont(combo>=10?15:12);ctx.shadowColor=combo>=10?"#ff8a22":"#35bfff";ctx.shadowBlur=8;ctx.fillText("COMBO "+combo+"  x"+comboMult().toFixed(2),W/2,hudY);ctx.shadowBlur=0}if(mission){const mp=Math.min(mission.progress,mission.target);ctx.textAlign="left";ctx.fillStyle="rgba(5,16,35,.82)";ctx.fillRect(10,H-52,Math.min(220,W*.58),38);ctx.fillStyle="#ffd45b";ctx.font="700 9px system-ui,sans-serif";ctx.fillText("MISSION  +"+mission.reward+" CR",17,H-36);ctx.fillStyle="#fff";ctx.font="600 9px system-ui,sans-serif";ctx.fillText(mission.label+"  "+mp+"/"+mission.target,17,H-20);ctx.textAlign="center"}if(powerMessage>0){ctx.globalAlpha=Math.min(1,powerMessage/20);ctx.fillStyle="#fff";ctx.font="bold 20px Arial";ctx.fillText(powerMessageText,W/2,H*.18);ctx.globalAlpha=1}}
 function drawUpgrade(){
  panel(18,H*.20,W-36,H*.60,"#07142c","#24143f","#9d6cff");ctx.textAlign="center";ctx.fillStyle="#fff";ctx.font=gameFont(26);ctx.shadowColor="#b578ff";ctx.shadowBlur=10;ctx.fillText("CHOOSE UPGRADE",W/2,H*.28);ctx.shadowBlur=0;
  const info={
@@ -407,7 +410,7 @@ function drawStart(){
  ctx.textAlign="right";ctx.fillStyle="#70ff9c";ctx.font="700 10px system-ui,sans-serif";ctx.fillText("READY",W-m-14,heroTop+25);ctx.fillStyle="#9fb7d7";ctx.fillText("DRAG • FIRE • SURVIVE",W-m-14,heroTop+42);
  const launchY=Math.min(H-148,heroTop+heroH+14);button(m+18,launchY,W-2*m-36,58,"LAUNCH  •  TAP TO START","#168f38","#075724","#8dff8f");
  const hangY=launchY+70;button(m+18,hangY,(W-2*m-46)*.62,46,"TEX'S HANGAR","#075f83","#153665","#6deaff");button(m+28+(W-2*m-46)*.62,hangY,(W-2*m-46)*.38,46,"LOADOUT","#49206f","#22143f","#c783ff");
- ctx.textAlign="center";ctx.fillStyle="#7189aa";ctx.font="700 9px system-ui,sans-serif";ctx.fillText("V6.15 • RAPTOR OVERDRIVE",W/2,Math.min(H-10,hangY+64));
+ ctx.textAlign="center";ctx.fillStyle="#7189aa";ctx.font="700 9px system-ui,sans-serif";ctx.fillText("V6.16 • FIELD MISSIONS",W/2,Math.min(H-10,hangY+64));
 }
 function drawDead(){
  panel(25,H*.27,W-50,310,"#160b22","#07172d","#ff4e76");ctx.textAlign="center";ctx.fillStyle="#ff5275";ctx.font=gameFont(31);ctx.shadowColor="#ff3d69";ctx.shadowBlur=12;ctx.fillText("RAPTOR DOWN",W/2,H*.35);ctx.shadowBlur=0;
