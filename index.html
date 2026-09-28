@@ -175,7 +175,7 @@ function destroyEnemy(index){
 }
 function drawInvaderDino(kind,accent,body){const map={rex:"rex",trike:"bruiser",stego:"spike",spino:"spine",ptera:"sky",anky:"anka",raptor:"rex"},im=pilotSprites[map[kind]||"rex"];if(!im||!im.complete||!im.naturalWidth)return;const w=76,h=w*im.naturalHeight/im.naturalWidth;ctx.save();ctx.shadowBlur=0;ctx.drawImage(im,-w*.5,-h*.5,w,h);ctx.restore()}
 function drawEnemy(e){
- ctx.save();ctx.translate(e.x,e.y);if(e.elite){ctx.strokeStyle="#ffd45b";ctx.lineWidth=2;ctx.shadowColor="#ffd45b";ctx.shadowBlur=12;ctx.beginPath();ctx.arc(0,0,e.radius+6,0,Math.PI*2);ctx.stroke();ctx.shadowBlur=0}
+ ctx.save();const drift=Math.sin((gameTime+(e.y||0)*2)*.018)*1.5;ctx.translate(e.x,e.y+drift);const depth=1+Math.sin((gameTime+(e.x||0))*.012)*.018;ctx.scale(depth,depth);if(e.elite){ctx.strokeStyle="#ffd45b";ctx.lineWidth=1.4;ctx.globalAlpha=.42;ctx.beginPath();ctx.arc(0,0,e.radius+5,0,Math.PI*2);ctx.stroke();ctx.globalAlpha=1}
  const dread=e.type==="dreadnought",boss=e.type==="boss"||dread;
  if(boss){ctx.scale(dread?1.9:1.6,dread?1.9:1.6);drawInvaderDino(dread?"spino":"rex",dread?"#a77aff":"#ff5169",dread?"#27174c":"#541b27");if(e.health<=e.maxHealth*.5){ctx.globalAlpha=.8;ctx.strokeStyle="#fff";ctx.lineWidth=2;ctx.beginPath();ctx.arc(0,0,dread?34:30,0,Math.PI*2);ctx.stroke();ctx.globalAlpha=1}ctx.fillStyle="#fff";ctx.fillRect(dread?-27:-23,dread?24:22,dread?54:46,3);ctx.fillStyle=dread?"#9c78ff":"#ff405c";ctx.fillRect(dread?-27:-23,dread?24:22,(dread?54:46)*(e.health/e.maxHealth),3);ctx.restore();return}
  if(e.type==="warden")drawInvaderDino("anky","#62ffb5","#173e36");
