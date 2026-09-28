@@ -17,7 +17,7 @@ canvas{position:fixed;inset:0;width:100%;height:100%;display:block;touch-action:
 <body>
 <canvas id="game"></canvas>
 <script>
-// DINO INVADERS: SPACE V10.7 — STABLE CHARACTERS
+// DINO INVADERS: SPACE V10.8 — INDIVIDUAL PILOTS
 const canvas=document.getElementById("game");
 const ctx=canvas.getContext("2d",{alpha:false,desynchronized:true});
 let W=0,H=0;
@@ -70,7 +70,7 @@ const SKINS=[
  {name:"ANKA",species:"ANKYLOSAURUS",unlock:()=>campaignWins>=5,beam:"#ffc23d",accent:"#ffe078",mode:"anky",speed:.82,damage:0,armor:2}
 ];
 let selectedSkin=Math.max(0,Math.min(SKINS.length-1,Number(localStorage.dinoSkin||0))),bestComboEver=Number(localStorage.dinoBestCombo||0),bossesLifetime=Number(localStorage.dinoBossesLifetime||0);
-const DINO_GLYPH={rex:"🦖",trike:"🦕",stego:"🦕",spino:"🦖",ptera:"🦅",anky:"🦕",raptor:"🦖"};
+const pilotSprites={};for(const n of ["rex","bruiser","spike","spine","sky","anka"]){const im=new Image();im.src="./pilot-"+n+".svg?v=108";pilotSprites[n]=im}
 function rollMission(){const pool=[{type:"asteroid",target:12,label:"DESTROY 12 ASTEROIDS"},{type:"invader",target:6,label:"DEFEAT 6 INVADERS"},{type:"combo",target:10,label:"REACH 10x COMBO"},{type:"distance",target:100,label:"TRAVEL 100 DIST"}],pick=pool[Math.floor(Math.random()*pool.length)];mission={...pick,progress:0,reward:3+Math.floor(level/3),start:pick.type==="asteroid"?asteroidKills:pick.type==="invader"?invaderKills:pick.type==="distance"?distance:0}}
 function updateMission(){if(!mission)return;if(mission.type==="asteroid")mission.progress=asteroidKills-mission.start;else if(mission.type==="invader")mission.progress=invaderKills-mission.start;else if(mission.type==="combo")mission.progress=combo;else mission.progress=Math.floor(distance-mission.start);if(mission.progress>=mission.target){missionBonusCredits+=mission.reward;powerMessageText="MISSION COMPLETE +"+mission.reward+" CREDITS";powerMessage=150;rollMission()}}
 
@@ -183,7 +183,7 @@ function destroyEnemy(index){
  burst(e.x,e.y,24,"hot",8);burst(e.x,e.y,18,"rock",7);
  enemies.splice(index,1);screenShake=Math.max(screenShake,5);
 }
-function drawInvaderDino(kind,accent,body){const glyph=DINO_GLYPH[kind]||"🦖";ctx.save();ctx.textAlign="center";ctx.textBaseline="middle";ctx.font="32px Apple Color Emoji,Segoe UI Emoji,sans-serif";ctx.shadowColor=accent;ctx.shadowBlur=7;ctx.fillText(glyph,0,0);ctx.restore()}
+function drawInvaderDino(kind,accent,body){const map={rex:"rex",trike:"bruiser",stego:"spike",spino:"spine",ptera:"sky",anky:"anka",raptor:"rex"},im=pilotSprites[map[kind]||"rex"];if(!im||!im.complete||!im.naturalWidth)return;const w=50,h=w*im.naturalHeight/im.naturalWidth;ctx.save();ctx.shadowColor=accent;ctx.shadowBlur=7;ctx.drawImage(im,-w*.5,-h*.5,w,h);ctx.restore()}
 function drawEnemy(e){
  ctx.save();ctx.translate(e.x,e.y);if(e.elite){ctx.strokeStyle="#ffd45b";ctx.lineWidth=2;ctx.shadowColor="#ffd45b";ctx.shadowBlur=12;ctx.beginPath();ctx.arc(0,0,e.radius+6,0,Math.PI*2);ctx.stroke();ctx.shadowBlur=0}
  const dread=e.type==="dreadnought",boss=e.type==="boss"||dread;
@@ -385,7 +385,7 @@ function drawParticles(){
  }
  ctx.globalAlpha=1;
 }
-function drawDinoPilot(s){const glyph=DINO_GLYPH[s.mode]||"🦖";ctx.save();ctx.textAlign="center";ctx.textBaseline="middle";ctx.font="42px Apple Color Emoji,Segoe UI Emoji,sans-serif";ctx.shadowColor=s.accent;ctx.shadowBlur=9;ctx.fillText(glyph,0,1);ctx.shadowBlur=0;ctx.fillStyle="#263247";ctx.strokeStyle=s.accent;ctx.lineWidth=1.5;ctx.beginPath();ctx.roundRect(-8,-8,16,15,3);ctx.fill();ctx.stroke();ctx.fillStyle=s.accent;ctx.fillRect(7,-3,10,6);ctx.restore()}
+function drawDinoPilot(s){const im=pilotSprites[s.mode];if(!im||!im.complete||!im.naturalWidth)return;const w=72,h=w*im.naturalHeight/im.naturalWidth;ctx.save();ctx.shadowColor=s.accent;ctx.shadowBlur=10;ctx.drawImage(im,-w*.5,-h*.5,w,h);ctx.restore()}
 function drawPlayer(){
  if(!raptorReady)return;const skin=SKINS[selectedSkin]||SKINS[0];ctx.save();ctx.translate(Math.round(player.x),Math.round(player.y));
  if(shieldHits>0){ctx.strokeStyle="rgba(100,255,150,.8)";ctx.shadowColor="#68ff8c";ctx.shadowBlur=18;ctx.lineWidth=2;ctx.beginPath();ctx.arc(0,0,24,0,Math.PI*2);ctx.stroke();ctx.shadowBlur=0}
@@ -461,8 +461,8 @@ function drawStart(){
  ctx.textAlign="left";ctx.fillStyle="#ffb23f";ctx.font=gameFont(16);ctx.fillText("TEX",m+14,heroTop+25);ctx.fillStyle="#bfeeff";ctx.font="700 10px system-ui,sans-serif";ctx.fillText("RAPTOR ACE",m+14,heroTop+42);
  ctx.textAlign="right";ctx.fillStyle="#70ff9c";ctx.font="700 10px system-ui,sans-serif";ctx.fillText("READY",W-m-14,heroTop+25);ctx.fillStyle="#9fb7d7";ctx.font="700 9px system-ui,sans-serif";ctx.fillText("DRAG • FIRE",W-m-14,heroTop+42);
  const launchY=Math.min(H-148,heroTop+heroH+14);button(m+18,launchY,W-2*m-36,58,"LAUNCH  •  TAP TO START","#168f38","#075724","#8dff8f");
- const hangY=launchY+70,bw=(W-2*m-52)/3;button(m+18,hangY,bw,46,"HANGAR","#075f83","#153665","#6deaff");button(m+22+bw,hangY,bw,46,"SKINS","#49206f","#22143f","#c783ff");button(m+26+bw*2,hangY,bw,46,"UPGRADES","#60420d","#332508","#ffd45b");
- ctx.textAlign="center";ctx.fillStyle="#7189aa";ctx.font="700 9px system-ui,sans-serif";ctx.fillText("V10.7 • STABLE CHARACTERS",W/2,Math.min(H-10,hangY+64));
+ const hangY=launchY+70,bw=(W-2*m-52)/3;button(m+18,hangY,bw,46,"HANGAR","#075f83","#153665","#6deaff");button(m+22+bw,hangY,bw,46,"SKINS","#49206f","#22143f","#c783ff");
+ ctx.textAlign="center";ctx.fillStyle="#7189aa";ctx.font="700 9px system-ui,sans-serif";ctx.fillText("V10.8 • INDIVIDUAL PILOTS",W/2,Math.min(H-10,hangY+64));
 }
 function drawVictory(){panel(22,H*.22,W-44,350,"#07152d","#2c1848","#ffd45b");ctx.textAlign="center";ctx.fillStyle="#ffd45b";ctx.font=gameFont(30);ctx.shadowColor="#ff9d35";ctx.shadowBlur=14;ctx.fillText("LEVEL 10 CLEARED",W/2,H*.30);ctx.shadowBlur=0;ctx.fillStyle="#fff";ctx.font=gameFont(20);ctx.fillText("TEX SAVED THE CORE",W/2,H*.355);ctx.font="14px Arial";ctx.fillText("Score "+score+"  •  Distance "+Math.floor(distance),W/2,H*.405);ctx.fillText("Bosses "+bossesDefeated+"  •  Upgrades "+upgradeTier,W/2,H*.445);ctx.fillStyle="#7dff9d";ctx.font="bold 16px Arial";ctx.fillText("+25 CAMPAIGN CREDITS",W/2,H*.495);ctx.fillStyle="#8cecff";ctx.font="bold 13px Arial";ctx.fillText("CAMPAIGN WINS "+campaignWins+"   •   TOTAL KILLS "+totalKills,W/2,H*.535);ctx.fillStyle="#ffd45b";ctx.font="bold 11px Arial";ctx.fillText(SKINS.filter(s=>s.unlock()).length+"/"+SKINS.length+" SKINS UNLOCKED  •  BEST COMBO "+bestComboEver+"x",W/2,H*.565);button(34,H*.59,W-68,50,"CONTINUE ENDLESS","#168f38","#075724","#8dff8f");button(34,H*.67,W-68,46,"MAIN MENU","#075f83","#153665","#6deaff")}
 function drawDead(){
@@ -474,7 +474,7 @@ function drawDead(){
 function draw(){
  ctx.save();if(screenShake>0)ctx.translate((Math.random()-.5)*screenShake,(Math.random()-.5)*screenShake);
  drawSpace();for(const a of asteroids)drawAsteroid(a);for(const e of enemies)drawEnemy(e);drawPowerups();drawBullets();drawShockwaves();drawParticles();drawPlayer();ctx.restore();
- if(state==="play"||state==="upgrade"||state==="paused")drawHUD();if(state==="start")drawStart();if(state==="hangar")drawHangar();if(state==="skins")drawSkins();if(state==="loadout")drawLoadout();if(state==="manual")drawManual();if(state==="paused")drawPause();if(state==="upgrade")drawUpgrade();if(state==="victory")drawVictory();if(state==="dead")drawDead();
+ if(state==="play"||state==="upgrade"||state==="paused")drawHUD();if(state==="start")drawStart();if(state==="hangar")drawHangar();if(state==="skins")drawSkins();if(state==="loadout")drawLoadout();if(state==="paused")drawPause();if(state==="victory")drawVictory();if(state==="dead")drawDead();
 }
 let last=performance.now(),accumulator=0;const STEP=1000/60;
 function loop(now){let delta=now-last;last=now;if(delta>66)delta=66;accumulator+=delta;let steps=0;while(accumulator>=STEP&&steps<3){update();accumulator-=STEP;steps++}if(steps===3&&accumulator>=STEP)accumulator=0;draw();requestAnimationFrame(loop)}
@@ -482,7 +482,7 @@ window.addEventListener("error",e=>{try{ctx.setTransform(1,0,0,1,0,0);ctx.fillSt
 requestAnimationFrame(loop);
 function touchPosition(touch){const rect=canvas.getBoundingClientRect();return{x:touch.clientX-rect.left,y:touch.clientY-rect.top}}
 canvas.addEventListener("touchstart",function(e){
- e.preventDefault();initAudio();if(state==="victory"){for(const touch of e.changedTouches){const p=touchPosition(touch);if(p.y>=H*.59&&p.y<=H*.59+50){state="play";nextBossLevel=Math.max(nextBossLevel,15);return}if(p.y>=H*.67&&p.y<=H*.67+46){state="start";return}}return}if(state==="paused"){for(const touch of e.changedTouches){const p=touchPosition(touch);if(p.y>=H*.48&&p.y<=H*.57){resumeGrace=60;state="play";return}}return}if(state==="play"){for(const touch of e.changedTouches){const p=touchPosition(touch);if(p.x>=W-62&&p.y>=12&&p.y<=62){state="paused";firing=false;moveTouchID=null;return}}}if(state==="start"){for(const touch of e.changedTouches){const p=touchPosition(touch),top=Math.max(26,H*.055),statsY=top+72,heroTop=statsY+76,heroBottom=Math.min(H*.64,heroTop+220),heroH=Math.max(130,heroBottom-heroTop),launchY=Math.min(H-148,heroTop+heroH+14),hangY=launchY+70;if(p.y>=launchY&&p.y<=launchY+58){startGame();return}if(p.y>=hangY&&p.y<=hangY+46){const bw=(W-2*14-52)/3;if(p.x>=32&&p.x<=32+bw)state="hangar";else if(p.x>=36+bw&&p.x<=36+bw*2)state="skins";else if(p.x>=40+bw*2&&p.x<=40+bw*3)state="manual";return}}return}if(state==="dead"){for(const touch of e.changedTouches){const p=touchPosition(touch);if(p.y>=H*.615&&p.y<=H*.615+48){if(p.x<W*.5)startGame();else{state="start";firing=false;moveTouchID=null}return}}return}if(state==="hangar"){for(const touch of e.changedTouches){const p=touchPosition(touch);if(chooseHangar(p.y))break}return}if(state==="skins"){for(const touch of e.changedTouches){const p=touchPosition(touch);if(chooseSkins(p.y))break}return}if(state==="loadout"){for(const touch of e.changedTouches){const p=touchPosition(touch);if(chooseLoadout(p.y))break}return}if(state==="manual"){for(const touch of e.changedTouches){const p=touchPosition(touch);if(chooseManual(p.y))break}return}if(state==="upgrade"){for(const touch of e.changedTouches){const p=touchPosition(touch);if(chooseUpgrade(p.y))break}return}
+ e.preventDefault();initAudio();if(state==="victory"){for(const touch of e.changedTouches){const p=touchPosition(touch);if(p.y>=H*.59&&p.y<=H*.59+50){state="play";nextBossLevel=Math.max(nextBossLevel,15);return}if(p.y>=H*.67&&p.y<=H*.67+46){state="start";return}}return}if(state==="paused"){for(const touch of e.changedTouches){const p=touchPosition(touch);if(p.y>=H*.48&&p.y<=H*.57){resumeGrace=60;state="play";return}}return}if(state==="play"){for(const touch of e.changedTouches){const p=touchPosition(touch);if(p.x>=W-62&&p.y>=12&&p.y<=62){state="paused";firing=false;moveTouchID=null;return}}}if(state==="start"){for(const touch of e.changedTouches){const p=touchPosition(touch),top=Math.max(26,H*.055),statsY=top+72,heroTop=statsY+76,heroBottom=Math.min(H*.64,heroTop+220),heroH=Math.max(130,heroBottom-heroTop),launchY=Math.min(H-148,heroTop+heroH+14),hangY=launchY+70;if(p.y>=launchY&&p.y<=launchY+58){startGame();return}if(p.y>=hangY&&p.y<=hangY+46){const bw=(W-2*14-52)/3;if(p.x>=32&&p.x<=32+bw)state="hangar";else if(p.x>=36+bw&&p.x<=36+bw*2)state="skins";return}}return}if(state==="dead"){for(const touch of e.changedTouches){const p=touchPosition(touch);if(p.y>=H*.615&&p.y<=H*.615+48){if(p.x<W*.5)startGame();else{state="start";firing=false;moveTouchID=null}return}}return}if(state==="hangar"){for(const touch of e.changedTouches){const p=touchPosition(touch);if(chooseHangar(p.y))break}return}if(state==="skins"){for(const touch of e.changedTouches){const p=touchPosition(touch);if(chooseSkins(p.y))break}return}if(state==="loadout"){for(const touch of e.changedTouches){const p=touchPosition(touch);if(chooseLoadout(p.y))break}return}
  for(const touch of e.changedTouches){const p=touchPosition(touch);
   if(moveTouchID===null){
    moveTouchID=touch.identifier;lastMoveX=p.x;lastMoveY=p.y;firing=true;
