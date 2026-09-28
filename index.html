@@ -17,7 +17,7 @@ canvas{position:fixed;inset:0;width:100%;height:100%;display:block;touch-action:
 <body>
 <canvas id="game"></canvas>
 <script>
-// DINO INVADERS: SPACE V6.4 — COMMAND DECK
+// DINO INVADERS: SPACE V6.5 — MENU HUD FIX
 const canvas=document.getElementById("game");
 const ctx=canvas.getContext("2d",{alpha:false,desynchronized:true});
 let W=0,H=0;
@@ -359,19 +359,19 @@ function drawDead(){
  panel(25,H*.27,W-50,310,"#160b22","#07172d","#ff4e76");ctx.textAlign="center";ctx.fillStyle="#ff5275";ctx.font=gameFont(31);ctx.shadowColor="#ff3d69";ctx.shadowBlur=12;ctx.fillText("RAPTOR DOWN",W/2,H*.35);ctx.shadowBlur=0;
  ctx.fillStyle="#fff";ctx.font="20px Arial";ctx.fillText("SCORE "+score,W/2,H*.405);ctx.font="15px Arial";ctx.fillText("Distance "+Math.floor(distance)+"   •   Level "+level,W/2,H*.45);ctx.fillText("Bosses "+bossesDefeated+"   •   Upgrades "+upgradeTier,W/2,H*.49);
  ctx.fillStyle="#ffd45b";ctx.font="bold 17px Arial";ctx.fillText("+"+lastCredits+" CREDITS",W/2,H*.545);ctx.font="13px Arial";ctx.fillText("BANK "+credits+"   •   BEST LV "+bestLevel+"   •   RUNS "+runs,W/2,H*.585);
- button(W/2-95,H*.615,190,48,"RELAUNCH","#a82c4b","#4b1737","#ff6688");
+ button(28,H*.615,W*.48-34,48,"RELAUNCH","#a82c4b","#4b1737","#ff6688");button(W*.52+6,H*.615,W*.48-34,48,"MAIN MENU","#075f83","#153665","#6deaff");
 }
 function draw(){
  ctx.save();if(screenShake>0)ctx.translate((Math.random()-.5)*screenShake,(Math.random()-.5)*screenShake);
  drawSpace();drawPlanets();for(const a of asteroids)drawAsteroid(a);for(const e of enemies)drawEnemy(e);drawPowerups();drawBullets();drawShockwaves();drawParticles();drawPlayer();ctx.restore();
- drawHUD();if(state==="start")drawStart();if(state==="hangar")drawHangar();if(state==="upgrade")drawUpgrade();if(state==="dead")drawDead();
+ if(state==="play"||state==="upgrade")drawHUD();if(state==="start")drawStart();if(state==="hangar")drawHangar();if(state==="upgrade")drawUpgrade();if(state==="dead")drawDead();
 }
 let last=performance.now(),accumulator=0;const STEP=1000/60;
 function loop(now){let delta=now-last;last=now;if(delta>66)delta=66;accumulator+=delta;let steps=0;while(accumulator>=STEP&&steps<3){update();accumulator-=STEP;steps++}if(steps===3&&accumulator>=STEP)accumulator=0;draw();requestAnimationFrame(loop)}
 requestAnimationFrame(loop);
 function touchPosition(touch){const rect=canvas.getBoundingClientRect();return{x:touch.clientX-rect.left,y:touch.clientY-rect.top}}
 canvas.addEventListener("touchstart",function(e){
- e.preventDefault();if(state==="start"){for(const touch of e.changedTouches){const p=touchPosition(touch),top=Math.max(26,H*.055),statsY=top+72,heroTop=statsY+76,heroBottom=Math.min(H*.64,heroTop+220),heroH=Math.max(130,heroBottom-heroTop),launchY=Math.min(H-148,heroTop+heroH+14),hangY=launchY+70;if(p.y>=launchY&&p.y<=launchY+58){startGame();return}if(p.y>=hangY&&p.y<=hangY+46&&p.x<W*.66){state="hangar";return}}return}if(state==="dead"){startGame();return}if(state==="hangar"){for(const touch of e.changedTouches){const p=touchPosition(touch);if(chooseHangar(p.y))break}return}if(state==="upgrade"){for(const touch of e.changedTouches){const p=touchPosition(touch);if(chooseUpgrade(p.y))break}return}
+ e.preventDefault();if(state==="start"){for(const touch of e.changedTouches){const p=touchPosition(touch),top=Math.max(26,H*.055),statsY=top+72,heroTop=statsY+76,heroBottom=Math.min(H*.64,heroTop+220),heroH=Math.max(130,heroBottom-heroTop),launchY=Math.min(H-148,heroTop+heroH+14),hangY=launchY+70;if(p.y>=launchY&&p.y<=launchY+58){startGame();return}if(p.y>=hangY&&p.y<=hangY+46&&p.x<W*.66){state="hangar";return}}return}if(state==="dead"){for(const touch of e.changedTouches){const p=touchPosition(touch);if(p.y>=H*.615&&p.y<=H*.615+48){if(p.x<W*.5)startGame();else{state="start";firing=false;moveTouchID=null}return}}return}if(state==="hangar"){for(const touch of e.changedTouches){const p=touchPosition(touch);if(chooseHangar(p.y))break}return}if(state==="upgrade"){for(const touch of e.changedTouches){const p=touchPosition(touch);if(chooseUpgrade(p.y))break}return}
  for(const touch of e.changedTouches){const p=touchPosition(touch);
   if(moveTouchID===null){
    moveTouchID=touch.identifier;lastMoveX=p.x;lastMoveY=p.y;firing=true;
