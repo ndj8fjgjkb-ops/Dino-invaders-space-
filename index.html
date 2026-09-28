@@ -17,7 +17,7 @@ canvas{position:fixed;inset:0;width:100%;height:100%;display:block;touch-action:
 <body>
 <canvas id="game"></canvas>
 <script>
-// DINO INVADERS: SPACE V12.52 — HIGH OUTPUT MIX
+// DINO INVADERS: SPACE V12.53 — DARK SPACE SCORE
 const canvas=document.getElementById("game");
 const ctx=canvas.getContext("2d",{alpha:false,desynchronized:true});
 let W=0,H=0;
@@ -35,7 +35,7 @@ const milkyImg=new Image();let milkyReady=false;milkyImg.onload=()=>milkyReady=t
 let audioCtx=null,masterGain=null,musicGain=null,sfxGain=null,compressor=null,audioReady=false,musicTimer=null,musicStep=0,lastLaserAt=0;
 function initAudio(){if(audioReady){if(audioCtx&&audioCtx.state==="suspended")audioCtx.resume();return}try{
  audioCtx=new (window.AudioContext||window.webkitAudioContext)();masterGain=audioCtx.createGain();musicGain=audioCtx.createGain();sfxGain=audioCtx.createGain();compressor=audioCtx.createDynamicsCompressor();
- masterGain.gain.value=1.65;musicGain.gain.value=.95;sfxGain.gain.value=.82;
+ masterGain.gain.value=2.25;musicGain.gain.value=1.15;sfxGain.gain.value=.92;
  compressor.threshold.value=-8;compressor.knee.value=10;compressor.ratio.value=3;compressor.attack.value=.008;compressor.release.value=.14;
  musicGain.connect(masterGain);sfxGain.connect(masterGain);masterGain.connect(compressor);compressor.connect(audioCtx.destination);
  audioReady=true;audioCtx.resume();startMenuMusic()
@@ -53,17 +53,27 @@ function sfx(name){if(!audioReady)return;
  else if(name==="combo"){tone(760,.06,"sine",.03);tone(1140,.10,"triangle",.022,.05)}
  else if(name==="win"){[392,523,659,784].forEach((n,i)=>tone(n,.24,"sine",.045,i*.12))}
 }
-function ambientPad(root,when=0){tone(root/2,1.45,"sine",.030,when,"music",260);tone(root,1.10,"triangle",.027,when+.04,"music",720);tone(root*1.5,.55,"sine",.012,when+.28,"music",1250)}
-function startMenuMusic(){if(!audioReady||musicTimer)return;const roots=[73.42,73.42,65.41,82.41,73.42,98,82.41,65.41],lead=[1.5,2,1.5,2.25,1.5,2.5,2.25,2];musicStep=0;ambientPad(roots[0]);tone(roots[0]*lead[0],.34,"triangle",.018,.16,"music",1400);musicTimer=setInterval(()=>{if(state!=="start")return;musicStep++;const n=roots[musicStep%roots.length];ambientPad(n);tone(n*lead[musicStep%lead.length],.32,"triangle",.018,.14,"music",1450);if(musicStep%2===0)tone(n/2,.42,"sine",.022,0,"music",260)},920)}
+function ambientPad(root,when=0){
+ tone(root/4,1.7,"sawtooth",.040,when,"music",210);
+ tone(root/2,1.45,"triangle",.032,when+.03,"music",420);
+ tone(root*1.5,.62,"sine",.020,when+.18,"music",1350)
+}
+function startMenuMusic(){if(!audioReady||musicTimer)return;
+ const roots=[65.41,65.41,73.42,55,61.74,82.41,73.42,55],signals=[3,4.5,3.75,5,3,4,5.25,3.75];
+ musicStep=0;
+ const playMenuBeat=()=>{if(state!=="start")return;const i=musicStep++%roots.length,n=roots[i];ambientPad(n);tone(n,.22,"square",.022,0,"music",520);tone(n*signals[i],.16,"triangle",.024,.13,"music",1800);if(i%2===1)noiseBurst(.075,.012,1250,"music");if(i===3||i===7)tone(n/8,.72,"sine",.040,0,"music",120)};
+ playMenuBeat();musicTimer=setInterval(playMenuBeat,760)
+}
 function combatMusicPulse(){if(!audioReady||state!=="play")return;
  const boss=enemies.some(e=>e.type==="boss"||e.type==="dreadnought"),storm=meteorStormTimer>0,intensity=Math.min(3,Math.floor(level/3)+(storm?1:0)+(boss?1:0));
  const root=boss?55:level>=7?61.74:level>=4?65.41:73.42,step=Math.floor(gameTime/30)%16;
- const bass=[1,1,1.5,1,1,1.25,1.5,1,1,.75,1.5,1.25,1,1.5,1.25,.75],motif=[2,0,2.25,0,2.5,0,2.25,0,3,0,2.5,0,2.25,0,2,0];
- tone(root*bass[step],.24,"sawtooth",.020+intensity*.002,0,"music",420);
- tone(root/2,.18,"sine",.024+intensity*.002,0,"music",190);
- if(motif[step])tone(root*motif[step],.20,"triangle",.012+intensity*.001,.025,"music",1350);
- if((step%4===0)||(storm&&step%2===0)){noiseBurst(.055,.007+intensity*.001,900,"music")}
- if(boss&&step%4===0)tone(root/4,.48,"sine",.027,0,"music",150)
+ const bass=[1,1,.75,1,1,1.5,.75,1.25,1,.75,1.5,1,1.25,1,.75,1.5],lead=[0,3,0,3.75,0,4.5,0,3,0,4,0,3.75,0,5,0,4.5];
+ tone(root*bass[step],.25,"sawtooth",.030+intensity*.003,0,"music",520);
+ tone(root/2,.24,"triangle",.027+intensity*.002,0,"music",270);
+ if(lead[step])tone(root*lead[step],.17,"triangle",.018+intensity*.001,.025,"music",1900);
+ if(step%4===0)noiseBurst(.065,.010+intensity*.0015,1050,"music");
+ if(storm&&step%2===0)tone(root*2.5,.10,"square",.010,0,"music",1400);
+ if(boss&&step%4===0)tone(root/4,.52,"sine",.036,0,"music",170)
 }
 let hangarMessage="",hangarMessageTimer=0;let campaignWins=Number(localStorage.dinoCampaignWins||0),campaignCleared=false;
 let state="start",score=0,combatScore=0,distance=0,high=Number(localStorage.spaceHigh||0),bestRunTime=Number(localStorage.dinoBestRunTime||0),bestRunDistance=Number(localStorage.dinoBestRunDistance||0),credits=Number(localStorage.dinoCredits||0),bestLevel=Number(localStorage.dinoBestLevel||1),runs=Number(localStorage.dinoRuns||0),permShield=Number(localStorage.permShield||0),permRapid=Number(localStorage.permRapid||0),permPower=Number(localStorage.permPower||0),lastCredits=0,gameTime=0,difficulty=1,screenShake=0;
@@ -525,7 +535,7 @@ function drawStart(){
  const pulse=.55+.25*Math.sin(gameTime*.06);ctx.globalAlpha=pulse;ctx.strokeStyle="#ff7b38";ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(m+24,heroTop+heroH-22);ctx.lineTo(W*.32,heroTop+heroH-22);ctx.moveTo(W*.68,heroTop+heroH-22);ctx.lineTo(W-m-24,heroTop+heroH-22);ctx.stroke();ctx.globalAlpha=1;
  button(m+9,launchY,pw-18,60,"START RUN","#16994a","#07562c","#97ffc0");
  ctx.fillStyle="#d3e8f4";ctx.font="800 13px system-ui,sans-serif";ctx.fillText("HOLD TO FIRE  •  DRAG TO MOVE",W/2,launchY+88);
- ctx.fillStyle="#91aabd";ctx.font="bold 11px system-ui,sans-serif";ctx.fillText("VERSION 12.52",W/2,H-53);ctx.fillStyle="#fff";ctx.font="bold 13px system-ui,sans-serif";ctx.fillText("Built by Curtis Company Limited",W/2,H-35);
+ ctx.fillStyle="#91aabd";ctx.font="bold 11px system-ui,sans-serif";ctx.fillText("VERSION 12.53",W/2,H-53);ctx.fillStyle="#fff";ctx.font="bold 13px system-ui,sans-serif";ctx.fillText("Built by Curtis Company Limited",W/2,H-35);
  ctx.restore();
 }
 function drawVictory(){drawDead()}
