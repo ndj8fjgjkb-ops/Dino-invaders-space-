@@ -17,7 +17,7 @@ canvas{position:fixed;inset:0;width:100%;height:100%;display:block;touch-action:
 <body>
 <canvas id="game"></canvas>
 <script>
-// DINO INVADERS: SPACE V12.1 — DEPTH + COLLISION POLISH
+// DINO INVADERS: SPACE V12.2 — SPACE INVADER AESTHETIC
 const canvas=document.getElementById("game");
 const ctx=canvas.getContext("2d",{alpha:false,desynchronized:true});
 let W=0,H=0;
@@ -173,11 +173,21 @@ function destroyEnemy(index){
  burst(e.x,e.y,24,"hot",8);burst(e.x,e.y,18,"rock",7);
  enemies.splice(index,1);screenShake=Math.max(screenShake,5);
 }
-function drawInvaderDino(kind,accent,body){const map={rex:"rex",trike:"bruiser",stego:"spike",spino:"spine",ptera:"sky",anky:"anka",raptor:"rex"},im=pilotSprites[map[kind]||"rex"];if(!im||!im.complete||!im.naturalWidth)return;const w=76,h=w*im.naturalHeight/im.naturalWidth;ctx.save();
- // Ground the raster creature in the scene so it reads like a dimensional combatant, not a pasted sprite.
- const shadow=ctx.createRadialGradient(2,h*.27,2,2,h*.27,w*.46);shadow.addColorStop(0,"rgba(0,0,0,.46)");shadow.addColorStop(1,"rgba(0,0,0,0)");ctx.fillStyle=shadow;ctx.beginPath();ctx.ellipse(2,h*.27,w*.43,h*.10,0,0,Math.PI*2);ctx.fill();
- ctx.shadowColor=accent;ctx.shadowBlur=8;ctx.globalAlpha=.28;ctx.drawImage(im,-w*.5+1,-h*.5+2,w,h);ctx.globalAlpha=1;ctx.shadowBlur=0;ctx.drawImage(im,-w*.5,-h*.5,w,h);
- const rim=ctx.createLinearGradient(-w*.5,-h*.35,w*.45,h*.35);rim.addColorStop(0,"rgba(255,255,255,.14)");rim.addColorStop(.42,"rgba(255,255,255,0)");rim.addColorStop(1,"rgba(0,0,0,.18)");ctx.globalCompositeOperation="source-atop";ctx.fillStyle=rim;ctx.fillRect(-w*.5,-h*.5,w,h);ctx.globalCompositeOperation="source-over";ctx.restore()}
+function drawInvaderDino(kind,accent,body){const map={rex:"rex",trike:"bruiser",stego:"spike",spino:"spine",ptera:"sky",anky:"anka",raptor:"rex"},im=pilotSprites[map[kind]||"rex"];if(!im||!im.complete||!im.naturalWidth)return;const w=76,h=w*im.naturalHeight/im.naturalWidth,t=performance.now()*.004;ctx.save();
+ // Space-invader silhouette: hover field behind the dinosaur ties realistic art into the neon world.
+ ctx.globalAlpha=.18;ctx.strokeStyle=accent;ctx.lineWidth=1.4;ctx.shadowColor=accent;ctx.shadowBlur=10;ctx.beginPath();ctx.ellipse(0,h*.30,w*.42,h*.075,0,0,Math.PI*2);ctx.stroke();
+ ctx.globalAlpha=.10+.035*Math.sin(t);ctx.beginPath();ctx.ellipse(0,h*.30,w*.31,h*.045,0,0,Math.PI*2);ctx.stroke();ctx.shadowBlur=0;ctx.globalAlpha=1;
+ const shadow=ctx.createRadialGradient(2,h*.28,2,2,h*.28,w*.45);shadow.addColorStop(0,"rgba(0,0,0,.42)");shadow.addColorStop(1,"rgba(0,0,0,0)");ctx.fillStyle=shadow;ctx.beginPath();ctx.ellipse(2,h*.28,w*.43,h*.09,0,0,Math.PI*2);ctx.fill();
+ // Colored energy silhouette + crisp creature layer.
+ ctx.shadowColor=accent;ctx.shadowBlur=13;ctx.globalAlpha=.38;ctx.drawImage(im,-w*.5,-h*.5,w,h);ctx.globalAlpha=1;ctx.shadowBlur=0;ctx.drawImage(im,-w*.5,-h*.5,w,h);
+ // Cool cinematic grade keeps all species in the same space palette.
+ const grade=ctx.createLinearGradient(-w*.45,-h*.45,w*.42,h*.42);grade.addColorStop(0,"rgba(110,210,255,.19)");grade.addColorStop(.48,"rgba(90,130,255,.035)");grade.addColorStop(1,"rgba(10,5,32,.23)");ctx.globalCompositeOperation="source-atop";ctx.fillStyle=grade;ctx.fillRect(-w*.52,-h*.52,w*1.04,h*1.04);ctx.globalCompositeOperation="source-over";
+ // Minimal alien-tech harness: shoulder node, flank rail and energy nodes.
+ ctx.strokeStyle=accent;ctx.fillStyle=accent;ctx.lineWidth=1.35;ctx.shadowColor=accent;ctx.shadowBlur=7;ctx.globalAlpha=.72;
+ ctx.beginPath();ctx.moveTo(-w*.15,-h*.12);ctx.lineTo(w*.11,-h*.18);ctx.lineTo(w*.25,-h*.05);ctx.stroke();
+ ctx.beginPath();ctx.arc(w*.11,-h*.18,2.1,0,Math.PI*2);ctx.fill();ctx.beginPath();ctx.arc(w*.25,-h*.05,1.5,0,Math.PI*2);ctx.fill();
+ ctx.globalAlpha=.30;ctx.beginPath();ctx.moveTo(-w*.28,h*.05);ctx.lineTo(w*.25,h*.12);ctx.stroke();
+ ctx.shadowBlur=0;ctx.globalAlpha=1;ctx.restore()}
 function drawEnemy(e){
  ctx.save();ctx.translate(e.x,e.y);if(e.elite){ctx.strokeStyle="#ffd45b";ctx.lineWidth=2;ctx.shadowColor="#ffd45b";ctx.shadowBlur=12;ctx.beginPath();ctx.arc(0,0,e.radius+6,0,Math.PI*2);ctx.stroke();ctx.shadowBlur=0}
  const dread=e.type==="dreadnought",boss=e.type==="boss"||dread;
