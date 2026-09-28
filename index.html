@@ -17,7 +17,7 @@ canvas{position:fixed;inset:0;width:100%;height:100%;display:block;touch-action:
 <body>
 <canvas id="game"></canvas>
 <script>
-// DINO INVADERS: SPACE V12.25 — MENU HERO CLEARANCE
+// DINO INVADERS: SPACE V12.26 — MENU HERO ALIGNMENT
 const canvas=document.getElementById("game");
 const ctx=canvas.getContext("2d",{alpha:false,desynchronized:true});
 let W=0,H=0;
@@ -446,11 +446,11 @@ ctx.save();ctx.globalAlpha=.28;ctx.strokeStyle="#5de8ff";ctx.lineWidth=1;ctx.beg
  const stats=[["HIGH SCORE",high],["BEST LEVEL",bestLevel],["VICTORIES",campaignWins]];for(let i=0;i<3;i++){let x=m+(W-2*m)*(i+.5)/3;ctx.fillStyle="#8bb4cf";ctx.font="700 10px system-ui,sans-serif";ctx.fillText(stats[i][0],x,statsY+19);ctx.fillStyle="#f3fbff";ctx.font=gameFont(18);ctx.fillText(stats[i][1],x,statsY+42)}
  const card=ctx.createLinearGradient(m,heroTop,W-m,heroTop+heroH);card.addColorStop(0,"rgba(4,20,42,.94)");card.addColorStop(.52,"rgba(9,37,61,.84)");card.addColorStop(1,"rgba(18,20,52,.88)");ctx.fillStyle=card;ctx.beginPath();ctx.roundRect(m,heroTop,W-2*m,heroH,18);ctx.fill();ctx.strokeStyle="rgba(92,225,255,.68)";ctx.lineWidth=1.5;ctx.shadowColor="#35d8ff";ctx.shadowBlur=8;ctx.stroke();ctx.shadowBlur=0;
  ctx.save();ctx.beginPath();ctx.roundRect(m+1,heroTop+1,W-2*m-2,heroH-2,17);ctx.clip();const beam=ctx.createLinearGradient(m,heroTop,W-m,heroTop+heroH);beam.addColorStop(0,"rgba(33,174,222,.22)");beam.addColorStop(1,"rgba(4,17,35,0)");ctx.fillStyle=beam;ctx.fillRect(m,heroTop,W-2*m,heroH);
- if(raptorReady){const maxW=Math.min(W*.55,202),maxH=heroH*.72,ratio=texCrop.w/texCrop.h;let w=maxW,h=w/ratio;if(h>maxH){h=maxH;w=h*ratio}ctx.shadowColor="rgba(48,221,255,.55)";ctx.shadowBlur=20;ctx.drawImage(raptorImg,texCrop.x,texCrop.y,texCrop.w,texCrop.h,W*.50-w*.5,heroTop+heroH*.62-h*.5,w,h)}ctx.restore();
+ if(raptorReady){const maxW=Math.min(W*.55,202),maxH=heroH*.72,ratio=texCrop.w/texCrop.h;let w=maxW,h=w/ratio;if(h>maxH){h=maxH;w=h*ratio}ctx.shadowColor="rgba(48,221,255,.55)";ctx.shadowBlur=20;ctx.drawImage(raptorImg,texCrop.x,texCrop.y,texCrop.w,texCrop.h,W*.46-w*.5,heroTop+heroH*.67-h*.5,w,h)}ctx.restore();
  ctx.textAlign="left";ctx.fillStyle="#ffae4d";ctx.font=gameFont(23);ctx.fillText("TEX",m+16,heroTop+34);ctx.fillStyle="#bad9e9";ctx.font="700 11px system-ui,sans-serif";ctx.fillText("RAPTOR ACE",m+16,heroTop+51);
  ctx.textAlign="right";ctx.fillStyle="#9df4b3";ctx.font="700 11px system-ui,sans-serif";ctx.fillText("COMBAT READY",W-m-15,heroTop+32);ctx.fillStyle="#6f91a8";ctx.font="700 9px system-ui,sans-serif";ctx.fillText("CORE DEFENSE // ACTIVE",W-m-15,heroTop+48);
  button(m+9,launchY,W-2*m-18,58,"LAUNCH","#16994a","#07562c","#97ffc0");ctx.textAlign="center";ctx.fillStyle="#c8ddeb";ctx.font="700 12px system-ui,sans-serif";ctx.fillText("HOLD TO FIRE  •  DRAG TO MOVE",W/2,launchY+85);
- ctx.fillStyle="#9bb3c8";ctx.font="bold 11px system-ui,sans-serif";ctx.fillText("VERSION 12.25",W/2,H-53);ctx.fillStyle="#fff";ctx.font="bold 13px system-ui,sans-serif";ctx.fillText("Built by Curtis Company Limited",W/2,H-35);ctx.restore();
+ ctx.fillStyle="#9bb3c8";ctx.font="bold 11px system-ui,sans-serif";ctx.fillText("VERSION 12.26",W/2,H-53);ctx.fillStyle="#fff";ctx.font="bold 13px system-ui,sans-serif";ctx.fillText("Built by Curtis Company Limited",W/2,H-35);ctx.restore();
 }
 function drawVictory(){panel(22,H*.22,W-44,350,"#07152d","#2c1848","#ffd45b");ctx.textAlign="center";ctx.fillStyle="#ffd45b";ctx.font=gameFont(30);ctx.shadowColor="#ff9d35";ctx.shadowBlur=14;ctx.fillText("LEVEL 10 CLEARED",W/2,H*.30);ctx.shadowBlur=0;ctx.fillStyle="#fff";ctx.font=gameFont(20);ctx.fillText("CORE SECURED",W/2,H*.355);ctx.font="14px Arial";ctx.fillText("Score "+score+"  •  Distance "+Math.floor(distance),W/2,H*.405);ctx.fillText("Bosses "+bossesDefeated+"  •  Best combo "+maxCombo+"x",W/2,H*.445);ctx.fillStyle="#7dff9d";ctx.font="bold 16px Arial";ctx.fillText("+25 CAMPAIGN CREDITS",W/2,H*.495);ctx.fillStyle="#8cecff";ctx.font="bold 13px Arial";ctx.fillText("CAMPAIGN WINS "+campaignWins+"   •   TOTAL KILLS "+totalKills,W/2,H*.535);ctx.fillStyle="#ffd45b";ctx.font="bold 11px Arial";ctx.fillText("TEX • BEST COMBO "+bestComboEver+"x",W/2,H*.565);button(34,H*.59,W-68,50,"CONTINUE ENDLESS","#168f38","#075724","#8dff8f");button(34,H*.67,W-68,46,"MAIN MENU","#075f83","#153665","#6deaff")}
 function drawDead(){
