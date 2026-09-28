@@ -17,7 +17,7 @@ canvas{position:fixed;inset:0;width:100%;height:100%;display:block;touch-action:
 <body>
 <canvas id="game"></canvas>
 <script>
-// DINO INVADERS: SPACE V6.8 — MILKY WAY RUN
+// DINO INVADERS: SPACE V6.9 — NASA GALACTIC CORE
 const canvas=document.getElementById("game");
 const ctx=canvas.getContext("2d",{alpha:false,desynchronized:true});
 let W=0,H=0;
@@ -30,6 +30,7 @@ let raptorReady=false,raptorFailed=false,texCrop={x:0,y:0,w:1,h:1};
 raptorImg.onload=()=>{raptorReady=true;raptorFailed=false;const oc=document.createElement("canvas"),ox=oc.getContext("2d",{willReadFrequently:true});oc.width=raptorImg.naturalWidth;oc.height=raptorImg.naturalHeight;ox.drawImage(raptorImg,0,0);try{const d=ox.getImageData(0,0,oc.width,oc.height).data;let minX=oc.width,minY=oc.height,maxX=0,maxY=0;for(let y=0;y<oc.height;y+=2)for(let x=0;x<oc.width;x+=2)if(d[(y*oc.width+x)*4+3]>18){if(x<minX)minX=x;if(x>maxX)maxX=x;if(y<minY)minY=y;if(y>maxY)maxY=y}if(maxX>minX&&maxY>minY)texCrop={x:Math.max(0,minX-6),y:Math.max(0,minY-6),w:Math.min(oc.width-minX+6,maxX-minX+12),h:Math.min(oc.height-minY+6,maxY-minY+12)}}catch(e){texCrop={x:0,y:0,w:oc.width,h:oc.height}}};
 raptorImg.onerror=()=>{raptorReady=false;raptorFailed=true};
 raptorImg.src="./tex-v2.webp?asset=31b83a83e249e9d61039e91749b002e94051a453";
+const milkyImg=new Image();let milkyReady=false;milkyImg.onload=()=>milkyReady=true;milkyImg.onerror=()=>milkyReady=false;milkyImg.src="https://upload.wikimedia.org/wikipedia/commons/f/f5/Galactic_Center_Of_Milky_Way..jpg";
 
 let state="start",score=0,combatScore=0,distance=0,high=Number(localStorage.spaceHigh||0),credits=Number(localStorage.dinoCredits||0),bestLevel=Number(localStorage.dinoBestLevel||1),runs=Number(localStorage.dinoRuns||0),permShield=Number(localStorage.permShield||0),permRapid=Number(localStorage.permRapid||0),permPower=Number(localStorage.permPower||0),lastCredits=0,gameTime=0,difficulty=1,screenShake=0;
 const player={x:100,y:300,radius:7.5,width:82,fireCooldown:0};
@@ -288,9 +289,16 @@ function update(){
  }
 }
 function drawSpace(){
- const g=ctx.createLinearGradient(0,0,W,H);g.addColorStop(0,"#01040d");g.addColorStop(.48,"#07142e");g.addColorStop(1,"#170725");ctx.fillStyle=g;ctx.fillRect(0,0,W,H);
- const neb=ctx.createRadialGradient(W*.72,H*.28,10,W*.72,H*.28,W*.75);neb.addColorStop(0,"rgba(71,77,190,.17)");neb.addColorStop(.5,"rgba(36,64,140,.07)");neb.addColorStop(1,"rgba(0,0,0,0)");ctx.fillStyle=neb;ctx.fillRect(0,0,W,H);
- drawGalaxies();for(const s of stars){ctx.globalAlpha=s.alpha;ctx.fillStyle="#fff";ctx.fillRect(s.x,s.y,s.size,s.size)}ctx.globalAlpha=1;
+ ctx.fillStyle="#01030a";ctx.fillRect(0,0,W,H);
+ if(milkyReady){
+  const iw=milkyImg.naturalWidth,ih=milkyImg.naturalHeight,scale=Math.max(W/iw,H/ih),dw=iw*scale,dh=ih*scale;
+  const drift=(gameTime*.012)%(Math.max(1,dw-W+1)),dx=-(dw-W)*.5-drift*.08;
+  ctx.save();ctx.globalAlpha=.78;ctx.filter="brightness(.72) saturate(.82) contrast(1.12)";ctx.drawImage(milkyImg,dx,(H-dh)*.5,dw,dh);ctx.filter="none";
+  const shade=ctx.createLinearGradient(0,0,W,0);shade.addColorStop(0,"rgba(0,4,16,.35)");shade.addColorStop(.55,"rgba(0,0,0,.08)");shade.addColorStop(1,"rgba(0,2,12,.32)");ctx.fillStyle=shade;ctx.fillRect(0,0,W,H);ctx.restore()
+ }else{
+  const g=ctx.createLinearGradient(0,0,W,H);g.addColorStop(0,"#01040d");g.addColorStop(.55,"#08142c");g.addColorStop(1,"#160820");ctx.fillStyle=g;ctx.fillRect(0,0,W,H)
+ }
+ for(const s of stars){ctx.globalAlpha=s.alpha*.42;ctx.fillStyle="#d9ecff";ctx.fillRect(s.x,s.y,s.size,s.size)}ctx.globalAlpha=1;
 }
 function drawAsteroid(a){
  ctx.save();ctx.translate(a.x,a.y);ctx.rotate(a.rotation);ctx.shadowColor="rgba(0,0,0,.7)";ctx.shadowBlur=8;
@@ -383,7 +391,7 @@ function drawStart(){
  ctx.textAlign="right";ctx.fillStyle="#70ff9c";ctx.font="700 10px system-ui,sans-serif";ctx.fillText("READY",W-m-14,heroTop+25);ctx.fillStyle="#9fb7d7";ctx.fillText("DRAG • FIRE • SURVIVE",W-m-14,heroTop+42);
  const launchY=Math.min(H-148,heroTop+heroH+14);button(m+18,launchY,W-2*m-36,58,"LAUNCH  •  TAP TO START","#168f38","#075724","#8dff8f");
  const hangY=launchY+70;button(m+18,hangY,(W-2*m-46)*.62,46,"TEX'S HANGAR","#075f83","#153665","#6deaff");button(m+28+(W-2*m-46)*.62,hangY,(W-2*m-46)*.38,46,"LOADOUT","#49206f","#22143f","#c783ff");
- ctx.textAlign="center";ctx.fillStyle="#7189aa";ctx.font="700 9px system-ui,sans-serif";ctx.fillText("V6.8 • MILKY WAY RUN",W/2,Math.min(H-10,hangY+64));
+ ctx.textAlign="center";ctx.fillStyle="#7189aa";ctx.font="700 9px system-ui,sans-serif";ctx.fillText("V6.9 • NASA GALACTIC CORE",W/2,Math.min(H-10,hangY+64));
 }
 function drawDead(){
  panel(25,H*.27,W-50,310,"#160b22","#07172d","#ff4e76");ctx.textAlign="center";ctx.fillStyle="#ff5275";ctx.font=gameFont(31);ctx.shadowColor="#ff3d69";ctx.shadowBlur=12;ctx.fillText("RAPTOR DOWN",W/2,H*.35);ctx.shadowBlur=0;
@@ -393,7 +401,7 @@ function drawDead(){
 }
 function draw(){
  ctx.save();if(screenShake>0)ctx.translate((Math.random()-.5)*screenShake,(Math.random()-.5)*screenShake);
- drawSpace();drawPlanets();for(const a of asteroids)drawAsteroid(a);for(const e of enemies)drawEnemy(e);drawPowerups();drawBullets();drawShockwaves();drawParticles();drawPlayer();ctx.restore();
+ drawSpace();for(const a of asteroids)drawAsteroid(a);for(const e of enemies)drawEnemy(e);drawPowerups();drawBullets();drawShockwaves();drawParticles();drawPlayer();ctx.restore();
  if(state==="play"||state==="upgrade")drawHUD();if(state==="start")drawStart();if(state==="hangar")drawHangar();if(state==="upgrade")drawUpgrade();if(state==="dead")drawDead();
 }
 let last=performance.now(),accumulator=0;const STEP=1000/60;
