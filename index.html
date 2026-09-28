@@ -17,7 +17,7 @@ canvas{position:fixed;inset:0;width:100%;height:100%;display:block;touch-action:
 <body>
 <canvas id="game"></canvas>
 <script>
-// DINO INVADERS: SPACE V12.22 — ENEMY FACING FIX
+// DINO INVADERS: SPACE V12.23 — COMBAT UI MISSION POLISH
 const canvas=document.getElementById("game");
 const ctx=canvas.getContext("2d",{alpha:false,desynchronized:true});
 let W=0,H=0;
@@ -178,7 +178,7 @@ function spawnBoss(){
 function spawnWave(){
  if(enemies.length>=10)return;
  wave++;const count=Math.min(10-enemies.length,3+Math.floor(level/2));
- powerMessageText="DINO INVADER WAVE "+wave;powerMessage=100;
+ powerMessageText="INVADER WAVE "+wave;powerMessage=100;
  for(let i=0;i<count;i++){let type=sector>=5&&i===0&&wave%2===1?"warden":sector>=4&&i===1&&wave%3===0?"bomber":i===Math.floor(count/2)&&wave%2===0?"stalker":sector>=4&&i===1?"charger":sector>=3&&i===0?"gunner":sector>=2&&(i===count-1||sector>=3&&i%3===2)?"hunter":"scout";spawnEnemy(type,i*48)}
 }
 function addCombo(){combo=Math.min(30,combo+1);comboTimer=150;maxCombo=Math.max(maxCombo,combo);if(maxCombo>bestComboEver){bestComboEver=maxCombo;localStorage.dinoBestCombo=bestComboEver}}
@@ -187,7 +187,7 @@ function destroyEnemy(index){
  const e=enemies[index];sfx("boom");addCombo();if(e.type!=="boss"&&e.type!=="dreadnought"){invaderKills++;sectorKills++;totalKills++;localStorage.dinoTotalKills=totalKills}combatScore+=Math.round(e.points*comboMult());if(e.elite&&Math.random()<.45)spawnPowerup(Math.random()<.35?"overdrive":"spread");score=combatScore+Math.floor(distance);
  if(shockwaves.length<14)shockwaves.push({x:e.x,y:e.y,radius:8,maxRadius:55,life:15,maxLife:15});
  particles.push({x:e.x,y:e.y,vx:0,vy:0,life:8,maxLife:8,size:34,type:"flash"});
- burst(e.x,e.y,24,"hot",8);burst(e.x,e.y,18,"rock",7);
+ burst(e.x,e.y,30,"hot",9);burst(e.x,e.y,20,"rock",7);for(let d=0;d<6;d++){const life=18+Math.random()*18;particles.push({x:e.x,y:e.y,vx:(Math.random()-.5)*9,vy:(Math.random()-.5)*9,life,maxLife:life,size:2+Math.random()*4,type:"debris",rotation:Math.random()*6.28,spin:(Math.random()-.5)*.4})}
  enemies.splice(index,1);screenShake=Math.max(screenShake,5);
 }
 function drawInvaderDino(kind,accent,body){const map={rex:"rex",trike:"bruiser",stego:"spike",spino:"spine",ptera:"sky",anky:"anka",raptor:"rex"},key=map[kind]||"rex",im=pilotSprites[key];if(!im||!im.complete||!im.naturalWidth)return;const sizes={rex:88,bruiser:91,spike:92,spine:94,sky:86,anka:90},w=sizes[key]||88,h=w*im.naturalHeight/im.naturalWidth;ctx.save();ctx.shadowColor=accent;ctx.shadowBlur=5;ctx.globalAlpha=.22;ctx.drawImage(im,-w*.5-1,-h*.5,w+2,h+2);ctx.globalAlpha=1;ctx.shadowBlur=0;ctx.drawImage(im,-w*.5,-h*.5,w,h);ctx.restore()}
@@ -340,7 +340,7 @@ level=1+Math.floor(gameTime/600);sector=Math.min(5,1+Math.floor((level-1)/2));di
   let enemyRemoved=false;
   for(let j=bullets.length-1;j>=0;j--){const b=bullets[j];
    if(hitCircle(b.x,b.y,b.radius,e.x,e.y,e.radius)){
-    if((b.pierce||0)>0)b.pierce--;else bullets.splice(j,1);e.health-=1+powerLevel+(critLevel>0&&Math.random()<critLevel*.10?2:0);burst(b.x,b.y,7,"hot",4);
+    if((b.pierce||0)>0)b.pierce--;else bullets.splice(j,1);e.health-=1+powerLevel+(critLevel>0&&Math.random()<critLevel*.10?2:0);burst(b.x,b.y,9,"hot",4);for(let s=0;s<3;s++){const life=10+Math.random()*8;particles.push({x:b.x,y:b.y,vx:-2-Math.random()*4,vy:(Math.random()-.5)*5,life,maxLife:life,size:1.5+Math.random()*2,type:"hot"})}
     if(e.health<=0){const wasBoss=e.type==="boss"||e.type==="dreadnought";const bossName=e.type==="dreadnought"?"DREADNOUGHT":"MOTHERSHIP";destroyEnemy(i);if(wasBoss){bossesDefeated++;powerMessageText=bossName+" DESTROYED!";powerMessage=180;if(level>=10&&!campaignCleared){campaignVictory()}else spawnPowerup("shield")}enemyRemoved=true;break}
    }
   }
@@ -390,7 +390,7 @@ function drawAsteroid(a){
 }
 function drawBullets(){
  for(const b of bullets){ctx.save();const skin=SKINS[selectedSkin],beam=skin&&skin.beam?skin.beam:"#168dff",pw=b.levelPower||0,thick=4.7+plasmaLevel*1.5+pw*.45,len=14.5+pw*2.2;ctx.shadowColor=beam;ctx.shadowBlur=9+pw*3+plasmaLevel*2;ctx.fillStyle=beam;ctx.fillRect(b.x-len*.45,b.y-thick*.5,len,thick);ctx.fillStyle="#eaf8ff";ctx.fillRect(b.x+1.5,b.y-Math.max(1.15,thick*.22),Math.max(6.5,len*.45),Math.max(2.3,thick*.44));ctx.restore()}
- for(const b of enemyBullets){ctx.fillStyle="#ffd34d";ctx.beginPath();ctx.arc(b.x,b.y,b.radius,0,Math.PI*2);ctx.fill();ctx.fillStyle="#ff633d";ctx.beginPath();ctx.arc(b.x,b.y,b.radius*.45,0,Math.PI*2);ctx.fill()}
+ for(const b of enemyBullets){const ang=Math.atan2(b.vy,b.vx);ctx.save();ctx.translate(b.x,b.y);ctx.rotate(ang);ctx.shadowColor="#ff4b24";ctx.shadowBlur=10;const g=ctx.createLinearGradient(-16,0,7,0);g.addColorStop(0,"rgba(255,45,20,0)");g.addColorStop(.58,"#ff542b");g.addColorStop(1,"#fff1a8");ctx.strokeStyle=g;ctx.lineWidth=Math.max(2.5,b.radius*1.15);ctx.lineCap="round";ctx.beginPath();ctx.moveTo(-15,0);ctx.lineTo(5,0);ctx.stroke();ctx.fillStyle="#fff7cf";ctx.beginPath();ctx.arc(5,0,Math.max(1.5,b.radius*.42),0,Math.PI*2);ctx.fill();ctx.restore()}
 }
 function drawShockwaves(){
  for(const s of shockwaves){const alpha=Math.max(0,s.life/s.maxLife);ctx.save();ctx.globalAlpha=alpha*.8;ctx.strokeStyle="#ff9b3d";ctx.lineWidth=Math.max(2,5*alpha);ctx.beginPath();ctx.arc(s.x,s.y,s.radius,0,Math.PI*2);ctx.stroke();ctx.restore()}
@@ -437,18 +437,18 @@ function startLayout(){const top=Math.max(28,H*.055),statsY=top+77,heroTop=stats
 function drawStart(){
  const m=18,{top,statsY,heroTop,heroH,launchY}=startLayout();
  ctx.save();const halo=ctx.createRadialGradient(W*.5,heroTop+heroH*.48,12,W*.5,heroTop+heroH*.48,W*.75);halo.addColorStop(0,"rgba(39,157,219,.22)");halo.addColorStop(1,"rgba(4,12,35,0)");ctx.fillStyle=halo;ctx.fillRect(0,heroTop-45,W,heroH+90);
- ctx.textAlign="center";ctx.fillStyle="#ff9d40";ctx.font=gameFont(Math.min(39,W*.10));ctx.shadowColor="#ef5725";ctx.shadowBlur=13;ctx.fillText("DINO INVADERS",W/2,top+30);ctx.shadowBlur=0;ctx.fillStyle="#d7f8ff";ctx.font=gameFont(Math.min(21,W*.055));ctx.fillText("S P A C E",W/2,top+59);
+ ctx.textAlign="center";ctx.fillStyle="#ff9d40";ctx.font=gameFont(Math.min(39,W*.10));ctx.shadowColor="#ef5725";ctx.shadowBlur=13;ctx.fillText("DINO INVADERS",W/2,top+30);ctx.shadowBlur=0;ctx.fillStyle="#d7f8ff";ctx.font=gameFont(Math.min(21,W*.055));ctx.fillText("S P A C E",W/2,top+59);ctx.fillStyle="#7fa7c2";ctx.font="700 9px system-ui,sans-serif";ctx.fillText("SURVIVE • DESTROY • DEFEND THE CORE",W/2,top+73);
  ctx.fillStyle="rgba(5,15,34,.72)";ctx.beginPath();ctx.roundRect(m,statsY,W-2*m,57,10);ctx.fill();ctx.strokeStyle="rgba(99,191,232,.36)";ctx.lineWidth=1;ctx.stroke();
  const stats=[["HIGH SCORE",high],["BEST LEVEL",bestLevel],["VICTORIES",campaignWins]];for(let i=0;i<3;i++){let x=m+(W-2*m)*(i+.5)/3;ctx.fillStyle="#8bb4cf";ctx.font="700 10px system-ui,sans-serif";ctx.fillText(stats[i][0],x,statsY+19);ctx.fillStyle="#f3fbff";ctx.font=gameFont(18);ctx.fillText(stats[i][1],x,statsY+42)}
  const card=ctx.createLinearGradient(m,heroTop,W-m,heroTop+heroH);card.addColorStop(0,"rgba(7,24,46,.88)");card.addColorStop(1,"rgba(14,29,56,.73)");ctx.fillStyle=card;ctx.beginPath();ctx.roundRect(m,heroTop,W-2*m,heroH,18);ctx.fill();ctx.strokeStyle="rgba(77,195,235,.5)";ctx.stroke();
  ctx.save();ctx.beginPath();ctx.roundRect(m+1,heroTop+1,W-2*m-2,heroH-2,17);ctx.clip();const beam=ctx.createLinearGradient(m,heroTop,W-m,heroTop+heroH);beam.addColorStop(0,"rgba(33,174,222,.22)");beam.addColorStop(1,"rgba(4,17,35,0)");ctx.fillStyle=beam;ctx.fillRect(m,heroTop,W-2*m,heroH);
  if(raptorReady){const w=Math.min(W*.64,228),h=w*texCrop.h/texCrop.w;ctx.shadowColor="rgba(48,221,255,.6)";ctx.shadowBlur=25;ctx.drawImage(raptorImg,texCrop.x,texCrop.y,texCrop.w,texCrop.h,W*.52-w*.5,heroTop+heroH*.54-h*.5,w,h)}ctx.restore();
  ctx.textAlign="left";ctx.fillStyle="#ffae4d";ctx.font=gameFont(23);ctx.fillText("TEX",m+16,heroTop+34);ctx.fillStyle="#bad9e9";ctx.font="700 11px system-ui,sans-serif";ctx.fillText("RAPTOR ACE",m+16,heroTop+51);
- ctx.textAlign="right";ctx.fillStyle="#9df4b3";ctx.font="700 11px system-ui,sans-serif";ctx.fillText("READY TO FLY",W-m-15,heroTop+32);
+ ctx.textAlign="right";ctx.fillStyle="#9df4b3";ctx.font="700 11px system-ui,sans-serif";ctx.fillText("COMBAT READY",W-m-15,heroTop+32);ctx.fillStyle="#6f91a8";ctx.font="700 9px system-ui,sans-serif";ctx.fillText("CORE DEFENSE // ACTIVE",W-m-15,heroTop+48);
  button(m+9,launchY,W-2*m-18,58,"LAUNCH","#16994a","#07562c","#97ffc0");ctx.textAlign="center";ctx.fillStyle="#c8ddeb";ctx.font="700 12px system-ui,sans-serif";ctx.fillText("HOLD TO FIRE  •  DRAG TO MOVE",W/2,launchY+85);
- ctx.fillStyle="#9bb3c8";ctx.font="bold 11px system-ui,sans-serif";ctx.fillText("VERSION 12.22",W/2,H-53);ctx.fillStyle="#fff";ctx.font="bold 13px system-ui,sans-serif";ctx.fillText("Built by Curtis Company Limited",W/2,H-35);ctx.restore();
+ ctx.fillStyle="#9bb3c8";ctx.font="bold 11px system-ui,sans-serif";ctx.fillText("VERSION 12.23",W/2,H-53);ctx.fillStyle="#fff";ctx.font="bold 13px system-ui,sans-serif";ctx.fillText("Built by Curtis Company Limited",W/2,H-35);ctx.restore();
 }
-function drawVictory(){panel(22,H*.22,W-44,350,"#07152d","#2c1848","#ffd45b");ctx.textAlign="center";ctx.fillStyle="#ffd45b";ctx.font=gameFont(30);ctx.shadowColor="#ff9d35";ctx.shadowBlur=14;ctx.fillText("LEVEL 10 CLEARED",W/2,H*.30);ctx.shadowBlur=0;ctx.fillStyle="#fff";ctx.font=gameFont(20);ctx.fillText("TEX SAVED THE CORE",W/2,H*.355);ctx.font="14px Arial";ctx.fillText("Score "+score+"  •  Distance "+Math.floor(distance),W/2,H*.405);ctx.fillText("Bosses "+bossesDefeated+"  •  Best combo "+maxCombo+"x",W/2,H*.445);ctx.fillStyle="#7dff9d";ctx.font="bold 16px Arial";ctx.fillText("+25 CAMPAIGN CREDITS",W/2,H*.495);ctx.fillStyle="#8cecff";ctx.font="bold 13px Arial";ctx.fillText("CAMPAIGN WINS "+campaignWins+"   •   TOTAL KILLS "+totalKills,W/2,H*.535);ctx.fillStyle="#ffd45b";ctx.font="bold 11px Arial";ctx.fillText("TEX • BEST COMBO "+bestComboEver+"x",W/2,H*.565);button(34,H*.59,W-68,50,"CONTINUE ENDLESS","#168f38","#075724","#8dff8f");button(34,H*.67,W-68,46,"MAIN MENU","#075f83","#153665","#6deaff")}
+function drawVictory(){panel(22,H*.22,W-44,350,"#07152d","#2c1848","#ffd45b");ctx.textAlign="center";ctx.fillStyle="#ffd45b";ctx.font=gameFont(30);ctx.shadowColor="#ff9d35";ctx.shadowBlur=14;ctx.fillText("LEVEL 10 CLEARED",W/2,H*.30);ctx.shadowBlur=0;ctx.fillStyle="#fff";ctx.font=gameFont(20);ctx.fillText("CORE SECURED",W/2,H*.355);ctx.font="14px Arial";ctx.fillText("Score "+score+"  •  Distance "+Math.floor(distance),W/2,H*.405);ctx.fillText("Bosses "+bossesDefeated+"  •  Best combo "+maxCombo+"x",W/2,H*.445);ctx.fillStyle="#7dff9d";ctx.font="bold 16px Arial";ctx.fillText("+25 CAMPAIGN CREDITS",W/2,H*.495);ctx.fillStyle="#8cecff";ctx.font="bold 13px Arial";ctx.fillText("CAMPAIGN WINS "+campaignWins+"   •   TOTAL KILLS "+totalKills,W/2,H*.535);ctx.fillStyle="#ffd45b";ctx.font="bold 11px Arial";ctx.fillText("TEX • BEST COMBO "+bestComboEver+"x",W/2,H*.565);button(34,H*.59,W-68,50,"CONTINUE ENDLESS","#168f38","#075724","#8dff8f");button(34,H*.67,W-68,46,"MAIN MENU","#075f83","#153665","#6deaff")}
 function drawDead(){
  panel(25,H*.27,W-50,310,"#160b22","#07172d","#ff4e76");ctx.textAlign="center";ctx.fillStyle="#ff5275";ctx.font=gameFont(31);ctx.shadowColor="#ff3d69";ctx.shadowBlur=12;ctx.fillText("RAPTOR DOWN",W/2,H*.35);ctx.shadowBlur=0;
  ctx.fillStyle="#fff";ctx.font="20px Arial";ctx.fillText("SCORE "+score,W/2,H*.405);ctx.font="15px Arial";ctx.fillText("Distance "+Math.floor(distance)+"   •   Level "+level,W/2,H*.45);ctx.fillText("Bosses "+bossesDefeated+"   •   Invaders "+invaderKills,W/2,H*.49);ctx.fillStyle="#66eaff";ctx.font="bold 13px Arial";ctx.fillText("BEST COMBO "+maxCombo+"x  •  ALL-TIME "+bestComboEver+"x",W/2,H*.515);
