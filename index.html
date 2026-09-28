@@ -17,7 +17,7 @@ canvas{position:fixed;inset:0;width:100%;height:100%;display:block;touch-action:
 <body>
 <canvas id="game"></canvas>
 <script>
-// DINO INVADERS: SPACE V12.38 — ARTICULATED ENEMIES
+// DINO INVADERS: SPACE V12.39 — RIG ALIGNMENT
 const canvas=document.getElementById("game");
 const ctx=canvas.getContext("2d",{alpha:false,desynchronized:true});
 let W=0,H=0;
@@ -216,12 +216,12 @@ if(articulatedBodyImg.complete&&articulatedBodyImg.naturalWidth&&articulatedWing
  const bodyW=68,bodyH=bodyW*articulatedBodyImg.naturalHeight/articulatedBodyImg.naturalWidth;
  const wingW=48,wingHL=wingW*articulatedWingLeftImg.naturalHeight/articulatedWingLeftImg.naturalWidth,wingHR=wingW*articulatedWingRightImg.naturalHeight/articulatedWingRightImg.naturalWidth;
  const beat=Math.sin(gameTime*.18+(e.flightPhase||e.phase)),stroke=beat*.32;
- // Far wing: root sits behind the shoulder and sweeps opposite in screen-space.
- ctx.save();ctx.translate(3,-7);ctx.rotate(-.18-stroke);ctx.shadowColor="#ff4a28";ctx.shadowBlur=4;ctx.drawImage(articulatedWingRightImg,-3,-wingHR*.82,wingW,wingHR);ctx.restore();
+ // Far/right wing: its source root is on the lower-left, so anchor that root at the rear shoulder.
+ ctx.save();ctx.translate(2,-8);ctx.rotate(-.10-stroke);ctx.shadowColor="#ff4a28";ctx.shadowBlur=4;ctx.drawImage(articulatedWingRightImg,-wingW*.08,-wingHR*.76,wingW,wingHR);ctx.restore();
  // Living body: independent pitch/lift instead of stretching the whole creature.
  ctx.save();ctx.translate(0,-Math.abs(beat)*1.4);ctx.rotate(-beat*.018);ctx.scale(-1,1);ctx.shadowColor="#ff5a35";ctx.shadowBlur=3;ctx.drawImage(articulatedBodyImg,-bodyW*.5,-bodyH*.5,bodyW,bodyH);ctx.restore();
- // Near wing: rendered over the body at the opposite shoulder.
- ctx.save();ctx.translate(-3,-8);ctx.rotate(.18+stroke);ctx.scale(-1,1);ctx.shadowColor="#ff4a28";ctx.shadowBlur=5;ctx.drawImage(articulatedWingLeftImg,-3,-wingHL*.82,wingW,wingHL);ctx.restore();
+ // Near/left wing: source already points left. Keep its orientation and pin its lower-right root to the front shoulder.
+ ctx.save();ctx.translate(-2,-8);ctx.rotate(.10+stroke);ctx.shadowColor="#ff4a28";ctx.shadowBlur=5;ctx.drawImage(articulatedWingLeftImg,-wingW*.92,-wingHL*.76,wingW,wingHL);ctx.restore();
  ctx.restore()
 }
 else{const fbw=66,fbh=fbw*mainEnemyImg.naturalHeight/mainEnemyImg.naturalWidth;ctx.save();ctx.translate(0,bob);ctx.drawImage(mainEnemyImg,-fbw*.5,-fbh*.5,fbw,fbh);ctx.restore()}
@@ -484,7 +484,7 @@ function drawStart(){
  const pulse=.55+.25*Math.sin(gameTime*.06);ctx.globalAlpha=pulse;ctx.strokeStyle="#ff7b38";ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(m+24,heroTop+heroH-22);ctx.lineTo(W*.32,heroTop+heroH-22);ctx.moveTo(W*.68,heroTop+heroH-22);ctx.lineTo(W-m-24,heroTop+heroH-22);ctx.stroke();ctx.globalAlpha=1;
  button(m+9,launchY,pw-18,60,"START RUN","#16994a","#07562c","#97ffc0");
  ctx.fillStyle="#d3e8f4";ctx.font="800 13px system-ui,sans-serif";ctx.fillText("HOLD TO FIRE  •  DRAG TO MOVE",W/2,launchY+88);
- ctx.fillStyle="#91aabd";ctx.font="bold 11px system-ui,sans-serif";ctx.fillText("VERSION 12.38",W/2,H-53);ctx.fillStyle="#fff";ctx.font="bold 13px system-ui,sans-serif";ctx.fillText("Built by Curtis Company Limited",W/2,H-35);
+ ctx.fillStyle="#91aabd";ctx.font="bold 11px system-ui,sans-serif";ctx.fillText("VERSION 12.39",W/2,H-53);ctx.fillStyle="#fff";ctx.font="bold 13px system-ui,sans-serif";ctx.fillText("Built by Curtis Company Limited",W/2,H-35);
  ctx.restore();
 }
 function drawVictory(){drawDead()}
