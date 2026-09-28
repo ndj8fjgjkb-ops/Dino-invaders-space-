@@ -17,7 +17,7 @@ canvas{position:fixed;inset:0;width:100%;height:100%;display:block;touch-action:
 <body>
 <canvas id="game"></canvas>
 <script>
-// DINO INVADERS: SPACE V6.18 — ELITE HUNTERS
+// DINO INVADERS: SPACE V6.19 — BOSS BOUNTIES
 const canvas=document.getElementById("game");
 const ctx=canvas.getContext("2d",{alpha:false,desynchronized:true});
 let W=0,H=0;
@@ -130,6 +130,7 @@ function spawnEnemy(type="scout",offset=0){
  const elite=!boss&&level>=5&&Math.random()<Math.min(.18,.035+level*.008);const hp=dread?55:boss?30:gunner?5:hunter?4:charger?3:2;
  enemies.push({x:W+70+offset,y,baseY:y,vx:boss?-1.25:-(gunner?1.7:hunter?2.7:2.1)-Math.random()*.8-difficulty*.12,phase:Math.random()*Math.PI*2,health:elite?hp*2:hp,maxHealth:elite?hp*2:hp,radius:dread?40:boss?32:gunner?16:hunter?15:charger?13:11.424,points:(dread?5000:boss?2500:gunner?500:hunter?350:charger?300:180)*(elite?2:1),type,elite,shotTimer:70+Math.random()*80});
 }
+function bossBounty(){missionBonusCredits+=5+bossesDefeated*2;shieldHits=Math.min(2,shieldHits+1);runXP+=5;powerMessageText="BOSS BOUNTY +"+(5+bossesDefeated*2)+" CREDITS";powerMessage=180}
 function spawnBoss(){
  if(bossSpawned)return;bossSpawned=true;bossCount++;enemies.length=0;enemyBullets.length=0;
  const dread=bossCount%2===0;powerMessageText=dread?"WARNING: DREADNOUGHT":"WARNING: MOTHERSHIP";powerMessage=180;screenShake=6;
@@ -269,7 +270,7 @@ function update(){
   else{if(e.type==="charger"&&e.x<W*.82){const dx=player.x-e.x,dy=player.y-e.y,len=Math.hypot(dx,dy)||1;e.x+=dx/len*(4.6+difficulty*.12);e.y+=dy/len*(4.6+difficulty*.12)}else{e.x+=e.vx;e.y=e.baseY+Math.sin(gameTime*(e.type==="hunter"?.065:.045)+e.phase)*(e.type==="hunter"?48:34)}}
   if(e.type==="gunner"&&e.x<W*.92){e.shotTimer--;if(e.shotTimer<=0&&enemyBullets.length<16){const dx=player.x-e.x,dy=player.y-e.y,len=Math.hypot(dx,dy)||1,s=4.2+Math.min(2,difficulty*.12);enemyBullets.push({x:e.x-15,y:e.y,vx:dx/len*s,vy:dy/len*s,radius:4});e.shotTimer=Math.max(55,115-level*3)}}
   if(hitCircle(player.x,player.y,player.radius,e.x,e.y,e.radius)){
-   if(shieldHits>0){shieldHits--;burst(player.x,player.y,24,"hot",7);if(shockwaves.length<14)shockwaves.push({x:player.x,y:player.y,radius:8,maxRadius:70,life:18,maxLife:18});const bossHit=e.type==="boss"||e.type==="dreadnought";if(bossHit){e.health-=5;player.x=Math.max(50,player.x-28);if(e.health<=0){const bossName=e.type==="dreadnought"?"DREADNOUGHT":"MOTHERSHIP";destroyEnemy(i);bossesDefeated++;powerMessageText=bossName+" DESTROYED!";powerMessage=180;spawnPowerup("shield")}}else enemies.splice(i,1);screenShake=7;continue}
+   if(shieldHits>0){shieldHits--;burst(player.x,player.y,24,"hot",7);if(shockwaves.length<14)shockwaves.push({x:player.x,y:player.y,radius:8,maxRadius:70,life:18,maxLife:18});const bossHit=e.type==="boss"||e.type==="dreadnought";if(bossHit){e.health-=5;player.x=Math.max(50,player.x-28);if(e.health<=0){const bossName=e.type==="dreadnought"?"DREADNOUGHT":"MOTHERSHIP";destroyEnemy(i);bossesDefeated++;bossBounty();spawnPowerup("shield")}}else enemies.splice(i,1);screenShake=7;continue}
    die();break}
   let enemyRemoved=false;
   for(let j=bullets.length-1;j>=0;j--){const b=bullets[j];
@@ -412,7 +413,7 @@ function drawStart(){
  ctx.textAlign="right";ctx.fillStyle="#70ff9c";ctx.font="700 10px system-ui,sans-serif";ctx.fillText("READY",W-m-14,heroTop+25);ctx.fillStyle="#9fb7d7";ctx.fillText("DRAG • FIRE • SURVIVE",W-m-14,heroTop+42);
  const launchY=Math.min(H-148,heroTop+heroH+14);button(m+18,launchY,W-2*m-36,58,"LAUNCH  •  TAP TO START","#168f38","#075724","#8dff8f");
  const hangY=launchY+70;button(m+18,hangY,(W-2*m-46)*.62,46,"TEX'S HANGAR","#075f83","#153665","#6deaff");button(m+28+(W-2*m-46)*.62,hangY,(W-2*m-46)*.38,46,"LOADOUT","#49206f","#22143f","#c783ff");
- ctx.textAlign="center";ctx.fillStyle="#7189aa";ctx.font="700 9px system-ui,sans-serif";ctx.fillText("V6.18 • ELITE HUNTERS",W/2,Math.min(H-10,hangY+64));
+ ctx.textAlign="center";ctx.fillStyle="#7189aa";ctx.font="700 9px system-ui,sans-serif";ctx.fillText("V6.19 • BOSS BOUNTIES",W/2,Math.min(H-10,hangY+64));
 }
 function drawDead(){
  panel(25,H*.27,W-50,310,"#160b22","#07172d","#ff4e76");ctx.textAlign="center";ctx.fillStyle="#ff5275";ctx.font=gameFont(31);ctx.shadowColor="#ff3d69";ctx.shadowBlur=12;ctx.fillText("RAPTOR DOWN",W/2,H*.35);ctx.shadowBlur=0;
