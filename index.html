@@ -17,7 +17,7 @@ canvas{position:fixed;inset:0;width:100%;height:100%;display:block;touch-action:
 <body>
 <canvas id="game"></canvas>
 <script>
-// DINO INVADERS: SPACE V12.20 — RESTORED CYBER DINO ENEMIES
+// DINO INVADERS: SPACE V12.21 — APPROVED FLYING ENEMY
 const canvas=document.getElementById("game");
 const ctx=canvas.getContext("2d",{alpha:false,desynchronized:true});
 let W=0,H=0;
@@ -64,6 +64,7 @@ const SKINS=[{name:"TEX",species:"RAPTOR",unlock:()=>true,beam:"#168dff",accent:
 let selectedSkin=0,bestComboEver=Number(localStorage.dinoBestCombo||0),bossesLifetime=Number(localStorage.dinoBossesLifetime||0);
 const pilotSprites={};for(const n of ["rex","bruiser","spike","spine","sky","anka"]){const im=new Image();im.src="./assets/enemies/realistic-"+n+".webp?v=120";pilotSprites[n]=im}
 const mainEnemyImg=new Image();mainEnemyImg.src="./2F10DBD9-FDBD-4125-825A-CB91FEC99AEB.png?v=enemy-20260928-1";
+const approvedFlyingEnemyImg=new Image();approvedFlyingEnemyImg.src="./9984F8FF-7B04-4AC8-B4A6-2B3FB2DD829D.png?v=approved-flying-enemy-v1221";
 const regWingLeftImg=new Image();regWingLeftImg.src="./2F9F0955-0B7D-4DC6-90A9-CEE4EC9A749D.png?v=flyenemy-1";
 const regEnemyBodyImg=new Image();regEnemyBodyImg.src="./49D2054A-8587-4A20-B07C-E2C9F295E693.png?v=flyenemy-1";
 const regWingRightImg=new Image();regWingRightImg.src="./F03639C0-35F6-4E2D-9A94-FEBF0555F951.png?v=flyenemy-1";
@@ -205,9 +206,10 @@ function drawEnemy(e){
  // Standard enemy roster intentionally uses only two visual species.
  // Boss visuals above remain unchanged.
  if(e.type==="stalker"||e.type==="bomber"||e.type==="warden")drawInvaderDino("ptera","#ff5471","#401522");
- else if(regEnemyBodyImg.complete&&regEnemyBodyImg.naturalWidth&&regWingLeftImg.complete&&regWingLeftImg.naturalWidth&&regWingRightImg.complete&&regWingRightImg.naturalWidth){const bob=Math.sin(gameTime*.09+e.phase)*1.1,bank=Math.sin(gameTime*.045+e.phase)*.02,bw=66,bh=bw*mainEnemyImg.naturalHeight/mainEnemyImg.naturalWidth;
-// V12.20 recovery: the uploaded "body" file is actually a wing asset. Use the known complete cyber-dinosaur PNG instead.
-ctx.save();ctx.translate(0,bob);ctx.rotate(bank);ctx.shadowColor="#ff5a35";ctx.shadowBlur=2;ctx.drawImage(mainEnemyImg,-bw*.5,-bh*.5,bw,bh);ctx.restore()
+ else if(regEnemyBodyImg.complete&&regEnemyBodyImg.naturalWidth&&regWingLeftImg.complete&&regWingLeftImg.naturalWidth&&regWingRightImg.complete&&regWingRightImg.naturalWidth){const bob=Math.sin(gameTime*.09+e.phase)*1.1,bank=Math.sin(gameTime*.045+e.phase)*.018,bw=72,bh=bw*approvedFlyingEnemyImg.naturalHeight/approvedFlyingEnemyImg.naturalWidth;
+// V12.21 approved precomposed flying enemy. Preserve the verified silhouette; animate only the whole sprite.
+if(approvedFlyingEnemyImg.complete&&approvedFlyingEnemyImg.naturalWidth){ctx.save();ctx.translate(0,bob);ctx.rotate(bank);ctx.shadowColor="#ff5a35";ctx.shadowBlur=2;ctx.drawImage(approvedFlyingEnemyImg,-bw*.5,-bh*.5,bw,bh);ctx.restore()}
+else{const fbw=66,fbh=fbw*mainEnemyImg.naturalHeight/mainEnemyImg.naturalWidth;ctx.save();ctx.translate(0,bob);ctx.drawImage(mainEnemyImg,-fbw*.5,-fbh*.5,fbw,fbh);ctx.restore()}
 }else if(mainEnemyImg.complete&&mainEnemyImg.naturalWidth){const w=96,h=w*mainEnemyImg.naturalHeight/mainEnemyImg.naturalWidth;ctx.save();ctx.shadowColor="#ff4a3d";ctx.shadowBlur=2;ctx.drawImage(mainEnemyImg,-w*.5,-h*.5,w,h);ctx.restore()}
  else drawInvaderDino("rex","#ff4a3d","#421418");
  ctx.restore()
@@ -444,7 +446,7 @@ function drawStart(){
  ctx.textAlign="left";ctx.fillStyle="#ffae4d";ctx.font=gameFont(23);ctx.fillText("TEX",m+16,heroTop+34);ctx.fillStyle="#bad9e9";ctx.font="700 11px system-ui,sans-serif";ctx.fillText("RAPTOR ACE",m+16,heroTop+51);
  ctx.textAlign="right";ctx.fillStyle="#9df4b3";ctx.font="700 11px system-ui,sans-serif";ctx.fillText("READY TO FLY",W-m-15,heroTop+32);
  button(m+9,launchY,W-2*m-18,58,"LAUNCH","#16994a","#07562c","#97ffc0");ctx.textAlign="center";ctx.fillStyle="#c8ddeb";ctx.font="700 12px system-ui,sans-serif";ctx.fillText("HOLD TO FIRE  •  DRAG TO MOVE",W/2,launchY+85);
- ctx.fillStyle="#9bb3c8";ctx.font="bold 11px system-ui,sans-serif";ctx.fillText("VERSION 12.20",W/2,H-53);ctx.fillStyle="#fff";ctx.font="bold 13px system-ui,sans-serif";ctx.fillText("Built by Curtis Company Limited",W/2,H-35);ctx.restore();
+ ctx.fillStyle="#9bb3c8";ctx.font="bold 11px system-ui,sans-serif";ctx.fillText("VERSION 12.21",W/2,H-53);ctx.fillStyle="#fff";ctx.font="bold 13px system-ui,sans-serif";ctx.fillText("Built by Curtis Company Limited",W/2,H-35);ctx.restore();
 }
 function drawVictory(){panel(22,H*.22,W-44,350,"#07152d","#2c1848","#ffd45b");ctx.textAlign="center";ctx.fillStyle="#ffd45b";ctx.font=gameFont(30);ctx.shadowColor="#ff9d35";ctx.shadowBlur=14;ctx.fillText("LEVEL 10 CLEARED",W/2,H*.30);ctx.shadowBlur=0;ctx.fillStyle="#fff";ctx.font=gameFont(20);ctx.fillText("TEX SAVED THE CORE",W/2,H*.355);ctx.font="14px Arial";ctx.fillText("Score "+score+"  •  Distance "+Math.floor(distance),W/2,H*.405);ctx.fillText("Bosses "+bossesDefeated+"  •  Best combo "+maxCombo+"x",W/2,H*.445);ctx.fillStyle="#7dff9d";ctx.font="bold 16px Arial";ctx.fillText("+25 CAMPAIGN CREDITS",W/2,H*.495);ctx.fillStyle="#8cecff";ctx.font="bold 13px Arial";ctx.fillText("CAMPAIGN WINS "+campaignWins+"   •   TOTAL KILLS "+totalKills,W/2,H*.535);ctx.fillStyle="#ffd45b";ctx.font="bold 11px Arial";ctx.fillText("TEX • BEST COMBO "+bestComboEver+"x",W/2,H*.565);button(34,H*.59,W-68,50,"CONTINUE ENDLESS","#168f38","#075724","#8dff8f");button(34,H*.67,W-68,46,"MAIN MENU","#075f83","#153665","#6deaff")}
 function drawDead(){
