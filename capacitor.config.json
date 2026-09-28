@@ -1,0 +1,9 @@
+{
+  "appId": "com.curtiscompanylimited.dinoinvaders",
+  "appName": "Dino Invaders",
+  "webDir": "www",
+  "ios": {
+    "contentInset": "never",
+    "allowsLinkPreview": false
+  }
+}

@@ -1,0 +1,6 @@
+node_modules/
+www/
+ios/App/App/public/
+ios/DerivedData/
+ios/CapApp-SPM/.build/
+.DS_Store

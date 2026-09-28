@@ -17,7 +17,7 @@ canvas{position:fixed;inset:0;width:100%;height:100%;display:block;touch-action:
 <body>
 <canvas id="game"></canvas>
 <script>
-// DINO INVADERS: SPACE V11.3 — HOLD TO FIRE
+// DINO INVADERS: SPACE V11.4 — OFFLINE READY
 const canvas=document.getElementById("game");
 const ctx=canvas.getContext("2d",{alpha:false,desynchronized:true});
 let W=0,H=0;
@@ -30,7 +30,7 @@ let raptorReady=false,raptorFailed=false,texCrop={x:0,y:0,w:1,h:1};
 raptorImg.onload=()=>{raptorReady=true;raptorFailed=false;const oc=document.createElement("canvas"),ox=oc.getContext("2d",{willReadFrequently:true});oc.width=raptorImg.naturalWidth;oc.height=raptorImg.naturalHeight;ox.drawImage(raptorImg,0,0);try{const d=ox.getImageData(0,0,oc.width,oc.height).data;let minX=oc.width,minY=oc.height,maxX=0,maxY=0;for(let y=0;y<oc.height;y+=2)for(let x=0;x<oc.width;x+=2)if(d[(y*oc.width+x)*4+3]>18){if(x<minX)minX=x;if(x>maxX)maxX=x;if(y<minY)minY=y;if(y>maxY)maxY=y}if(maxX>minX&&maxY>minY)texCrop={x:Math.max(0,minX-6),y:Math.max(0,minY-6),w:Math.min(oc.width-minX+6,maxX-minX+12),h:Math.min(oc.height-minY+6,maxY-minY+12)}}catch(e){texCrop={x:0,y:0,w:oc.width,h:oc.height}}};
 raptorImg.onerror=()=>{raptorReady=false;raptorFailed=true};
 raptorImg.src="./tex-v2.webp?asset=31b83a83e249e9d61039e91749b002e94051a453";
-const milkyImg=new Image();let milkyReady=false;milkyImg.onload=()=>milkyReady=true;milkyImg.onerror=()=>milkyReady=false;milkyImg.src="https://upload.wikimedia.org/wikipedia/commons/f/f5/Galactic_Center_Of_Milky_Way..jpg";
+const milkyImg=new Image();let milkyReady=false;milkyImg.onload=()=>milkyReady=true;milkyImg.onerror=()=>milkyReady=false;milkyImg.src="./assets/space/galactic-center.webp?v=114";
 
 let audioCtx=null,masterGain=null,musicGain=null,sfxGain=null,compressor=null,audioReady=false,musicTimer=null,musicStep=0,lastLaserAt=0;
 function initAudio(){if(audioReady){if(audioCtx&&audioCtx.state==="suspended")audioCtx.resume();return}try{
@@ -444,6 +444,7 @@ canvas.addEventListener("touchmove",function(e){
 function releaseTouches(e){e.preventDefault();for(const touch of e.changedTouches){if(touch.identifier===moveTouchID){moveTouchID=null;firing=false}}}
 canvas.addEventListener("touchend",releaseTouches,{passive:false});
 canvas.addEventListener("touchcancel",releaseTouches,{passive:false});
+document.addEventListener("visibilitychange",()=>{if(document.hidden){if(state==="play")state="paused";moveTouchID=null;firing=false;if(audioCtx)audioCtx.suspend()}});
 resize();
 </script>
 </body>

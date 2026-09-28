@@ -1,0 +1,17 @@
+{
+  "name": "dino-invaders-space",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Dino Invaders: Space iPhone app",
+  "scripts": {
+    "build": "node scripts/build-web.mjs",
+    "ios:sync": "npm run build && cap sync ios"
+  },
+  "dependencies": {
+    "@capacitor/core": "8.5.2",
+    "@capacitor/ios": "8.5.2"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "8.5.2"
+  }
+}
