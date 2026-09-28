@@ -17,7 +17,7 @@ canvas{position:fixed;inset:0;width:100%;height:100%;display:block;touch-action:
 <body>
 <canvas id="game"></canvas>
 <script>
-// DINO INVADERS: SPACE V6.25 — BOSS CORES
+// DINO INVADERS: SPACE V6.25.1 — HOTFIX
 const canvas=document.getElementById("game");
 const ctx=canvas.getContext("2d",{alpha:false,desynchronized:true});
 let W=0,H=0;
@@ -264,7 +264,8 @@ level=1+Math.floor(gameTime/600);difficulty=1+gameTime/900+level*.16;
   if(hitCircle(player.x,player.y,player.radius+5,p.x,p.y,p.radius)){
    if(p.type==="shield"){shieldHits=Math.min(2,shieldHits+1);powerMessageText="SHIELD READY!"}
    else if(p.type==="overdrive"){overdriveTimer=480;powerMessageText="RAPTOR OVERDRIVE!"}
-   else if(p.type==="core"){runXP+=6;combatScore+=750;score=combatScore+Math.floor(distance);powerMessageText="BOSS CORE +750 SCORE +6 XP"}\n   else{spreadTimer=600;powerMessageText="SPREAD SHOT!"}
+   else if(p.type==="core"){runXP+=6;combatScore+=750;score=combatScore+Math.floor(distance);powerMessageText="BOSS CORE +750 SCORE +6 XP"}
+   else{spreadTimer=600;powerMessageText="SPREAD SHOT!"}
    powerMessage=90;burst(p.x,p.y,20,"hot",6);powerups.splice(i,1);screenShake=Math.max(screenShake,3);continue}
   if(p.x<-40)powerups.splice(i,1);
  }
@@ -368,7 +369,8 @@ function panel(x,y,w,h,a="#07152d",b="#162b55",stroke="#58dfff"){const g=ctx.cre
 function button(x,y,w,h,label,c1="#0e5f86",c2="#152d69",stroke="#71edff"){const g=ctx.createLinearGradient(x,y,x,y+h);g.addColorStop(0,c1);g.addColorStop(1,c2);ctx.fillStyle=g;ctx.beginPath();ctx.roundRect(x,y,w,h,12);ctx.fill();ctx.strokeStyle=stroke;ctx.lineWidth=2;ctx.shadowColor=stroke;ctx.shadowBlur=12;ctx.stroke();ctx.shadowBlur=0;ctx.fillStyle="#fff";ctx.font=gameFont(16);ctx.textAlign="center";ctx.fillText(label,x+w/2,y+h*.64)}
 function drawHUD(){ctx.textAlign="left";ctx.textBaseline="alphabetic";ctx.textAlign="center";ctx.fillStyle="#fff";ctx.font=gameFont(29);ctx.shadowColor="#49dfff";ctx.shadowBlur=8;ctx.fillText(score,W/2,42);ctx.shadowBlur=0;ctx.font=gameFont(11,"600");ctx.fillText("DIST "+Math.floor(distance)+"   •   BEST "+high+"   •   LV "+level+"   •   XP "+runXP+"/"+(12+upgradeTier*5),W/2,62);
  const boss=enemies.find(e=>e.type==="boss"||e.type==="dreadnought");if(boss){const bw=Math.min(260,W*.62),bx=(W-bw)/2,by=76;ctx.fillStyle="rgba(0,0,0,.55)";ctx.fillRect(bx-2,by-2,bw+4,12);ctx.fillStyle="#fff";ctx.fillRect(bx,by,bw,8);ctx.fillStyle=boss.type==="dreadnought"?"#9c78ff":"#ff405c";ctx.fillRect(bx,by,bw*(boss.health/boss.maxHealth),8);ctx.fillStyle="#fff";ctx.font="bold 10px Arial";const phase=boss.health<=boss.maxHealth*.5?" • PHASE 2":"";ctx.fillText((boss.type==="dreadnought"?"DREADNOUGHT":"MOTHERSHIP")+phase,W/2,by+23)}let hudY=79;if(meteorStormTimer>0){ctx.fillStyle="#ffb04f";ctx.font="bold 12px Arial";ctx.fillText("METEOR STORM "+Math.ceil(meteorStormTimer/60)+"s",W/2,hudY);hudY+=15}if(weaponEvolved){ctx.fillStyle="#dca8ff";ctx.font="bold 11px Arial";ctx.fillText("EVOLVED BLASTER",W/2,hudY);hudY+=15}if(overdriveTimer>0){ctx.fillStyle="#82aaff";ctx.font="bold 12px Arial";ctx.fillText("OVERDRIVE "+Math.ceil(overdriveTimer/60)+"s",W/2,hudY);hudY+=15}if(spreadTimer>0){ctx.fillStyle="#67f7ff";ctx.font="bold 11px Arial";ctx.fillText("SPREAD "+Math.ceil(spreadTimer/60)+"s",W/2,hudY);hudY+=15}if(shieldHits>0){ctx.fillStyle="#7dff9d";ctx.font="bold 11px Arial";ctx.fillText("SHIELD "+shieldHits,W/2,hudY);hudY+=15}if(combo>=2){ctx.fillStyle=combo>=10?"#ffd45b":"#66eaff";ctx.font=gameFont(combo>=10?15:12);ctx.shadowColor=combo>=10?"#ff8a22":"#35bfff";ctx.shadowBlur=8;ctx.fillText("COMBO "+combo+"  x"+comboMult().toFixed(2),W/2,hudY);ctx.shadowBlur=0}if(state==="play"){button(W-54,72,42,34,"II","#17304f","#09192e","#8cecff")}if(mission){const mp=Math.min(mission.progress,mission.target);ctx.textAlign="left";ctx.fillStyle="rgba(5,16,35,.82)";ctx.fillRect(10,H-52,Math.min(220,W*.58),38);ctx.fillStyle="#ffd45b";ctx.font="700 9px system-ui,sans-serif";ctx.fillText("MISSION  +"+mission.reward+" CR",17,H-36);ctx.fillStyle="#fff";ctx.font="600 9px system-ui,sans-serif";ctx.fillText(mission.label+"  "+mp+"/"+mission.target,17,H-20);ctx.textAlign="center"}if(powerMessage>0){ctx.globalAlpha=Math.min(1,powerMessage/20);ctx.fillStyle="#fff";ctx.font="bold 20px Arial";ctx.fillText(powerMessageText,W/2,H*.18);ctx.globalAlpha=1}}
-function drawPause(){panel(W*.12,H*.32,W*.76,H*.28,"#071326","#171635","#6deaff");ctx.textAlign="center";ctx.fillStyle="#fff";ctx.font=gameFont(28);ctx.fillText("PAUSED",W/2,H*.405);ctx.fillStyle="#8cecff";ctx.font="700 13px system-ui,sans-serif";ctx.fillText("TAP RESUME TO CONTINUE",W/2,H*.455);button(W*.25,H*.50,W*.50,48,"RESUME","#075f83","#153665","#6deaff")}\nfunction drawUpgrade(){
+function drawPause(){panel(W*.12,H*.32,W*.76,H*.28,"#071326","#171635","#6deaff");ctx.textAlign="center";ctx.fillStyle="#fff";ctx.font=gameFont(28);ctx.fillText("PAUSED",W/2,H*.405);ctx.fillStyle="#8cecff";ctx.font="700 13px system-ui,sans-serif";ctx.fillText("TAP RESUME TO CONTINUE",W/2,H*.455);button(W*.25,H*.50,W*.50,48,"RESUME","#075f83","#153665","#6deaff")}
+function drawUpgrade(){
  panel(18,H*.20,W-36,H*.60,"#07142c","#24143f","#9d6cff");ctx.textAlign="center";ctx.fillStyle="#fff";ctx.font=gameFont(26);ctx.shadowColor="#b578ff";ctx.shadowBlur=10;ctx.fillText("CHOOSE UPGRADE",W/2,H*.28);ctx.shadowBlur=0;
  const info={
   "RAPID FIRE":["Shoot faster • LV "+rapidLevel+"/4",["#075b78","#123354","#58e8ff"]],
@@ -408,7 +410,14 @@ function drawLoadout(){
  ctx.fillStyle="#8cecff";ctx.font="bold 15px Arial";ctx.fillText("TAP BOTTOM TO RETURN",W/2,H*.80)
 }
 function chooseLoadout(y){if(y>H*.74){state="start";return true}return false}
-function drawManual(){\n panel(14,H*.08,W-28,H*.84,"#071326","#171635","#ffd45b");ctx.textAlign="center";ctx.fillStyle="#ffd45b";ctx.font=gameFont(25);ctx.fillText("UPGRADE FIELD MANUAL",W/2,H*.135);\n const rows=[["RAPID FIRE","Faster firing • max LV 4"],["LASER POWER","More damage • max LV 3"],["PIERCING","Shots pass through • max LV 2"],["PLASMA CORE","Larger shot hit path • max LV 2"],["TRI-SHOT","Permanent 3-way spread"],["SHIELD","Absorbs a damaging collision"],["SCORE BOOST","+1000 score instantly"],["OVERDRIVE","Temporary 5-shot rapid barrage"],["BOSS CORE","Boss drop • +750 score and +6 XP"],["WEAPON EVOLUTION","RAPID 3 + POWER 2 = extra shots"],["HANGAR SYSTEMS","Permanent starting upgrades"]];\n const y0=H*.18,step=Math.min(48,H*.061);ctx.textAlign="left";for(let i=0;i<rows.length;i++){const y=y0+i*step;ctx.fillStyle=i%2?"rgba(20,35,65,.68)":"rgba(10,25,50,.68)";ctx.fillRect(28,y-17,W-56,step-4);ctx.fillStyle="#8cecff";ctx.font="700 11px system-ui,sans-serif";ctx.fillText(rows[i][0],38,y);ctx.fillStyle="#fff";ctx.font="600 10px system-ui,sans-serif";ctx.fillText(rows[i][1],38,y+15)}\n ctx.textAlign="center";ctx.fillStyle="#ffd45b";ctx.font="bold 14px Arial";ctx.fillText("TAP BOTTOM TO RETURN",W/2,H*.885)\n}\nfunction chooseManual(y){if(y>H*.82){state="start";return true}return false}\nfunction drawStart(){
+function drawManual(){
+ panel(14,H*.08,W-28,H*.84,"#071326","#171635","#ffd45b");ctx.textAlign="center";ctx.fillStyle="#ffd45b";ctx.font=gameFont(25);ctx.fillText("UPGRADE FIELD MANUAL",W/2,H*.135);
+ const rows=[["RAPID FIRE","Faster firing • max LV 4"],["LASER POWER","More damage • max LV 3"],["PIERCING","Shots pass through • max LV 2"],["PLASMA CORE","Larger shot hit path • max LV 2"],["TRI-SHOT","Permanent 3-way spread"],["SHIELD","Absorbs a damaging collision"],["SCORE BOOST","+1000 score instantly"],["OVERDRIVE","Temporary 5-shot rapid barrage"],["BOSS CORE","Boss drop • +750 score and +6 XP"],["WEAPON EVOLUTION","RAPID 3 + POWER 2 = extra shots"],["HANGAR SYSTEMS","Permanent starting upgrades"]];
+ const y0=H*.18,step=Math.min(48,H*.061);ctx.textAlign="left";for(let i=0;i<rows.length;i++){const y=y0+i*step;ctx.fillStyle=i%2?"rgba(20,35,65,.68)":"rgba(10,25,50,.68)";ctx.fillRect(28,y-17,W-56,step-4);ctx.fillStyle="#8cecff";ctx.font="700 11px system-ui,sans-serif";ctx.fillText(rows[i][0],38,y);ctx.fillStyle="#fff";ctx.font="600 10px system-ui,sans-serif";ctx.fillText(rows[i][1],38,y+15)}
+ ctx.textAlign="center";ctx.fillStyle="#ffd45b";ctx.font="bold 14px Arial";ctx.fillText("TAP BOTTOM TO RETURN",W/2,H*.885)
+}
+function chooseManual(y){if(y>H*.82){state="start";return true}return false}
+function drawStart(){
  const m=14,top=Math.max(26,H*.055),logoY=top+24;
  ctx.textAlign="center";ctx.fillStyle="#ff8b22";ctx.font=gameFont(Math.min(38,W*.095));ctx.shadowColor="#ff4d16";ctx.shadowBlur=14;ctx.fillText("DINO INVADERS",W/2,logoY);ctx.fillStyle="#72eaff";ctx.font=gameFont(Math.min(25,W*.064));ctx.shadowColor="#2bbcff";ctx.fillText("S P A C E",W/2,logoY+28);ctx.shadowBlur=0;
  const statsY=logoY+48,statsH=62;panel(m,statsY,W-2*m,statsH,"rgba(5,18,40,.94)","rgba(16,33,67,.94)","#38d9ff");
@@ -419,7 +428,7 @@ function drawManual(){\n panel(14,H*.08,W-28,H*.84,"#071326","#171635","#ffd45b"
  ctx.textAlign="right";ctx.fillStyle="#70ff9c";ctx.font="700 10px system-ui,sans-serif";ctx.fillText("READY",W-m-14,heroTop+25);ctx.fillStyle="#9fb7d7";ctx.font="700 9px system-ui,sans-serif";ctx.fillText("DRAG • FIRE",W-m-14,heroTop+42);
  const launchY=Math.min(H-148,heroTop+heroH+14);button(m+18,launchY,W-2*m-36,58,"LAUNCH  •  TAP TO START","#168f38","#075724","#8dff8f");
  const hangY=launchY+70;button(m+18,hangY,(W-2*m-46)*.62,46,"TEX'S HANGAR","#075f83","#153665","#6deaff");button(m+28+(W-2*m-46)*.62,hangY,(W-2*m-46)*.38,46,"LOADOUT","#49206f","#22143f","#c783ff");
- ctx.textAlign="center";ctx.fillStyle="#7189aa";ctx.font="700 9px system-ui,sans-serif";ctx.fillText("V6.25 • BOSS CORES",W/2,Math.min(H-10,hangY+64));
+ ctx.textAlign="center";ctx.fillStyle="#7189aa";ctx.font="700 9px system-ui,sans-serif";ctx.fillText("V6.25.1 • HOTFIX",W/2,Math.min(H-10,hangY+64));
 }
 function drawDead(){
  panel(25,H*.27,W-50,310,"#160b22","#07172d","#ff4e76");ctx.textAlign="center";ctx.fillStyle="#ff5275";ctx.font=gameFont(31);ctx.shadowColor="#ff3d69";ctx.shadowBlur=12;ctx.fillText("RAPTOR DOWN",W/2,H*.35);ctx.shadowBlur=0;
