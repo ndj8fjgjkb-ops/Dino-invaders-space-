@@ -173,7 +173,7 @@ function destroyEnemy(index){
  burst(e.x,e.y,24,"hot",8);burst(e.x,e.y,18,"rock",7);
  enemies.splice(index,1);screenShake=Math.max(screenShake,5);
 }
-function drawInvaderDino(kind,accent,body){const map={rex:"rex",trike:"bruiser",stego:"spike",spino:"spine",ptera:"sky",anky:"anka",raptor:"rex"},im=pilotSprites[map[kind]||"rex"];if(!im||!im.complete||!im.naturalWidth)return;const w=76,h=w*im.naturalHeight/im.naturalWidth;ctx.save();ctx.shadowBlur=0;ctx.drawImage(im,-w*.5,-h*.5,w,h);ctx.restore()}
+function drawInvaderDino(kind,accent,body){const map={rex:"rex",trike:"bruiser",stego:"spike",spino:"spine",ptera:"sky",anky:"anka",raptor:"rex"},key=map[kind]||"rex",im=pilotSprites[key];if(!im||!im.complete||!im.naturalWidth)return;const sizes={rex:88,bruiser:91,spike:92,spine:94,sky:86,anka:90},w=sizes[key]||88,h=w*im.naturalHeight/im.naturalWidth;ctx.save();ctx.shadowColor=accent;ctx.shadowBlur=5;ctx.globalAlpha=.22;ctx.drawImage(im,-w*.5-1,-h*.5,w+2,h+2);ctx.globalAlpha=1;ctx.shadowBlur=0;ctx.drawImage(im,-w*.5,-h*.5,w,h);ctx.restore()}
 function drawEnemy(e){
  ctx.save();const drift=Math.sin((gameTime+(e.y||0)*2)*.018)*1.5;ctx.translate(e.x,e.y+drift);const depth=1+Math.sin((gameTime+(e.x||0))*.012)*.018;ctx.scale(depth,depth);if(e.elite){ctx.strokeStyle="#ffd45b";ctx.lineWidth=1.4;ctx.globalAlpha=.42;ctx.beginPath();ctx.arc(0,0,e.radius+5,0,Math.PI*2);ctx.stroke();ctx.globalAlpha=1}
  const dread=e.type==="dreadnought",boss=e.type==="boss"||dread;
