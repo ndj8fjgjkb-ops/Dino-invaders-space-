@@ -17,7 +17,7 @@ canvas{position:fixed;inset:0;width:100%;height:100%;display:block;touch-action:
 <body>
 <canvas id="game"></canvas>
 <script>
-// DINO INVADERS: SPACE V6.3 — TEX DEPLOYMENT FIX
+// DINO INVADERS: SPACE V6.4 — COMMAND DECK
 const canvas=document.getElementById("game");
 const ctx=canvas.getContext("2d",{alpha:false,desynchronized:true});
 let W=0,H=0;
@@ -343,10 +343,17 @@ function drawHangar(){
 }
 function chooseHangar(y){const types=["shield","rapid","power"];for(let i=0;i<3;i++){const top=H*.33+i*H*.13;if(y>=top&&y<=top+H*.095){buyPermanent(types[i]);return true}}if(y>H*.73){state="start";return true}return false}
 function drawStart(){
- panel(22,H*.25,W-44,285,"#06142c","#25113d","#57ddff");ctx.textAlign="center";ctx.fillStyle="#fff";ctx.font=gameFont(34);ctx.shadowColor="#53e7ff";ctx.shadowBlur=12;ctx.fillText("DINO INVADERS",W/2,H*.34);ctx.fillStyle="#ff4d6d";ctx.shadowColor="#ff3d73";ctx.font=gameFont(29);ctx.fillText("SPACE",W/2,H*.395);ctx.shadowBlur=0;
- if(raptorReady){ctx.fillStyle="#fff";ctx.font="16px Arial";ctx.fillText("DRAG TO FLY",W/2,H*.47);ctx.fillText("DESTROY ASTEROIDS + INVADERS",W/2,H*.51);ctx.fillStyle="#ffd45b";ctx.font="bold 14px Arial";ctx.fillText("CREDITS "+credits+"   •   BEST LV "+bestLevel,W/2,H*.56);button(W/2-92,H*.585,184,48,"LAUNCH","#b32948","#59183b","#ff6b8e");button(W/2-70,H*.655,140,42,"HANGAR","#075d78","#18345c","#68eaff")}
- else if(raptorFailed){ctx.fillStyle="#ff5555";ctx.font="bold 17px Arial";ctx.fillText("RAPTOR IMAGE FAILED TO LOAD",W/2,H*.50)}
- else{ctx.fillStyle="#fff";ctx.font="bold 17px Arial";ctx.fillText("LOADING RAPTOR...",W/2,H*.51)}
+ const m=14,top=Math.max(26,H*.055),logoY=top+24;
+ ctx.textAlign="center";ctx.fillStyle="#ff8b22";ctx.font=gameFont(Math.min(38,W*.095));ctx.shadowColor="#ff4d16";ctx.shadowBlur=14;ctx.fillText("DINO INVADERS",W/2,logoY);ctx.fillStyle="#72eaff";ctx.font=gameFont(Math.min(25,W*.064));ctx.shadowColor="#2bbcff";ctx.fillText("S P A C E",W/2,logoY+28);ctx.shadowBlur=0;
+ const statsY=logoY+48,statsH=62;panel(m,statsY,W-2*m,statsH,"rgba(5,18,40,.94)","rgba(16,33,67,.94)","#38d9ff");
+ const stats=[["HIGH",high],["BEST LV",bestLevel],["RUNS",runs],["CREDITS",credits]];for(let i=0;i<4;i++){const x=m+(W-2*m)*(i+.5)/4;ctx.fillStyle=i===3?"#ffd45b":"#8cecff";ctx.font="700 9px system-ui,sans-serif";ctx.fillText(stats[i][0],x,statsY+20);ctx.fillStyle="#fff";ctx.font=gameFont(16);ctx.fillText(stats[i][1],x,statsY+43)}
+ const heroTop=statsY+76,heroBottom=Math.min(H*.64,heroTop+220),heroH=Math.max(130,heroBottom-heroTop);panel(m,heroTop,W-2*m,heroH,"rgba(5,13,30,.76)","rgba(30,14,53,.84)","#ff8a28");
+ if(raptorReady){const w=Math.min(W*.58,210),h=w*texCrop.h/texCrop.w;ctx.save();ctx.translate(W*.50,heroTop+heroH*.49);ctx.shadowColor="#4eeaff";ctx.shadowBlur=24;ctx.drawImage(raptorImg,texCrop.x,texCrop.y,texCrop.w,texCrop.h,-w*.5,-h*.5,w,h);ctx.restore();ctx.shadowBlur=0}
+ ctx.textAlign="left";ctx.fillStyle="#ffb23f";ctx.font=gameFont(16);ctx.fillText("TEX",m+14,heroTop+25);ctx.fillStyle="#bfeeff";ctx.font="700 10px system-ui,sans-serif";ctx.fillText("RAPTOR ACE",m+14,heroTop+42);
+ ctx.textAlign="right";ctx.fillStyle="#70ff9c";ctx.font="700 10px system-ui,sans-serif";ctx.fillText("READY",W-m-14,heroTop+25);ctx.fillStyle="#9fb7d7";ctx.fillText("DRAG • FIRE • SURVIVE",W-m-14,heroTop+42);
+ const launchY=Math.min(H-148,heroTop+heroH+14);button(m+18,launchY,W-2*m-36,58,"LAUNCH  •  TAP TO START","#168f38","#075724","#8dff8f");
+ const hangY=launchY+70;button(m+18,hangY,(W-2*m-46)*.62,46,"TEX'S HANGAR","#075f83","#153665","#6deaff");button(m+28+(W-2*m-46)*.62,hangY,(W-2*m-46)*.38,46,"LOADOUT","#49206f","#22143f","#c783ff");
+ ctx.textAlign="center";ctx.fillStyle="#7189aa";ctx.font="700 9px system-ui,sans-serif";ctx.fillText("V6.4 COMMAND DECK",W/2,Math.min(H-10,hangY+64));
 }
 function drawDead(){
  panel(25,H*.27,W-50,310,"#160b22","#07172d","#ff4e76");ctx.textAlign="center";ctx.fillStyle="#ff5275";ctx.font=gameFont(31);ctx.shadowColor="#ff3d69";ctx.shadowBlur=12;ctx.fillText("RAPTOR DOWN",W/2,H*.35);ctx.shadowBlur=0;
@@ -364,7 +371,7 @@ function loop(now){let delta=now-last;last=now;if(delta>66)delta=66;accumulator+
 requestAnimationFrame(loop);
 function touchPosition(touch){const rect=canvas.getBoundingClientRect();return{x:touch.clientX-rect.left,y:touch.clientY-rect.top}}
 canvas.addEventListener("touchstart",function(e){
- e.preventDefault();if(state==="start"){for(const touch of e.changedTouches){const p=touchPosition(touch);if(p.x>W/2-80&&p.x<W/2+80&&p.y>H*.64&&p.y<H*.72){state="hangar";return}}startGame();return}if(state==="dead"){startGame();return}if(state==="hangar"){for(const touch of e.changedTouches){const p=touchPosition(touch);if(chooseHangar(p.y))break}return}if(state==="upgrade"){for(const touch of e.changedTouches){const p=touchPosition(touch);if(chooseUpgrade(p.y))break}return}
+ e.preventDefault();if(state==="start"){for(const touch of e.changedTouches){const p=touchPosition(touch),top=Math.max(26,H*.055),statsY=top+72,heroTop=statsY+76,heroBottom=Math.min(H*.64,heroTop+220),heroH=Math.max(130,heroBottom-heroTop),launchY=Math.min(H-148,heroTop+heroH+14),hangY=launchY+70;if(p.y>=launchY&&p.y<=launchY+58){startGame();return}if(p.y>=hangY&&p.y<=hangY+46&&p.x<W*.66){state="hangar";return}}return}if(state==="dead"){startGame();return}if(state==="hangar"){for(const touch of e.changedTouches){const p=touchPosition(touch);if(chooseHangar(p.y))break}return}if(state==="upgrade"){for(const touch of e.changedTouches){const p=touchPosition(touch);if(chooseUpgrade(p.y))break}return}
  for(const touch of e.changedTouches){const p=touchPosition(touch);
   if(moveTouchID===null){
    moveTouchID=touch.identifier;lastMoveX=p.x;lastMoveY=p.y;firing=true;
