@@ -17,7 +17,7 @@ canvas{position:fixed;inset:0;width:100%;height:100%;display:block;touch-action:
 <body>
 <canvas id="game"></canvas>
 <script>
-// DINO INVADERS: SPACE V7.3 — SAFE RESUME
+// DINO INVADERS: SPACE V7.4 — ACTIVE THREAT
 const canvas=document.getElementById("game");
 const ctx=canvas.getContext("2d",{alpha:false,desynchronized:true});
 let W=0,H=0;
@@ -128,7 +128,7 @@ function spawnEnemy(type="scout",offset=0){
  if(enemies.length>=10)return;
  const y=70+Math.random()*Math.max(100,H-140),hunter=type==="hunter",boss=type==="boss"||type==="dreadnought",dread=type==="dreadnought",gunner=type==="gunner",charger=type==="charger",stalker=type==="stalker";
  const elite=!boss&&level>=5&&Math.random()<Math.min(.18,.035+level*.008);const hp=dread?55:boss?30:gunner?5:hunter?4:stalker?5:charger?3:2;
- enemies.push({x:W+70+offset,y,baseY:y,vx:boss?-1.25:stalker?-1.05:-(gunner?1.7:hunter?2.7:2.1)-Math.random()*.8-difficulty*.12,phase:Math.random()*Math.PI*2,health:elite?hp*2:hp,maxHealth:elite?hp*2:hp,radius:dread?40:boss?32:gunner?16:hunter?15:stalker?17:charger?13:11.424,points:(dread?5000:boss?2500:gunner?500:stalker?650:hunter?350:charger?300:180)*(elite?2:1),type,elite,shotTimer:70+Math.random()*80});
+ enemies.push({x:stalker&&Math.random()<.55?W*.38+Math.random()*W*.5:W+70+offset,y:stalker&&Math.random()<.5?-45:H+45,baseY:y,vx:boss?-1.25:stalker?-1.05:-(gunner?1.7:hunter?2.7:2.1)-Math.random()*.8-difficulty*.12,phase:Math.random()*Math.PI*2,health:elite?hp*2:hp,maxHealth:elite?hp*2:hp,radius:dread?40:boss?32:gunner?16:hunter?15:stalker?17:charger?13:11.424,points:(dread?5000:boss?2500:gunner?500:stalker?650:hunter?350:charger?300:180)*(elite?2:1),type,elite,shotTimer:70+Math.random()*80});const ne=enemies[enemies.length-1];if(stalker)ne.baseY=ne.y;
 }
 function bossBounty(){missionBonusCredits+=5+bossesDefeated*2;runXP+=5;powerMessageText="BOSS CORE +"+(5+bossesDefeated*2)+" CREDITS";powerMessage=180}
 function spawnBoss(){
@@ -196,7 +196,7 @@ function makeAsteroid(x,y,size,vx,vy){
 }
 function spawnAsteroid(){
  const roll=Math.random();let size=roll<.18?3:roll<.52?2:1;
- const speed=2.3+difficulty*.2+Math.random()*1.4,route=Math.random();let x,y,vx,vy;
+ const speed=2.3+difficulty*.2+Math.random()*1.4,route=Math.random();let x,y,vx,vy;if(Math.random()<.30){const targetY=H*.32+Math.random()*H*.36;x=W+90;y=Math.random()<.5?-55:H+55;const dx=player.x-x,dy=targetY-y,len=Math.hypot(dx,dy)||1;vx=dx/len*(speed+1);vy=dy/len*(speed+1);asteroids.push(makeAsteroid(x,y,size,vx,vy));return}
  if(route<.505){x=W+90;y=35+Math.random()*Math.max(100,H-70);vx=-speed;vy=(Math.random()-.5)*(2.2+difficulty*.16)}
  else if(route<.67){x=35+Math.random()*Math.max(100,W-70);y=-55;vx=-.8-Math.random()*2.2;vy=2.2+Math.random()*2+difficulty*.12}
  else if(route<.835){x=35+Math.random()*Math.max(100,W-70);y=H+55;vx=-.8-Math.random()*2.2;vy=-(2.2+Math.random()*2+difficulty*.12)}
@@ -429,8 +429,8 @@ function drawStart(){
  ctx.textAlign="left";ctx.fillStyle="#ffb23f";ctx.font=gameFont(16);ctx.fillText("TEX",m+14,heroTop+25);ctx.fillStyle="#bfeeff";ctx.font="700 10px system-ui,sans-serif";ctx.fillText("RAPTOR ACE",m+14,heroTop+42);
  ctx.textAlign="right";ctx.fillStyle="#70ff9c";ctx.font="700 10px system-ui,sans-serif";ctx.fillText("READY",W-m-14,heroTop+25);ctx.fillStyle="#9fb7d7";ctx.font="700 9px system-ui,sans-serif";ctx.fillText("DRAG • FIRE",W-m-14,heroTop+42);
  const launchY=Math.min(H-148,heroTop+heroH+14);button(m+18,launchY,W-2*m-36,58,"LAUNCH  •  TAP TO START","#168f38","#075724","#8dff8f");
- const hangY=launchY+70;button(m+18,hangY,(W-2*m-46)*.62,46,"TEX'S HANGAR","#075f83","#153665","#6deaff");button(m+28+(W-2*m-46)*.62,hangY,(W-2*m-46)*.38,46,"LOADOUT","#49206f","#22143f","#c783ff");
- ctx.textAlign="center";ctx.fillStyle="#7189aa";ctx.font="700 9px system-ui,sans-serif";ctx.fillText("V7.3 • SAFE RESUME",W/2,Math.min(H-10,hangY+64));
+ const hangY=launchY+70,bw=(W-2*m-52)/3;button(m+18,hangY,bw,46,"HANGAR","#075f83","#153665","#6deaff");button(m+22+bw,hangY,bw,46,"LOADOUT","#49206f","#22143f","#c783ff");button(m+26+bw*2,hangY,bw,46,"UPGRADES","#60420d","#332508","#ffd45b");
+ ctx.textAlign="center";ctx.fillStyle="#7189aa";ctx.font="700 9px system-ui,sans-serif";ctx.fillText("V7.4 • ACTIVE THREAT",W/2,Math.min(H-10,hangY+64));
 }
 function drawVictory(){panel(22,H*.22,W-44,350,"#07152d","#2c1848","#ffd45b");ctx.textAlign="center";ctx.fillStyle="#ffd45b";ctx.font=gameFont(30);ctx.shadowColor="#ff9d35";ctx.shadowBlur=14;ctx.fillText("SECTOR 10 CLEARED",W/2,H*.30);ctx.shadowBlur=0;ctx.fillStyle="#fff";ctx.font=gameFont(20);ctx.fillText("TEX SAVED THE CORE",W/2,H*.355);ctx.font="14px Arial";ctx.fillText("Score "+score+"  •  Distance "+Math.floor(distance),W/2,H*.405);ctx.fillText("Bosses "+bossesDefeated+"  •  Upgrades "+upgradeTier,W/2,H*.445);ctx.fillStyle="#7dff9d";ctx.font="bold 16px Arial";ctx.fillText("+25 CAMPAIGN CREDITS",W/2,H*.495);ctx.fillStyle="#8cecff";ctx.font="bold 13px Arial";ctx.fillText("CAMPAIGN WINS "+campaignWins,W/2,H*.535);button(34,H*.59,W-68,50,"CONTINUE ENDLESS","#168f38","#075724","#8dff8f");button(34,H*.67,W-68,46,"MAIN MENU","#075f83","#153665","#6deaff")}
 function drawDead(){
@@ -449,7 +449,7 @@ function loop(now){let delta=now-last;last=now;if(delta>66)delta=66;accumulator+
 requestAnimationFrame(loop);
 function touchPosition(touch){const rect=canvas.getBoundingClientRect();return{x:touch.clientX-rect.left,y:touch.clientY-rect.top}}
 canvas.addEventListener("touchstart",function(e){
- e.preventDefault();if(state==="victory"){for(const touch of e.changedTouches){const p=touchPosition(touch);if(p.y>=H*.59&&p.y<=H*.59+50){state="play";nextBossLevel=Math.max(nextBossLevel,15);return}if(p.y>=H*.67&&p.y<=H*.67+46){state="start";return}}return}if(state==="paused"){for(const touch of e.changedTouches){const p=touchPosition(touch);if(p.y>=H*.48&&p.y<=H*.57){resumeGrace=60;state="play";return}}return}if(state==="play"){for(const touch of e.changedTouches){const p=touchPosition(touch);if(p.x>=W-62&&p.y>=12&&p.y<=62){state="paused";firing=false;moveTouchID=null;return}}}if(state==="start"){for(const touch of e.changedTouches){const p=touchPosition(touch),top=Math.max(26,H*.055),statsY=top+72,heroTop=statsY+76,heroBottom=Math.min(H*.64,heroTop+220),heroH=Math.max(130,heroBottom-heroTop),launchY=Math.min(H-148,heroTop+heroH+14),hangY=launchY+70;if(p.y>=launchY&&p.y<=launchY+58){startGame();return}if(p.y>=hangY&&p.y<=hangY+46){const bw=(W-80)/3;if(p.x<36+bw)state="hangar";else if(p.x<40+bw*2)state="loadout";else state="manual";return}}return}if(state==="dead"){for(const touch of e.changedTouches){const p=touchPosition(touch);if(p.y>=H*.615&&p.y<=H*.615+48){if(p.x<W*.5)startGame();else{state="start";firing=false;moveTouchID=null}return}}return}if(state==="hangar"){for(const touch of e.changedTouches){const p=touchPosition(touch);if(chooseHangar(p.y))break}return}if(state==="loadout"){for(const touch of e.changedTouches){const p=touchPosition(touch);if(chooseLoadout(p.y))break}return}if(state==="manual"){for(const touch of e.changedTouches){const p=touchPosition(touch);if(chooseManual(p.y))break}return}if(state==="upgrade"){for(const touch of e.changedTouches){const p=touchPosition(touch);if(chooseUpgrade(p.y))break}return}
+ e.preventDefault();if(state==="victory"){for(const touch of e.changedTouches){const p=touchPosition(touch);if(p.y>=H*.59&&p.y<=H*.59+50){state="play";nextBossLevel=Math.max(nextBossLevel,15);return}if(p.y>=H*.67&&p.y<=H*.67+46){state="start";return}}return}if(state==="paused"){for(const touch of e.changedTouches){const p=touchPosition(touch);if(p.y>=H*.48&&p.y<=H*.57){resumeGrace=60;state="play";return}}return}if(state==="play"){for(const touch of e.changedTouches){const p=touchPosition(touch);if(p.x>=W-62&&p.y>=12&&p.y<=62){state="paused";firing=false;moveTouchID=null;return}}}if(state==="start"){for(const touch of e.changedTouches){const p=touchPosition(touch),top=Math.max(26,H*.055),statsY=top+72,heroTop=statsY+76,heroBottom=Math.min(H*.64,heroTop+220),heroH=Math.max(130,heroBottom-heroTop),launchY=Math.min(H-148,heroTop+heroH+14),hangY=launchY+70;if(p.y>=launchY&&p.y<=launchY+58){startGame();return}if(p.y>=hangY&&p.y<=hangY+46){const bw=(W-2*14-52)/3;if(p.x>=32&&p.x<=32+bw)state="hangar";else if(p.x>=36+bw&&p.x<=36+bw*2)state="loadout";else if(p.x>=40+bw*2&&p.x<=40+bw*3)state="manual";return}}return}if(state==="dead"){for(const touch of e.changedTouches){const p=touchPosition(touch);if(p.y>=H*.615&&p.y<=H*.615+48){if(p.x<W*.5)startGame();else{state="start";firing=false;moveTouchID=null}return}}return}if(state==="hangar"){for(const touch of e.changedTouches){const p=touchPosition(touch);if(chooseHangar(p.y))break}return}if(state==="loadout"){for(const touch of e.changedTouches){const p=touchPosition(touch);if(chooseLoadout(p.y))break}return}if(state==="manual"){for(const touch of e.changedTouches){const p=touchPosition(touch);if(chooseManual(p.y))break}return}if(state==="upgrade"){for(const touch of e.changedTouches){const p=touchPosition(touch);if(chooseUpgrade(p.y))break}return}
  for(const touch of e.changedTouches){const p=touchPosition(touch);
   if(moveTouchID===null){
    moveTouchID=touch.identifier;lastMoveX=p.x;lastMoveY=p.y;firing=true;
