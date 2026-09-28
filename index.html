@@ -17,7 +17,7 @@ canvas{position:fixed;inset:0;width:100%;height:100%;display:block;touch-action:
 <body>
 <canvas id="game"></canvas>
 <script>
-// DINO INVADERS: SPACE V6.2 — REDESIGNED TEX
+// DINO INVADERS: SPACE V6.3 — TEX DEPLOYMENT FIX
 const canvas=document.getElementById("game");
 const ctx=canvas.getContext("2d",{alpha:false,desynchronized:true});
 let W=0,H=0;
@@ -29,7 +29,7 @@ const raptorImg=new Image();
 let raptorReady=false,raptorFailed=false,texCrop={x:0,y:0,w:1,h:1};
 raptorImg.onload=()=>{raptorReady=true;raptorFailed=false;const oc=document.createElement("canvas"),ox=oc.getContext("2d",{willReadFrequently:true});oc.width=raptorImg.naturalWidth;oc.height=raptorImg.naturalHeight;ox.drawImage(raptorImg,0,0);try{const d=ox.getImageData(0,0,oc.width,oc.height).data;let minX=oc.width,minY=oc.height,maxX=0,maxY=0;for(let y=0;y<oc.height;y+=2)for(let x=0;x<oc.width;x+=2)if(d[(y*oc.width+x)*4+3]>18){if(x<minX)minX=x;if(x>maxX)maxX=x;if(y<minY)minY=y;if(y>maxY)maxY=y}if(maxX>minX&&maxY>minY)texCrop={x:Math.max(0,minX-6),y:Math.max(0,minY-6),w:Math.min(oc.width-minX+6,maxX-minX+12),h:Math.min(oc.height-minY+6,maxY-minY+12)}}catch(e){texCrop={x:0,y:0,w:oc.width,h:oc.height}}};
 raptorImg.onerror=()=>{raptorReady=false;raptorFailed=true};
-raptorImg.src="tex-v2.webp?v=62";
+raptorImg.src="./tex-v2.webp?asset=31b83a83e249e9d61039e91749b002e94051a453";
 
 let state="start",score=0,combatScore=0,distance=0,high=Number(localStorage.spaceHigh||0),credits=Number(localStorage.dinoCredits||0),bestLevel=Number(localStorage.dinoBestLevel||1),runs=Number(localStorage.dinoRuns||0),permShield=Number(localStorage.permShield||0),permRapid=Number(localStorage.permRapid||0),permPower=Number(localStorage.permPower||0),lastCredits=0,gameTime=0,difficulty=1,screenShake=0;
 const player={x:100,y:300,radius:7.5,width:82,fireCooldown:0};
@@ -319,7 +319,7 @@ function drawPlayer(){
 function gameFont(size,weight="700"){return weight+" "+size+"px Impact, Haettenschweiler, \"Arial Narrow Bold\", system-ui, sans-serif"}
 function panel(x,y,w,h,a="#07152d",b="#162b55",stroke="#58dfff"){const g=ctx.createLinearGradient(x,y,x+w,y+h);g.addColorStop(0,a);g.addColorStop(1,b);ctx.fillStyle=g;ctx.beginPath();ctx.roundRect(x,y,w,h,14);ctx.fill();ctx.strokeStyle=stroke;ctx.lineWidth=2;ctx.shadowColor=stroke;ctx.shadowBlur=10;ctx.stroke();ctx.shadowBlur=0}
 function button(x,y,w,h,label,c1="#0e5f86",c2="#152d69",stroke="#71edff"){const g=ctx.createLinearGradient(x,y,x,y+h);g.addColorStop(0,c1);g.addColorStop(1,c2);ctx.fillStyle=g;ctx.beginPath();ctx.roundRect(x,y,w,h,12);ctx.fill();ctx.strokeStyle=stroke;ctx.lineWidth=2;ctx.shadowColor=stroke;ctx.shadowBlur=12;ctx.stroke();ctx.shadowBlur=0;ctx.fillStyle="#fff";ctx.font=gameFont(16);ctx.textAlign="center";ctx.fillText(label,x+w/2,y+h*.64)}
-function drawHUD(){ctx.textAlign="center";ctx.textBaseline="alphabetic";ctx.fillStyle="#fff";ctx.font=gameFont(29);ctx.shadowColor="#49dfff";ctx.shadowBlur=8;ctx.fillText(score,W/2,42);ctx.shadowBlur=0;ctx.font=gameFont(11,"600");ctx.fillText("DIST "+Math.floor(distance)+"   •   BEST "+high+"   •   LV "+level+"   •   XP "+runXP+"/"+(12+upgradeTier*5),W/2,62);
+function drawHUD(){ctx.textAlign="left";ctx.textBaseline="alphabetic";ctx.fillStyle="rgba(120,230,255,.72)";ctx.font="700 9px system-ui,sans-serif";ctx.fillText("V6.3 NEW TEX",8,H-10);ctx.textAlign="center";ctx.fillStyle="#fff";ctx.font=gameFont(29);ctx.shadowColor="#49dfff";ctx.shadowBlur=8;ctx.fillText(score,W/2,42);ctx.shadowBlur=0;ctx.font=gameFont(11,"600");ctx.fillText("DIST "+Math.floor(distance)+"   •   BEST "+high+"   •   LV "+level+"   •   XP "+runXP+"/"+(12+upgradeTier*5),W/2,62);
  const boss=enemies.find(e=>e.type==="boss"||e.type==="dreadnought");if(boss){const bw=Math.min(260,W*.62),bx=(W-bw)/2,by=76;ctx.fillStyle="rgba(0,0,0,.55)";ctx.fillRect(bx-2,by-2,bw+4,12);ctx.fillStyle="#fff";ctx.fillRect(bx,by,bw,8);ctx.fillStyle=boss.type==="dreadnought"?"#9c78ff":"#ff405c";ctx.fillRect(bx,by,bw*(boss.health/boss.maxHealth),8);ctx.fillStyle="#fff";ctx.font="bold 10px Arial";ctx.fillText(boss.type==="dreadnought"?"DREADNOUGHT":"MOTHERSHIP",W/2,by+23)}let hudY=79;if(spreadTimer>0){ctx.fillStyle="#67f7ff";ctx.font="bold 11px Arial";ctx.fillText("SPREAD "+Math.ceil(spreadTimer/60)+"s",W/2,hudY);hudY+=15}if(shieldHits>0){ctx.fillStyle="#7dff9d";ctx.font="bold 11px Arial";ctx.fillText("SHIELD "+shieldHits,W/2,hudY)}if(powerMessage>0){ctx.globalAlpha=Math.min(1,powerMessage/20);ctx.fillStyle="#fff";ctx.font="bold 20px Arial";ctx.fillText(powerMessageText,W/2,H*.18);ctx.globalAlpha=1}}
 function drawUpgrade(){
  panel(18,H*.20,W-36,H*.60,"#07142c","#24143f","#9d6cff");ctx.textAlign="center";ctx.fillStyle="#fff";ctx.font=gameFont(26);ctx.shadowColor="#b578ff";ctx.shadowBlur=10;ctx.fillText("CHOOSE UPGRADE",W/2,H*.28);ctx.shadowBlur=0;
