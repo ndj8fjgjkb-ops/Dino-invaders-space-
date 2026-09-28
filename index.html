@@ -17,7 +17,7 @@ canvas{position:fixed;inset:0;width:100%;height:100%;display:block;touch-action:
 <body>
 <canvas id="game"></canvas>
 <script>
-// DINO INVADERS: SPACE V12.17 — BODY-ANCHORED ENEMY RIG
+// DINO INVADERS: SPACE V12.18 — MIRRORED ENEMY WING RIG
 const canvas=document.getElementById("game");
 const ctx=canvas.getContext("2d",{alpha:false,desynchronized:true});
 let W=0,H=0;
@@ -206,20 +206,19 @@ function drawEnemy(e){
  // Boss visuals above remain unchanged.
  if(e.type==="stalker"||e.type==="bomber"||e.type==="warden")drawInvaderDino("ptera","#ff5471","#401522");
  else if(regEnemyBodyImg.complete&&regEnemyBodyImg.naturalWidth&&regWingLeftImg.complete&&regWingLeftImg.naturalWidth&&regWingRightImg.complete&&regWingRightImg.naturalWidth){const flap=Math.sin(gameTime*.18+e.phase),bw=76,bh=bw*regEnemyBodyImg.naturalHeight/regEnemyBodyImg.naturalWidth;
-// V12.17 rig: source-crop each asset, then attach both wings to fixed body-relative shoulder hinges.
+// V12.18: mirrored single-wing rig. One known-good wing source is mirrored so both sides are guaranteed identical.
 const bodyCrop={x:.08,y:.08,w:.84,h:.84},wingCrop={x:.12,y:.12,w:.76,h:.76};
-const wingW=bw*.34,wingH=bh*.38,shoulderY=bh*.12,shoulderX=bw*.18;
-function drawRigWing(img,side){
- const sx=img.naturalWidth*wingCrop.x,sy=img.naturalHeight*wingCrop.y,sw=img.naturalWidth*wingCrop.w,sh=img.naturalHeight*wingCrop.h;
- ctx.save();ctx.translate(side*shoulderX,shoulderY);ctx.rotate(side*(.08+flap*.07));ctx.shadowColor="#ff4a3d";ctx.shadowBlur=1;
- if(side<0)ctx.drawImage(img,sx,sy,sw,sh,-wingW*.92,-wingH*.5,wingW,wingH);
- else ctx.drawImage(img,sx,sy,sw,sh,-wingW*.08,-wingH*.5,wingW,wingH);
- ctx.restore();
+const wingW=bw*.27,wingH=bh*.30,shoulderX=bw*.22,shoulderY=bh*.16;
+function drawMirroredWing(side){
+ const img=regWingLeftImg,sx=img.naturalWidth*wingCrop.x,sy=img.naturalHeight*wingCrop.y,sw=img.naturalWidth*wingCrop.w,sh=img.naturalHeight*wingCrop.h;
+ ctx.save();ctx.translate(side*shoulderX,shoulderY);ctx.scale(side,1);ctx.rotate(.04+flap*.055);
+ ctx.shadowColor="#ff4a3d";ctx.shadowBlur=1;
+ ctx.drawImage(img,sx,sy,sw,sh,-wingW*.08,-wingH*.5,wingW,wingH);ctx.restore();
 }
-drawRigWing(regWingLeftImg,-1);drawRigWing(regWingRightImg,1);
-ctx.save();ctx.translate(0,Math.sin(gameTime*.09+e.phase)*.6);ctx.rotate(flap*.008);ctx.globalCompositeOperation="source-over";
-ctx.drawImage(regEnemyBodyImg,regEnemyBodyImg.naturalWidth*bodyCrop.x,regEnemyBodyImg.naturalHeight*bodyCrop.y,regEnemyBodyImg.naturalWidth*bodyCrop.w,regEnemyBodyImg.naturalHeight*bodyCrop.h,-bw*.5,-bh*.5,bw,bh);ctx.restore()}
-  else if(mainEnemyImg.complete&&mainEnemyImg.naturalWidth){const w=96,h=w*mainEnemyImg.naturalHeight/mainEnemyImg.naturalWidth;ctx.save();ctx.shadowColor="#ff4a3d";ctx.shadowBlur=2;ctx.drawImage(mainEnemyImg,-w*.5,-h*.5,w,h);ctx.restore()}
+drawMirroredWing(-1);drawMirroredWing(1);
+ctx.save();ctx.translate(0,Math.sin(gameTime*.09+e.phase)*.6);ctx.rotate(flap*.006);ctx.globalCompositeOperation="source-over";
+ctx.drawImage(regEnemyBodyImg,regEnemyBodyImg.naturalWidth*bodyCrop.x,regEnemyBodyImg.naturalHeight*bodyCrop.y,regEnemyBodyImg.naturalWidth*bodyCrop.w,regEnemyBodyImg.naturalHeight*bodyCrop.h,-bw*.5,-bh*.5,bw,bh);ctx.restore()
+}else if(mainEnemyImg.complete&&mainEnemyImg.naturalWidth){const w=96,h=w*mainEnemyImg.naturalHeight/mainEnemyImg.naturalWidth;ctx.save();ctx.shadowColor="#ff4a3d";ctx.shadowBlur=2;ctx.drawImage(mainEnemyImg,-w*.5,-h*.5,w,h);ctx.restore()}
  else drawInvaderDino("rex","#ff4a3d","#421418");
  ctx.restore()
 }
@@ -455,7 +454,7 @@ function drawStart(){
  ctx.textAlign="left";ctx.fillStyle="#ffae4d";ctx.font=gameFont(23);ctx.fillText("TEX",m+16,heroTop+34);ctx.fillStyle="#bad9e9";ctx.font="700 11px system-ui,sans-serif";ctx.fillText("RAPTOR ACE",m+16,heroTop+51);
  ctx.textAlign="right";ctx.fillStyle="#9df4b3";ctx.font="700 11px system-ui,sans-serif";ctx.fillText("READY TO FLY",W-m-15,heroTop+32);
  button(m+9,launchY,W-2*m-18,58,"LAUNCH","#16994a","#07562c","#97ffc0");ctx.textAlign="center";ctx.fillStyle="#c8ddeb";ctx.font="700 12px system-ui,sans-serif";ctx.fillText("HOLD TO FIRE  •  DRAG TO MOVE",W/2,launchY+85);
- ctx.fillStyle="#9bb3c8";ctx.font="bold 11px system-ui,sans-serif";ctx.fillText("VERSION 12.17",W/2,H-53);ctx.fillStyle="#fff";ctx.font="bold 13px system-ui,sans-serif";ctx.fillText("Built by Curtis Company Limited",W/2,H-35);ctx.restore();
+ ctx.fillStyle="#9bb3c8";ctx.font="bold 11px system-ui,sans-serif";ctx.fillText("VERSION 12.18",W/2,H-53);ctx.fillStyle="#fff";ctx.font="bold 13px system-ui,sans-serif";ctx.fillText("Built by Curtis Company Limited",W/2,H-35);ctx.restore();
 }
 function drawVictory(){panel(22,H*.22,W-44,350,"#07152d","#2c1848","#ffd45b");ctx.textAlign="center";ctx.fillStyle="#ffd45b";ctx.font=gameFont(30);ctx.shadowColor="#ff9d35";ctx.shadowBlur=14;ctx.fillText("LEVEL 10 CLEARED",W/2,H*.30);ctx.shadowBlur=0;ctx.fillStyle="#fff";ctx.font=gameFont(20);ctx.fillText("TEX SAVED THE CORE",W/2,H*.355);ctx.font="14px Arial";ctx.fillText("Score "+score+"  •  Distance "+Math.floor(distance),W/2,H*.405);ctx.fillText("Bosses "+bossesDefeated+"  •  Best combo "+maxCombo+"x",W/2,H*.445);ctx.fillStyle="#7dff9d";ctx.font="bold 16px Arial";ctx.fillText("+25 CAMPAIGN CREDITS",W/2,H*.495);ctx.fillStyle="#8cecff";ctx.font="bold 13px Arial";ctx.fillText("CAMPAIGN WINS "+campaignWins+"   •   TOTAL KILLS "+totalKills,W/2,H*.535);ctx.fillStyle="#ffd45b";ctx.font="bold 11px Arial";ctx.fillText("TEX • BEST COMBO "+bestComboEver+"x",W/2,H*.565);button(34,H*.59,W-68,50,"CONTINUE ENDLESS","#168f38","#075724","#8dff8f");button(34,H*.67,W-68,46,"MAIN MENU","#075f83","#153665","#6deaff")}
 function drawDead(){
