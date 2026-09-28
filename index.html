@@ -17,7 +17,7 @@ canvas{position:fixed;inset:0;width:100%;height:100%;display:block;touch-action:
 <body>
 <canvas id="game"></canvas>
 <script>
-// DINO INVADERS: SPACE V12.10 — ENEMY BODY CLEARANCE
+// DINO INVADERS: SPACE V12.11 — OUTBOARD ENEMY WINGS
 const canvas=document.getElementById("game");
 const ctx=canvas.getContext("2d",{alpha:false,desynchronized:true});
 let W=0,H=0;
@@ -205,7 +205,7 @@ function drawEnemy(e){
  // Standard enemy roster intentionally uses only two visual species.
  // Boss visuals above remain unchanged.
  if(e.type==="stalker"||e.type==="bomber"||e.type==="warden")drawInvaderDino("ptera","#ff5471","#401522");
- else if(regEnemyBodyImg.complete&&regEnemyBodyImg.naturalWidth&&regWingLeftImg.complete&&regWingLeftImg.naturalWidth&&regWingRightImg.complete&&regWingRightImg.naturalWidth){const flap=Math.sin(gameTime*.18+e.phase),ww=40,wh=31,bw=70,bh=bw*regEnemyBodyImg.naturalHeight/regEnemyBodyImg.naturalWidth;ctx.save();ctx.translate(-31,-8);ctx.rotate(-.08-flap*.11);ctx.scale(1,1-flap*.06);ctx.shadowColor="#ff4a3d";ctx.shadowBlur=1;ctx.drawImage(regWingLeftImg,-ww*.18,-wh*.50,ww,wh);ctx.restore();ctx.save();ctx.translate(31,-8);ctx.rotate(.08+flap*.11);ctx.scale(1,1-flap*.06);ctx.shadowColor="#ff4a3d";ctx.shadowBlur=1;ctx.drawImage(regWingRightImg,-ww*.82,-wh*.50,ww,wh);ctx.restore();ctx.save();ctx.translate(0,Math.sin(gameTime*.09+e.phase)*.7);ctx.rotate(flap*.012);ctx.drawImage(regEnemyBodyImg,-bw*.5,-bh*.5,bw,bh);ctx.restore()}
+ else if(regEnemyBodyImg.complete&&regEnemyBodyImg.naturalWidth&&regWingLeftImg.complete&&regWingLeftImg.naturalWidth&&regWingRightImg.complete&&regWingRightImg.naturalWidth){const flap=Math.sin(gameTime*.18+e.phase),ww=34,wh=26,bw=72,bh=bw*regEnemyBodyImg.naturalHeight/regEnemyBodyImg.naturalWidth;ctx.save();ctx.translate(-43,-10);ctx.rotate(-.06-flap*.09);ctx.scale(1,1-flap*.05);ctx.shadowColor="#ff4a3d";ctx.shadowBlur=1;ctx.drawImage(regWingLeftImg,-ww*.12,-wh*.50,ww,wh);ctx.restore();ctx.save();ctx.translate(43,-10);ctx.rotate(.06+flap*.09);ctx.scale(1,1-flap*.05);ctx.shadowColor="#ff4a3d";ctx.shadowBlur=1;ctx.drawImage(regWingRightImg,-ww*.88,-wh*.50,ww,wh);ctx.restore();ctx.save();ctx.translate(0,Math.sin(gameTime*.09+e.phase)*.7);ctx.rotate(flap*.01);ctx.drawImage(regEnemyBodyImg,-bw*.5,-bh*.5,bw,bh);ctx.restore()}
   else if(mainEnemyImg.complete&&mainEnemyImg.naturalWidth){const w=96,h=w*mainEnemyImg.naturalHeight/mainEnemyImg.naturalWidth;ctx.save();ctx.shadowColor="#ff4a3d";ctx.shadowBlur=2;ctx.drawImage(mainEnemyImg,-w*.5,-h*.5,w,h);ctx.restore()}
  else drawInvaderDino("rex","#ff4a3d","#421418");
  ctx.restore()
