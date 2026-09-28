@@ -17,7 +17,7 @@ canvas{position:fixed;inset:0;width:100%;height:100%;display:block;touch-action:
 <body>
 <canvas id="game"></canvas>
 <script>
-// DINO INVADERS: SPACE V6.1 — VISUAL IDENTITY OVERHAUL
+// DINO INVADERS: SPACE V6.2 — REDESIGNED TEX
 const canvas=document.getElementById("game");
 const ctx=canvas.getContext("2d",{alpha:false,desynchronized:true});
 let W=0,H=0;
@@ -29,10 +29,10 @@ const raptorImg=new Image();
 let raptorReady=false,raptorFailed=false,texCrop={x:0,y:0,w:1,h:1};
 raptorImg.onload=()=>{raptorReady=true;raptorFailed=false;const oc=document.createElement("canvas"),ox=oc.getContext("2d",{willReadFrequently:true});oc.width=raptorImg.naturalWidth;oc.height=raptorImg.naturalHeight;ox.drawImage(raptorImg,0,0);try{const d=ox.getImageData(0,0,oc.width,oc.height).data;let minX=oc.width,minY=oc.height,maxX=0,maxY=0;for(let y=0;y<oc.height;y+=2)for(let x=0;x<oc.width;x+=2)if(d[(y*oc.width+x)*4+3]>18){if(x<minX)minX=x;if(x>maxX)maxX=x;if(y<minY)minY=y;if(y>maxY)maxY=y}if(maxX>minX&&maxY>minY)texCrop={x:Math.max(0,minX-6),y:Math.max(0,minY-6),w:Math.min(oc.width-minX+6,maxX-minX+12),h:Math.min(oc.height-minY+6,maxY-minY+12)}}catch(e){texCrop={x:0,y:0,w:oc.width,h:oc.height}}};
 raptorImg.onerror=()=>{raptorReady=false;raptorFailed=true};
-raptorImg.src="8BBBE99D-BE50-463D-AB99-9356374B034D.png?v=61";
+raptorImg.src="tex-v2.webp?v=62";
 
 let state="start",score=0,combatScore=0,distance=0,high=Number(localStorage.spaceHigh||0),credits=Number(localStorage.dinoCredits||0),bestLevel=Number(localStorage.dinoBestLevel||1),runs=Number(localStorage.dinoRuns||0),permShield=Number(localStorage.permShield||0),permRapid=Number(localStorage.permRapid||0),permPower=Number(localStorage.permPower||0),lastCredits=0,gameTime=0,difficulty=1,screenShake=0;
-const player={x:100,y:300,radius:7.5,width:70,fireCooldown:0};
+const player={x:100,y:300,radius:7.5,width:82,fireCooldown:0};
 let stars=[],bullets=[],enemyBullets=[],asteroids=[],particles=[],shockwaves=[],enemies=[],planets=[],powerups=[];
 let spreadTimer=0,shieldHits=0,powerMessage=0,powerMessageText="",level=1,lastLevel=1,wave=0,bossSpawned=false,runXP=0,upgradeTier=0,rapidLevel=0,powerLevel=0,spreadLevel=0,pierceLevel=0,upgradeChoices=[],bossCount=0,bossesDefeated=0;
 let moveTouchID=null,lastMoveX=0,lastMoveY=0,firing=false;
