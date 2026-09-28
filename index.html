@@ -385,7 +385,7 @@ function drawParticles(){
  }
  ctx.globalAlpha=1;
 }
-function drawDinoPilot(s){const im=pilotSprites[s.mode];if(!im||!im.complete||!im.naturalWidth)return;const w=72,h=w*im.naturalHeight/im.naturalWidth;ctx.save();ctx.shadowColor=s.accent;ctx.shadowBlur=10;ctx.drawImage(im,-w*.5,-h*.5,w,h);ctx.restore()}
+function drawDinoPilot(s){const pilotKey={rex:"rex",trike:"bruiser",stego:"spike",spino:"spine",ptera:"sky",anky:"anka"}[s.mode],im=pilotSprites[pilotKey];if(!im||!im.complete||!im.naturalWidth)return;const w=72,h=w*im.naturalHeight/im.naturalWidth;ctx.save();ctx.shadowColor=s.accent;ctx.shadowBlur=10;ctx.drawImage(im,-w*.5,-h*.5,w,h);ctx.restore()}
 function drawPlayer(){
  if(!raptorReady)return;const skin=SKINS[selectedSkin]||SKINS[0];ctx.save();ctx.translate(Math.round(player.x),Math.round(player.y));
  if(shieldHits>0){ctx.strokeStyle="rgba(100,255,150,.8)";ctx.shadowColor="#68ff8c";ctx.shadowBlur=18;ctx.lineWidth=2;ctx.beginPath();ctx.arc(0,0,24,0,Math.PI*2);ctx.stroke();ctx.shadowBlur=0}
