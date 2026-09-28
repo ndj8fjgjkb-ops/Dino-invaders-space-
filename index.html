@@ -140,7 +140,7 @@ function spawnWave(){
  if(enemies.length>4)return;
  wave++;const count=Math.min(6,3+Math.floor(level/2));
  powerMessageText="INVADER WAVE "+wave;powerMessage=100;
- for(let i=0;i<count;i++){let type=level>=4&&i===Math.floor(count/2)&&wave%2===0?"stalker":level>=8&&i===1?"charger":level>=6&&i===0?"gunner":level>=2&&(i===count-1||level>=4&&i%3===2)?"hunter":"scout";spawnEnemy(type,i*48)}
+ for(let i=0;i<count;i++){let type=i===Math.floor(count/2)&&wave%2===0?"stalker":level>=8&&i===1?"charger":level>=6&&i===0?"gunner":level>=2&&(i===count-1||level>=4&&i%3===2)?"hunter":"scout";spawnEnemy(type,i*48)}
 }
 function addCombo(){combo=Math.min(30,combo+1);comboTimer=150;maxCombo=Math.max(maxCombo,combo)}
 function comboMult(){return 1+Math.min(2,Math.floor(combo/5)*.5)}
