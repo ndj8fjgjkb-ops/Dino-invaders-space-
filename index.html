@@ -17,7 +17,7 @@ canvas{position:fixed;inset:0;width:100%;height:100%;display:block;touch-action:
 <body>
 <canvas id="game"></canvas>
 <script>
-// DINO INVADERS: SPACE V12.1 — TWO-SPECIES ENEMY ROSTER
+// DINO INVADERS: SPACE V12.2 — CYBER DINO ENEMY
 const canvas=document.getElementById("game");
 const ctx=canvas.getContext("2d",{alpha:false,desynchronized:true});
 let W=0,H=0;
@@ -63,6 +63,7 @@ let armorLevel=0,magnetLevel=0,critLevel=0,thrusterLevel=0;
 const SKINS=[{name:"TEX",species:"RAPTOR",unlock:()=>true,beam:"#168dff",accent:"#55e8ff",mode:"tex",speed:1,damage:0,armor:0}];
 let selectedSkin=0,bestComboEver=Number(localStorage.dinoBestCombo||0),bossesLifetime=Number(localStorage.dinoBossesLifetime||0);
 const pilotSprites={};for(const n of ["rex","bruiser","spike","spine","sky","anka"]){const im=new Image();im.src="./assets/enemies/realistic-"+n+".webp?v=120";pilotSprites[n]=im}
+const mainEnemyImg=new Image();mainEnemyImg.src="./2F10DBD9-FDBD-4125-825A-CB91FEC99AEB.png?v=enemy-20260928-1";
 
 function resize(){
  W=innerWidth;H=innerHeight;canvas.width=W;canvas.height=H;ctx.imageSmoothingEnabled=true;
@@ -181,6 +182,7 @@ function drawEnemy(e){
  // Standard enemy roster intentionally uses only two visual species.
  // Boss visuals above remain unchanged.
  if(e.type==="stalker"||e.type==="bomber"||e.type==="warden")drawInvaderDino("ptera","#ff5471","#401522");
+ else if(mainEnemyImg.complete&&mainEnemyImg.naturalWidth){const w=96,h=w*mainEnemyImg.naturalHeight/mainEnemyImg.naturalWidth;ctx.save();ctx.shadowColor="#ff4a3d";ctx.shadowBlur=6;ctx.drawImage(mainEnemyImg,-w*.5,-h*.5,w,h);ctx.restore()}
  else drawInvaderDino("rex","#ff4a3d","#421418");
  ctx.restore()
 }
