@@ -17,7 +17,7 @@ canvas{position:fixed;inset:0;width:100%;height:100%;display:block;touch-action:
 <body>
 <canvas id="game"></canvas>
 <script>
-// DINO INVADERS: SPACE V8.2 — ARSENAL HUD
+// DINO INVADERS: SPACE V9.0 — COMPLETE EDITION
 const canvas=document.getElementById("game");
 const ctx=canvas.getContext("2d",{alpha:false,desynchronized:true});
 let W=0,H=0;
@@ -39,6 +39,16 @@ let stars=[],bullets=[],enemyBullets=[],asteroids=[],particles=[],shockwaves=[],
 let spreadTimer=0,shieldHits=0,powerMessage=0,powerMessageText="",combo=0,comboTimer=0,maxCombo=0,overdriveTimer=0,level=1,lastLevel=1,wave=0,bossSpawned=false,nextBossLevel=5,runXP=0,upgradeTier=0,rapidLevel=0,powerLevel=0,spreadLevel=0,pierceLevel=0,plasmaLevel=0,upgradeChoices=[],bossCount=0,bossesDefeated=0,weaponEvolved=false;
 let mission=null,missionBonusCredits=0,asteroidKills=0,invaderKills=0,meteorStormTimer=0,nextMeteorStorm=1800;let sector=1,lastSector=1,sectorKills=0,totalKills=Number(localStorage.dinoTotalKills||0),maxSector=Number(localStorage.dinoMaxSector||1);const SECTOR_NAMES=["ORBITAL RUINS","RED NEBULA","VOID BELT","ALIEN FRONT","CORE APPROACH"];
 let moveTouchID=null,lastMoveX=0,lastMoveY=0,firing=false,resumeGrace=0;
+let armorLevel=0,magnetLevel=0,critLevel=0,thrusterLevel=0;
+const SKINS=[
+ {name:"CLASSIC TEX",unlock:()=>true,tint:null},
+ {name:"NEON RAPTOR",unlock:()=>totalKills>=50,tint:"#55f7ff"},
+ {name:"EMBER TEX",unlock:()=>maxSector>=3,tint:"#ff8a35"},
+ {name:"VOID HUNTER",unlock:()=>campaignWins>=1,tint:"#b58cff"},
+ {name:"GOLD ACE",unlock:()=>campaignWins>=3,tint:"#ffd45b"},
+ {name:"CORE CHAMPION",unlock:()=>campaignWins>=5,tint:"#7dff9d"}
+];
+let selectedSkin=Math.max(0,Math.min(SKINS.length-1,Number(localStorage.dinoSkin||0)));
 function rollMission(){const pool=[{type:"asteroid",target:12,label:"DESTROY 12 ASTEROIDS"},{type:"invader",target:6,label:"DEFEAT 6 INVADERS"},{type:"combo",target:10,label:"REACH 10x COMBO"},{type:"distance",target:100,label:"TRAVEL 100 DIST"}],pick=pool[Math.floor(Math.random()*pool.length)];mission={...pick,progress:0,reward:3+Math.floor(level/3),start:pick.type==="asteroid"?asteroidKills:pick.type==="invader"?invaderKills:pick.type==="distance"?distance:0}}
 function updateMission(){if(!mission)return;if(mission.type==="asteroid")mission.progress=asteroidKills-mission.start;else if(mission.type==="invader")mission.progress=invaderKills-mission.start;else if(mission.type==="combo")mission.progress=combo;else mission.progress=Math.floor(distance-mission.start);if(mission.progress>=mission.target){missionBonusCredits+=mission.reward;powerMessageText="MISSION COMPLETE +"+mission.reward+" CREDITS";powerMessage=150;rollMission()}}
 
@@ -145,7 +155,7 @@ function spawnWave(){
 function addCombo(){combo=Math.min(30,combo+1);comboTimer=150;maxCombo=Math.max(maxCombo,combo)}
 function comboMult(){return 1+Math.min(2,Math.floor(combo/5)*.5)}
 function destroyEnemy(index){
- const e=enemies[index];addCombo();if(e.type!=="boss"&&e.type!=="dreadnought"){invaderKills++;sectorKills++;totalKills++;localStorage.dinoTotalKills=totalKills}combatScore+=Math.round(e.points*comboMult());runXP+=((e.type==="boss"||e.type==="dreadnought")?10:e.type==="gunner"?4:e.type==="hunter"?3:e.type==="stalker"?4:e.type==="charger"?2:1)+(e.elite?3:0);if(e.elite&&Math.random()<.45)spawnPowerup(Math.random()<.35?"overdrive":"spread");score=combatScore+Math.floor(distance);
+ const e=enemies[index];addCombo();if(e.type!=="boss"&&e.type!=="dreadnought"){invaderKills++;sectorKills++;totalKills++;localStorage.dinoTotalKills=totalKills}combatScore+=Math.round(e.points*comboMult());runXP+=((e.type==="boss"||e.type==="dreadnought")?10:e.type==="gunner"?4:e.type==="hunter"?3:e.type==="stalker"?4:e.type==="charger"?2:1)+(e.elite?3:0)+magnetLevel*.25;if(e.elite&&Math.random()<.45)spawnPowerup(Math.random()<.35?"overdrive":"spread");score=combatScore+Math.floor(distance);
  if(shockwaves.length<14)shockwaves.push({x:e.x,y:e.y,radius:8,maxRadius:55,life:15,maxLife:15});
  particles.push({x:e.x,y:e.y,vx:0,vy:0,life:8,maxLife:8,size:34,type:"flash"});
  burst(e.x,e.y,24,"hot",8);burst(e.x,e.y,18,"rock",7);
@@ -171,7 +181,7 @@ function drawEnemy(e){
 }
 
 function reset(){
- score=0;combatScore=0;distance=0;gameTime=0;campaignCleared=false;missionBonusCredits=0;asteroidKills=0;invaderKills=0;mission=null;meteorStormTimer=0;nextMeteorStorm=1800;difficulty=1;screenShake=0;bullets=[];enemyBullets=[];asteroids=[];particles=[];shockwaves=[];enemies=[];powerups=[];spreadTimer=0;shieldHits=0;powerMessage=0;powerMessageText="";combo=0;comboTimer=0;maxCombo=0;overdriveTimer=0;level=1;lastLevel=1;wave=0;bossSpawned=false;nextBossLevel=5;bossCount=0;bossesDefeated=0;weaponEvolved=false;runXP=0;upgradeTier=0;rapidLevel=permRapid;powerLevel=permPower;spreadLevel=0;pierceLevel=0;plasmaLevel=0;upgradeChoices=[];shieldHits=permShield;
+ score=0;combatScore=0;distance=0;gameTime=0;campaignCleared=false;missionBonusCredits=0;asteroidKills=0;invaderKills=0;mission=null;meteorStormTimer=0;nextMeteorStorm=1800;difficulty=1;screenShake=0;bullets=[];enemyBullets=[];asteroids=[];particles=[];shockwaves=[];enemies=[];powerups=[];spreadTimer=0;shieldHits=0;powerMessage=0;powerMessageText="";combo=0;comboTimer=0;maxCombo=0;overdriveTimer=0;level=1;lastLevel=1;wave=0;bossSpawned=false;nextBossLevel=5;bossCount=0;bossesDefeated=0;weaponEvolved=false;runXP=0;upgradeTier=0;rapidLevel=permRapid;powerLevel=permPower;spreadLevel=0;pierceLevel=0;plasmaLevel=0;armorLevel=0;magnetLevel=0;critLevel=0;thrusterLevel=0;upgradeChoices=[];shieldHits=permShield;
  player.x=Math.min(100,W*.25);player.y=H*.5;player.fireCooldown=0;moveTouchID=null;firing=false;resumeGrace=0;sector=1;lastSector=1;sectorKills=0;rollMission();
 }
 function startGame(){if(!raptorReady)return;reset();state="play"}
@@ -218,7 +228,7 @@ function burst(x,y,amount,type,power=7){
 function hitCircle(ax,ay,ar,bx,by,br){const dx=ax-bx,dy=ay-by,r=ar+br;return dx*dx+dy*dy<r*r}
 function hitPlayer(bx,by,br=0){return hitCircle(player.x+player.hitX,player.y+player.hitY,player.radius,bx,by,br)}
 function die(){
- if(state!=="play")return;state="dead";firing=false;moveTouchID=null;screenShake=13;burst(player.x,player.y,32,"red",9);
+ if(state!=="play")return;if(armorLevel>0&&Math.random()<armorLevel*.12){powerMessageText="ARMOR DEFLECT!";powerMessage=90;resumeGrace=45;screenShake=5;return}state="dead";firing=false;moveTouchID=null;screenShake=13;burst(player.x,player.y,32,"red",9);
  if(score>high){high=score;localStorage.spaceHigh=high}
  if(level>bestLevel){bestLevel=level;localStorage.dinoBestLevel=bestLevel}
  const depthBonus=Math.max(0,Math.floor((level-1)/3));lastCredits=Math.max(1,Math.floor(score/1000)+Math.floor(distance/100)+bossesDefeated*5+depthBonus)+missionBonusCredits;credits+=lastCredits;runs++;localStorage.dinoCredits=credits;localStorage.dinoRuns=runs
@@ -251,7 +261,7 @@ level=1+Math.floor(gameTime/600);sector=Math.min(5,1+Math.floor((level-1)/2));di
  if(level>lastLevel){lastLevel=level;powerMessageText="LEVEL "+level;powerMessage=110;screenShake=Math.max(screenShake,2)}
  if(spreadTimer>0)spreadTimer--;if(overdriveTimer>0)overdriveTimer--;if(meteorStormTimer>0)meteorStormTimer--;if(powerMessage>0)powerMessage--;if(comboTimer>0){comboTimer--;if(comboTimer===0)combo=0}
  const nextUpgrade=12+upgradeTier*5;
- if(runXP>=nextUpgrade&&state==="play"){runXP-=nextUpgrade;upgradeTier++;const pool=[];if(rapidLevel<4)pool.push("RAPID FIRE");if(powerLevel<3)pool.push("LASER POWER");if(pierceLevel<2)pool.push("PIERCING");if(plasmaLevel<2)pool.push("PLASMA CORE");if(spreadLevel<1)pool.push("TRI-SHOT");if(shieldHits<2)pool.push("SHIELD");while(pool.length<3)pool.push("SCORE BOOST");upgradeChoices=[];while(upgradeChoices.length<3&&pool.length){const n=Math.floor(Math.random()*pool.length);upgradeChoices.push(pool.splice(n,1)[0])}state="upgrade";firing=false;moveTouchID=null}
+ if(runXP>=nextUpgrade&&state==="play"){runXP-=nextUpgrade;upgradeTier++;const pool=[];if(rapidLevel<4)pool.push("RAPID FIRE");if(powerLevel<3)pool.push("LASER POWER");if(pierceLevel<2)pool.push("PIERCING");if(plasmaLevel<2)pool.push("PLASMA CORE");if(spreadLevel<1)pool.push("TRI-SHOT");if(shieldHits<2)pool.push("SHIELD");if(armorLevel<3)pool.push("ARMOR PLATING");if(magnetLevel<3)pool.push("XP MAGNET");if(critLevel<3)pool.push("CRITICAL CORE");if(thrusterLevel<3)pool.push("THRUSTERS");while(pool.length<3)pool.push("SCORE BOOST");upgradeChoices=[];while(upgradeChoices.length<3&&pool.length){const n=Math.floor(Math.random()*pool.length);upgradeChoices.push(pool.splice(n,1)[0])}state="upgrade";firing=false;moveTouchID=null}
  if(gameTime===300||gameTime%780===0)spawnPowerup("spread");
  if(gameTime===540||gameTime%1200===0)spawnPowerup("shield");if(gameTime===900||gameTime%1500===0)spawnPowerup("overdrive");
  player.x=Math.max(50,Math.min(W-65,player.x));player.y=Math.max(50,Math.min(H-65,player.y));
@@ -285,7 +295,7 @@ level=1+Math.floor(gameTime/600);sector=Math.min(5,1+Math.floor((level-1)/2));di
   let enemyRemoved=false;
   for(let j=bullets.length-1;j>=0;j--){const b=bullets[j];
    if(hitCircle(b.x,b.y,b.radius,e.x,e.y,e.radius)){
-    if((b.pierce||0)>0)b.pierce--;else bullets.splice(j,1);e.health-=1+powerLevel;burst(b.x,b.y,7,"hot",4);
+    if((b.pierce||0)>0)b.pierce--;else bullets.splice(j,1);e.health-=1+powerLevel+(critLevel>0&&Math.random()<critLevel*.10?2:0);burst(b.x,b.y,7,"hot",4);
     if(e.health<=0){const wasBoss=e.type==="boss"||e.type==="dreadnought";const bossName=e.type==="dreadnought"?"DREADNOUGHT":"MOTHERSHIP";destroyEnemy(i);if(wasBoss){bossesDefeated++;powerMessageText=bossName+" DESTROYED!";powerMessage=180;if(level>=10&&!campaignCleared){campaignVictory()}else spawnPowerup("shield")}enemyRemoved=true;break}
    }
   }
@@ -300,7 +310,7 @@ level=1+Math.floor(gameTime/600);sector=Math.min(5,1+Math.floor((level-1)/2));di
   let removed=false;
   for(let j=bullets.length-1;j>=0;j--){const b=bullets[j];
    if(hitCircle(b.x,b.y,b.radius,a.x,a.y,a.radius*.82)){
-    if((b.pierce||0)>0)b.pierce--;else bullets.splice(j,1);a.health-=1+powerLevel;burst(b.x,b.y,7,"hot",4);burst(b.x,b.y,5,"rock",4);
+    if((b.pierce||0)>0)b.pierce--;else bullets.splice(j,1);a.health-=1+powerLevel+(critLevel>0&&Math.random()<critLevel*.10?2:0);burst(b.x,b.y,7,"hot",4);burst(b.x,b.y,5,"rock",4);
     if(a.health<=0){destroyAsteroid(i);removed=true;break}
    }
   }
@@ -361,8 +371,7 @@ function drawPlayer(){
  const w=player.width,h=w*texCrop.h/texCrop.w;
  const oldSmooth=ctx.imageSmoothingEnabled;ctx.imageSmoothingEnabled=true;
  ctx.save();
- ctx.translate(Math.round(player.x),Math.round(player.y));
- if(shieldHits>0){ctx.strokeStyle="rgba(100,255,150,.8)";ctx.shadowColor="#68ff8c";ctx.shadowBlur=18;ctx.lineWidth=2;ctx.beginPath();ctx.arc(0,0,17,0,Math.PI*2);ctx.stroke();ctx.shadowBlur=0}
+ ctx.translate(Math.round(player.x),Math.round(player.y));const skin=SKINS[selectedSkin];if(skin&&skin.tint){ctx.strokeStyle=skin.tint;ctx.globalAlpha=.75;ctx.lineWidth=3;ctx.shadowColor=skin.tint;ctx.shadowBlur=18;ctx.beginPath();ctx.arc(0,0,22+Math.sin(gameTime*.08)*2,0,Math.PI*2);ctx.stroke();ctx.globalAlpha=1;ctx.shadowBlur=0}if(shieldHits>0){ctx.strokeStyle="rgba(100,255,150,.8)";ctx.shadowColor="#68ff8c";ctx.shadowBlur=18;ctx.lineWidth=2;ctx.beginPath();ctx.arc(0,0,17,0,Math.PI*2);ctx.stroke();ctx.shadowBlur=0}
  ctx.shadowColor="rgba(85,235,255,.28)";ctx.shadowBlur=8;ctx.drawImage(raptorImg,texCrop.x,texCrop.y,texCrop.w,texCrop.h,Math.round(-w*.48),Math.round(-h*.5),Math.round(w),Math.round(h));ctx.shadowBlur=0;
  ctx.restore();
  ctx.imageSmoothingEnabled=oldSmooth;
@@ -386,7 +395,7 @@ function drawUpgrade(){
  for(let i=0;i<3;i++){const pick=upgradeChoices[i]||"SCORE BOOST",d=info[pick],y=H*.34+i*H*.13,cols=d[1];panel(38,y,W-76,H*.095,cols[0],cols[1],cols[2]);ctx.fillStyle="#fff";ctx.font=gameFont(18);ctx.fillText(pick,W/2,y+H*.038);ctx.font="600 12px system-ui,sans-serif";ctx.fillStyle="#e9f7ff";ctx.fillText(d[0],W/2,y+H*.067)}
 }
 function chooseUpgrade(y){
- for(let i=0;i<3;i++){const top=H*.34+i*H*.13;if(y>=top&&y<=top+H*.095){const pick=upgradeChoices[i];if(pick==="RAPID FIRE")rapidLevel=Math.min(4,rapidLevel+1);else if(pick==="LASER POWER")powerLevel=Math.min(3,powerLevel+1);else if(pick==="PIERCING")pierceLevel=Math.min(2,pierceLevel+1);else if(pick==="PLASMA CORE")plasmaLevel=Math.min(2,plasmaLevel+1);else if(pick==="TRI-SHOT")spreadLevel=1;else if(pick==="SHIELD")shieldHits=Math.min(2,shieldHits+1);else combatScore+=1000;const evolved=rapidLevel>=3&&powerLevel>=2;if(evolved&&!weaponEvolved){weaponEvolved=true;powerMessageText="WEAPON EVOLVED!"}else powerMessageText="UPGRADED: "+pick+" • ACTIVE";powerMessage=150;upgradeChoices=[];resumeGrace=60;state="play";return true}}return false
+ for(let i=0;i<3;i++){const top=H*.34+i*H*.13;if(y>=top&&y<=top+H*.095){const pick=upgradeChoices[i];if(pick==="RAPID FIRE")rapidLevel=Math.min(4,rapidLevel+1);else if(pick==="LASER POWER")powerLevel=Math.min(3,powerLevel+1);else if(pick==="PIERCING")pierceLevel=Math.min(2,pierceLevel+1);else if(pick==="PLASMA CORE")plasmaLevel=Math.min(2,plasmaLevel+1);else if(pick==="TRI-SHOT")spreadLevel=1;else if(pick==="SHIELD")shieldHits=Math.min(2,shieldHits+1);else if(pick==="ARMOR PLATING")armorLevel=Math.min(3,armorLevel+1);else if(pick==="XP MAGNET")magnetLevel=Math.min(3,magnetLevel+1);else if(pick==="CRITICAL CORE")critLevel=Math.min(3,critLevel+1);else if(pick==="THRUSTERS")thrusterLevel=Math.min(3,thrusterLevel+1);else combatScore+=1000;const evolved=rapidLevel>=3&&powerLevel>=2;if(evolved&&!weaponEvolved){weaponEvolved=true;powerMessageText="WEAPON EVOLVED!"}else powerMessageText="UPGRADED: "+pick+" • ACTIVE";powerMessage=150;upgradeChoices=[];resumeGrace=60;state="play";return true}}return false
 }
 function permCost(type){const n=type==="shield"?permShield:type==="rapid"?permRapid:permPower;return 15+n*20}
 function buyPermanent(type){
@@ -403,6 +412,8 @@ function drawHangar(){
  if(hangarMessageTimer>0){ctx.fillStyle=hangarMessage.includes("UPGRADED")?"#7dff9d":"#ffb15b";ctx.font="bold 13px Arial";ctx.fillText(hangarMessage,W/2,H*.735)}ctx.fillStyle="#fff";ctx.font="bold 17px Arial";ctx.fillText("TAP BOTTOM TO RETURN",W/2,H*.79)
 }
 function chooseHangar(y){const types=["shield","rapid","power"];for(let i=0;i<3;i++){const top=H*.33+i*H*.13;if(y>=top&&y<=top+H*.095){buyPermanent(types[i]);return true}}if(y>H*.73){state="start";return true}return false}
+function drawSkins(){panel(18,H*.10,W-36,H*.80,"#071326","#24133d","#ff9d35");ctx.textAlign="center";ctx.fillStyle="#ffd45b";ctx.font=gameFont(25);ctx.fillText("TEX SKINS",W/2,H*.155);ctx.fillStyle="#bfeeff";ctx.font="700 11px system-ui,sans-serif";ctx.fillText("UNLOCK • SELECT • FLY",W/2,H*.19);for(let i=0;i<SKINS.length;i++){const y=H*.235+i*H*.085,ok=SKINS[i].unlock(),sel=i===selectedSkin;ctx.fillStyle=sel?"rgba(25,85,80,.85)":"rgba(10,25,50,.78)";ctx.fillRect(34,y-20,W-68,H*.065);ctx.textAlign="left";ctx.fillStyle=ok?(SKINS[i].tint||"#fff"):"#66758c";ctx.font=gameFont(13);ctx.fillText(SKINS[i].name,48,y);ctx.textAlign="right";ctx.font="700 10px system-ui,sans-serif";ctx.fillText(sel?"EQUIPPED":ok?"TAP TO EQUIP":i===1?"50 KILLS":i===2?"REACH SECTOR 3":i===3?"WIN CAMPAIGN":i===4?"3 WINS":"5 WINS",W-48,y)}ctx.textAlign="center";ctx.fillStyle="#fff";ctx.font="bold 15px Arial";ctx.fillText("TAP BOTTOM TO RETURN",W/2,H*.82)}
+function chooseSkins(y){for(let i=0;i<SKINS.length;i++){const top=H*.215+i*H*.085;if(y>=top&&y<=top+H*.065&&SKINS[i].unlock()){selectedSkin=i;localStorage.dinoSkin=i;return true}}if(y>H*.76){state="start";return true}return false}
 function drawLoadout(){
  panel(18,H*.15,W-36,H*.70,"#06162b","#161c42","#55dfff");ctx.textAlign="center";ctx.fillStyle="#fff";ctx.font=gameFont(27);ctx.shadowColor="#45dfff";ctx.shadowBlur=10;ctx.fillText("TEX LOADOUT",W/2,H*.22);ctx.shadowBlur=0;
  ctx.fillStyle="#8cecff";ctx.font="700 12px system-ui,sans-serif";ctx.fillText("PERMANENT STARTING SYSTEMS",W/2,H*.26);
@@ -414,7 +425,7 @@ function drawLoadout(){
 function chooseLoadout(y){if(y>H*.74){state="start";return true}return false}
 function drawManual(){
  panel(14,H*.08,W-28,H*.84,"#071326","#171635","#ffd45b");ctx.textAlign="center";ctx.fillStyle="#ffd45b";ctx.font=gameFont(25);ctx.fillText("UPGRADE FIELD MANUAL",W/2,H*.135);
- const rows=[["RAPID FIRE","Faster firing • max LV 4"],["LASER POWER","More damage • max LV 3"],["PIERCING","Shots pass through • max LV 2"],["PLASMA CORE","Larger shot hit path • max LV 2"],["TRI-SHOT","Permanent 3-way spread"],["SHIELD","Absorbs a damaging collision"],["SCORE BOOST","+1000 score instantly"],["OVERDRIVE","Temporary 5-shot rapid barrage"],["BOSS CORE","Boss drop • +750 score and +6 XP"],["WEAPON EVOLUTION","RAPID 3 + POWER 2 = extra shots"],["HANGAR SYSTEMS","Permanent starting upgrades"],["5 SECTORS","Reach Sector 5 and destroy the Core Dreadnought"]];
+ const rows=[["RAPID FIRE","Faster firing • max LV 4"],["LASER POWER","More damage • max LV 3"],["PIERCING","Shots pass through • max LV 2"],["PLASMA CORE","Larger shot hit path • max LV 2"],["TRI-SHOT","Permanent 3-way spread"],["SHIELD","Absorbs a damaging collision"],["ARMOR PLATING","Chance to deflect fatal damage • max LV 3"],["XP MAGNET","Bonus XP from enemy kills • max LV 3"],["CRITICAL CORE","Chance for bonus weapon damage • max LV 3"],["THRUSTERS","Advanced mobility system • max LV 3"],["SCORE BOOST","+1000 score instantly"],["OVERDRIVE","Temporary 5-shot rapid barrage"],["BOSS CORE","Boss drop • +750 score and +6 XP"],["WEAPON EVOLUTION","RAPID 3 + POWER 2 = extra shots"],["HANGAR SYSTEMS","Permanent starting upgrades"],["5 SECTORS","Reach Sector 5 and destroy the Core Dreadnought"]];
  const y0=H*.18,step=Math.min(48,H*.061);ctx.textAlign="left";for(let i=0;i<rows.length;i++){const y=y0+i*step;ctx.fillStyle=i%2?"rgba(20,35,65,.68)":"rgba(10,25,50,.68)";ctx.fillRect(28,y-17,W-56,step-4);ctx.fillStyle="#8cecff";ctx.font="700 11px system-ui,sans-serif";ctx.fillText(rows[i][0],38,y);ctx.fillStyle="#fff";ctx.font="600 10px system-ui,sans-serif";ctx.fillText(rows[i][1],38,y+15)}
  ctx.textAlign="center";ctx.fillStyle="#ffd45b";ctx.font="bold 14px Arial";ctx.fillText("TAP BOTTOM TO RETURN",W/2,H*.885)
 }
@@ -429,10 +440,10 @@ function drawStart(){
  ctx.textAlign="left";ctx.fillStyle="#ffb23f";ctx.font=gameFont(16);ctx.fillText("TEX",m+14,heroTop+25);ctx.fillStyle="#bfeeff";ctx.font="700 10px system-ui,sans-serif";ctx.fillText("RAPTOR ACE",m+14,heroTop+42);
  ctx.textAlign="right";ctx.fillStyle="#70ff9c";ctx.font="700 10px system-ui,sans-serif";ctx.fillText("READY",W-m-14,heroTop+25);ctx.fillStyle="#9fb7d7";ctx.font="700 9px system-ui,sans-serif";ctx.fillText("DRAG • FIRE",W-m-14,heroTop+42);
  const launchY=Math.min(H-148,heroTop+heroH+14);button(m+18,launchY,W-2*m-36,58,"LAUNCH  •  TAP TO START","#168f38","#075724","#8dff8f");
- const hangY=launchY+70,bw=(W-2*m-52)/3;button(m+18,hangY,bw,46,"HANGAR","#075f83","#153665","#6deaff");button(m+22+bw,hangY,bw,46,"LOADOUT","#49206f","#22143f","#c783ff");button(m+26+bw*2,hangY,bw,46,"UPGRADES","#60420d","#332508","#ffd45b");
- ctx.textAlign="center";ctx.fillStyle="#7189aa";ctx.font="700 9px system-ui,sans-serif";ctx.fillText("V8.2 • ARSENAL HUD",W/2,Math.min(H-10,hangY+64));
+ const hangY=launchY+70,bw=(W-2*m-52)/3;button(m+18,hangY,bw,46,"HANGAR","#075f83","#153665","#6deaff");button(m+22+bw,hangY,bw,46,"SKINS","#49206f","#22143f","#c783ff");button(m+26+bw*2,hangY,bw,46,"UPGRADES","#60420d","#332508","#ffd45b");
+ ctx.textAlign="center";ctx.fillStyle="#7189aa";ctx.font="700 9px system-ui,sans-serif";ctx.fillText("V9.0 • COMPLETE EDITION",W/2,Math.min(H-10,hangY+64));
 }
-function drawVictory(){panel(22,H*.22,W-44,350,"#07152d","#2c1848","#ffd45b");ctx.textAlign="center";ctx.fillStyle="#ffd45b";ctx.font=gameFont(30);ctx.shadowColor="#ff9d35";ctx.shadowBlur=14;ctx.fillText("SECTOR 10 CLEARED",W/2,H*.30);ctx.shadowBlur=0;ctx.fillStyle="#fff";ctx.font=gameFont(20);ctx.fillText("TEX SAVED THE CORE",W/2,H*.355);ctx.font="14px Arial";ctx.fillText("Score "+score+"  •  Distance "+Math.floor(distance),W/2,H*.405);ctx.fillText("Bosses "+bossesDefeated+"  •  Upgrades "+upgradeTier,W/2,H*.445);ctx.fillStyle="#7dff9d";ctx.font="bold 16px Arial";ctx.fillText("+25 CAMPAIGN CREDITS",W/2,H*.495);ctx.fillStyle="#8cecff";ctx.font="bold 13px Arial";ctx.fillText("CAMPAIGN WINS "+campaignWins+"   •   TOTAL KILLS "+totalKills,W/2,H*.535);button(34,H*.59,W-68,50,"CONTINUE ENDLESS","#168f38","#075724","#8dff8f");button(34,H*.67,W-68,46,"MAIN MENU","#075f83","#153665","#6deaff")}
+function drawVictory(){panel(22,H*.22,W-44,350,"#07152d","#2c1848","#ffd45b");ctx.textAlign="center";ctx.fillStyle="#ffd45b";ctx.font=gameFont(30);ctx.shadowColor="#ff9d35";ctx.shadowBlur=14;ctx.fillText("LEVEL 10 CLEARED",W/2,H*.30);ctx.shadowBlur=0;ctx.fillStyle="#fff";ctx.font=gameFont(20);ctx.fillText("TEX SAVED THE CORE",W/2,H*.355);ctx.font="14px Arial";ctx.fillText("Score "+score+"  •  Distance "+Math.floor(distance),W/2,H*.405);ctx.fillText("Bosses "+bossesDefeated+"  •  Upgrades "+upgradeTier,W/2,H*.445);ctx.fillStyle="#7dff9d";ctx.font="bold 16px Arial";ctx.fillText("+25 CAMPAIGN CREDITS",W/2,H*.495);ctx.fillStyle="#8cecff";ctx.font="bold 13px Arial";ctx.fillText("CAMPAIGN WINS "+campaignWins+"   •   TOTAL KILLS "+totalKills,W/2,H*.535);button(34,H*.59,W-68,50,"CONTINUE ENDLESS","#168f38","#075724","#8dff8f");button(34,H*.67,W-68,46,"MAIN MENU","#075f83","#153665","#6deaff")}
 function drawDead(){
  panel(25,H*.27,W-50,310,"#160b22","#07172d","#ff4e76");ctx.textAlign="center";ctx.fillStyle="#ff5275";ctx.font=gameFont(31);ctx.shadowColor="#ff3d69";ctx.shadowBlur=12;ctx.fillText("RAPTOR DOWN",W/2,H*.35);ctx.shadowBlur=0;
  ctx.fillStyle="#fff";ctx.font="20px Arial";ctx.fillText("SCORE "+score,W/2,H*.405);ctx.font="15px Arial";ctx.fillText("Distance "+Math.floor(distance)+"   •   Level "+level,W/2,H*.45);ctx.fillText("Bosses "+bossesDefeated+"   •   Upgrades "+upgradeTier,W/2,H*.49);ctx.fillStyle="#66eaff";ctx.font="bold 13px Arial";ctx.fillText("BEST COMBO "+maxCombo+"x",W/2,H*.515);
@@ -442,14 +453,14 @@ function drawDead(){
 function draw(){
  ctx.save();if(screenShake>0)ctx.translate((Math.random()-.5)*screenShake,(Math.random()-.5)*screenShake);
  drawSpace();for(const a of asteroids)drawAsteroid(a);for(const e of enemies)drawEnemy(e);drawPowerups();drawBullets();drawShockwaves();drawParticles();drawPlayer();ctx.restore();
- if(state==="play"||state==="upgrade"||state==="paused")drawHUD();if(state==="start")drawStart();if(state==="hangar")drawHangar();if(state==="loadout")drawLoadout();if(state==="manual")drawManual();if(state==="paused")drawPause();if(state==="upgrade")drawUpgrade();if(state==="victory")drawVictory();if(state==="dead")drawDead();
+ if(state==="play"||state==="upgrade"||state==="paused")drawHUD();if(state==="start")drawStart();if(state==="hangar")drawHangar();if(state==="skins")drawSkins();if(state==="loadout")drawLoadout();if(state==="manual")drawManual();if(state==="paused")drawPause();if(state==="upgrade")drawUpgrade();if(state==="victory")drawVictory();if(state==="dead")drawDead();
 }
 let last=performance.now(),accumulator=0;const STEP=1000/60;
 function loop(now){let delta=now-last;last=now;if(delta>66)delta=66;accumulator+=delta;let steps=0;while(accumulator>=STEP&&steps<3){update();accumulator-=STEP;steps++}if(steps===3&&accumulator>=STEP)accumulator=0;draw();requestAnimationFrame(loop)}
 requestAnimationFrame(loop);
 function touchPosition(touch){const rect=canvas.getBoundingClientRect();return{x:touch.clientX-rect.left,y:touch.clientY-rect.top}}
 canvas.addEventListener("touchstart",function(e){
- e.preventDefault();if(state==="victory"){for(const touch of e.changedTouches){const p=touchPosition(touch);if(p.y>=H*.59&&p.y<=H*.59+50){state="play";nextBossLevel=Math.max(nextBossLevel,15);return}if(p.y>=H*.67&&p.y<=H*.67+46){state="start";return}}return}if(state==="paused"){for(const touch of e.changedTouches){const p=touchPosition(touch);if(p.y>=H*.48&&p.y<=H*.57){resumeGrace=60;state="play";return}}return}if(state==="play"){for(const touch of e.changedTouches){const p=touchPosition(touch);if(p.x>=W-62&&p.y>=12&&p.y<=62){state="paused";firing=false;moveTouchID=null;return}}}if(state==="start"){for(const touch of e.changedTouches){const p=touchPosition(touch),top=Math.max(26,H*.055),statsY=top+72,heroTop=statsY+76,heroBottom=Math.min(H*.64,heroTop+220),heroH=Math.max(130,heroBottom-heroTop),launchY=Math.min(H-148,heroTop+heroH+14),hangY=launchY+70;if(p.y>=launchY&&p.y<=launchY+58){startGame();return}if(p.y>=hangY&&p.y<=hangY+46){const bw=(W-2*14-52)/3;if(p.x>=32&&p.x<=32+bw)state="hangar";else if(p.x>=36+bw&&p.x<=36+bw*2)state="loadout";else if(p.x>=40+bw*2&&p.x<=40+bw*3)state="manual";return}}return}if(state==="dead"){for(const touch of e.changedTouches){const p=touchPosition(touch);if(p.y>=H*.615&&p.y<=H*.615+48){if(p.x<W*.5)startGame();else{state="start";firing=false;moveTouchID=null}return}}return}if(state==="hangar"){for(const touch of e.changedTouches){const p=touchPosition(touch);if(chooseHangar(p.y))break}return}if(state==="loadout"){for(const touch of e.changedTouches){const p=touchPosition(touch);if(chooseLoadout(p.y))break}return}if(state==="manual"){for(const touch of e.changedTouches){const p=touchPosition(touch);if(chooseManual(p.y))break}return}if(state==="upgrade"){for(const touch of e.changedTouches){const p=touchPosition(touch);if(chooseUpgrade(p.y))break}return}
+ e.preventDefault();if(state==="victory"){for(const touch of e.changedTouches){const p=touchPosition(touch);if(p.y>=H*.59&&p.y<=H*.59+50){state="play";nextBossLevel=Math.max(nextBossLevel,15);return}if(p.y>=H*.67&&p.y<=H*.67+46){state="start";return}}return}if(state==="paused"){for(const touch of e.changedTouches){const p=touchPosition(touch);if(p.y>=H*.48&&p.y<=H*.57){resumeGrace=60;state="play";return}}return}if(state==="play"){for(const touch of e.changedTouches){const p=touchPosition(touch);if(p.x>=W-62&&p.y>=12&&p.y<=62){state="paused";firing=false;moveTouchID=null;return}}}if(state==="start"){for(const touch of e.changedTouches){const p=touchPosition(touch),top=Math.max(26,H*.055),statsY=top+72,heroTop=statsY+76,heroBottom=Math.min(H*.64,heroTop+220),heroH=Math.max(130,heroBottom-heroTop),launchY=Math.min(H-148,heroTop+heroH+14),hangY=launchY+70;if(p.y>=launchY&&p.y<=launchY+58){startGame();return}if(p.y>=hangY&&p.y<=hangY+46){const bw=(W-2*14-52)/3;if(p.x>=32&&p.x<=32+bw)state="hangar";else if(p.x>=36+bw&&p.x<=36+bw*2)state="skins";else if(p.x>=40+bw*2&&p.x<=40+bw*3)state="manual";return}}return}if(state==="dead"){for(const touch of e.changedTouches){const p=touchPosition(touch);if(p.y>=H*.615&&p.y<=H*.615+48){if(p.x<W*.5)startGame();else{state="start";firing=false;moveTouchID=null}return}}return}if(state==="hangar"){for(const touch of e.changedTouches){const p=touchPosition(touch);if(chooseHangar(p.y))break}return}if(state==="skins"){for(const touch of e.changedTouches){const p=touchPosition(touch);if(chooseSkins(p.y))break}return}if(state==="loadout"){for(const touch of e.changedTouches){const p=touchPosition(touch);if(chooseLoadout(p.y))break}return}if(state==="manual"){for(const touch of e.changedTouches){const p=touchPosition(touch);if(chooseManual(p.y))break}return}if(state==="upgrade"){for(const touch of e.changedTouches){const p=touchPosition(touch);if(chooseUpgrade(p.y))break}return}
  for(const touch of e.changedTouches){const p=touchPosition(touch);
   if(moveTouchID===null){
    moveTouchID=touch.identifier;lastMoveX=p.x;lastMoveY=p.y;firing=true;
