@@ -17,7 +17,7 @@ canvas{position:fixed;inset:0;width:100%;height:100%;display:block;touch-action:
 <body>
 <canvas id="game"></canvas>
 <script>
-// DINO INVADERS: SPACE V12.44 — PROGRESSION POLISH
+// DINO INVADERS: SPACE V12.45 — ARTICULATED STALKER
 const canvas=document.getElementById("game");
 const ctx=canvas.getContext("2d",{alpha:false,desynchronized:true});
 let W=0,H=0;
@@ -69,6 +69,9 @@ const approvedFlyingEnemyImg=new Image();approvedFlyingEnemyImg.src="./9984F8FF-
 const articulatedBodyImg=new Image();articulatedBodyImg.src="./A624C325-87CA-405E-A78E-00E66A9E7A87.png?v=rig-v1238";
 const articulatedWingLeftImg=new Image();articulatedWingLeftImg.src="./D7EE9FBF-A54A-419C-9A5F-904CC4C83F1C.png?v=rig-v1238";
 const articulatedWingRightImg=new Image();articulatedWingRightImg.src="./39080881-ECE6-4677-84CB-8443839B1588.png?v=rig-v1238";
+const stalkerBodyImg=new Image();stalkerBodyImg.src="./E59E90BA-96A6-48B3-81B7-3D72A98DA828.png?v=stalker-v1245";
+const stalkerWingLeftImg=new Image();stalkerWingLeftImg.src="./7196CBC3-CC38-4468-8D3A-8406578626FC.png?v=stalker-v1245";
+const stalkerWingRightImg=new Image();stalkerWingRightImg.src="./96FDAC0C-FC33-4A1D-8D36-9E7568D7ECFC.png?v=stalker-v1245";
 const regWingLeftImg=new Image();regWingLeftImg.src="./2F9F0955-0B7D-4DC6-90A9-CEE4EC9A749D.png?v=flyenemy-1";
 const regEnemyBodyImg=new Image();regEnemyBodyImg.src="./49D2054A-8587-4A20-B07C-E2C9F295E693.png?v=flyenemy-1";
 const regWingRightImg=new Image();regWingRightImg.src="./F03639C0-35F6-4E2D-9A94-FEBF0555F951.png?v=flyenemy-1";
@@ -212,7 +215,20 @@ function drawEnemy(e){
    if(hp<=.5){ctx.save();ctx.globalAlpha=.28+.15*Math.sin(gameTime*.22);ctx.shadowColor="#ff3b20";ctx.shadowBlur=18;ctx.fillStyle="#ff3b20";ctx.beginPath();ctx.arc(0,4,7+Math.sin(gameTime*.2)*2,0,Math.PI*2);ctx.fill();ctx.restore()}ctx.fillStyle="#fff";ctx.fillRect(dread?-34:-30,dread?38:34,dread?68:60,3);ctx.fillStyle=dread?"#9c78ff":"#ff405c";ctx.fillRect(dread?-34:-30,dread?38:34,(dread?68:60)*hp,3);ctx.restore();return}
  // Standard enemy roster intentionally uses only two visual species.
  // Boss visuals above remain unchanged.
- if(e.type==="stalker"||e.type==="bomber"||e.type==="warden")drawInvaderDino("ptera","#ff5471","#401522");
+ if(e.type==="stalker"&&stalkerBodyImg.complete&&stalkerBodyImg.naturalWidth&&stalkerWingLeftImg.complete&&stalkerWingLeftImg.naturalWidth&&stalkerWingRightImg.complete&&stalkerWingRightImg.naturalWidth){
+  const beat=Math.sin(gameTime*.145+(e.flightPhase||e.phase)),stroke=beat*.38,bank=e.bank||0;
+  const bodyW=78,bodyH=bodyW*stalkerBodyImg.naturalHeight/stalkerBodyImg.naturalWidth;
+  const wingW=55,wingHL=wingW*stalkerWingLeftImg.naturalHeight/stalkerWingLeftImg.naturalWidth,wingHR=wingW*stalkerWingRightImg.naturalHeight/stalkerWingRightImg.naturalWidth;
+  ctx.save();ctx.rotate(bank*.8);
+  // Stalker wings use a slower, deeper predatory stroke and remain behind the body.
+  ctx.save();ctx.translate(-3,-10);ctx.rotate(.13+stroke);ctx.shadowColor="#ff2d20";ctx.shadowBlur=5;ctx.drawImage(stalkerWingLeftImg,-wingW*.90,-wingHL*.72,wingW,wingHL);ctx.restore();
+  ctx.save();ctx.translate(3,-10);ctx.rotate(-.13-stroke);ctx.shadowColor="#ff2d20";ctx.shadowBlur=5;ctx.drawImage(stalkerWingRightImg,-wingW*.10,-wingHR*.72,wingW,wingHR);ctx.restore();
+  // Body leans toward its tracking vector while retaining the existing Stalker movement/speed.
+  const dx=player.x-e.x,dy=player.y-e.y,trackLean=Math.max(-.09,Math.min(.09,dy/260)),hitKick=e.hitKick>0?Math.sin(e.hitKick*1.8)*.055:0;
+  ctx.save();ctx.translate(Math.max(0,-beat)*1.4,-Math.abs(beat)*2.4);ctx.rotate(trackLean-beat*.022+hitKick);ctx.scale(-1,1);ctx.shadowColor=e.hitFlash>0?"#fff0c0":"#ff2d20";ctx.shadowBlur=e.hitFlash>0?13:5;ctx.drawImage(stalkerBodyImg,-bodyW*.5,-bodyH*.5,bodyW,bodyH);if(e.hitFlash>0){ctx.globalCompositeOperation="screen";ctx.globalAlpha=e.hitFlash/10;ctx.fillStyle="#ffd5aa";ctx.beginPath();ctx.ellipse(0,0,bodyW*.34,bodyH*.28,0,0,Math.PI*2);ctx.fill()}ctx.restore();
+  ctx.restore()
+ }else if(e.type==="stalker")drawInvaderDino("ptera","#ff5471","#401522");
+ else if(e.type==="bomber"||e.type==="warden")drawInvaderDino("ptera","#ff5471","#401522");
  else if(regEnemyBodyImg.complete&&regEnemyBodyImg.naturalWidth&&regWingLeftImg.complete&&regWingLeftImg.naturalWidth&&regWingRightImg.complete&&regWingRightImg.naturalWidth){const flap=Math.sin(gameTime*.16+(e.flightPhase||e.phase)),bob=Math.sin(gameTime*.09+(e.flightPhase||e.phase))*1.8,bank=(e.bank||0)+Math.sin(gameTime*.045+e.phase)*.012,bw=72,bh=bw*approvedFlyingEnemyImg.naturalHeight/approvedFlyingEnemyImg.naturalWidth;
 // V12.21 approved precomposed flying enemy. Preserve the verified silhouette; animate only the whole sprite.
 if(articulatedBodyImg.complete&&articulatedBodyImg.naturalWidth&&articulatedWingLeftImg.complete&&articulatedWingLeftImg.naturalWidth&&articulatedWingRightImg.complete&&articulatedWingRightImg.naturalWidth){
@@ -494,7 +510,7 @@ function drawStart(){
  const pulse=.55+.25*Math.sin(gameTime*.06);ctx.globalAlpha=pulse;ctx.strokeStyle="#ff7b38";ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(m+24,heroTop+heroH-22);ctx.lineTo(W*.32,heroTop+heroH-22);ctx.moveTo(W*.68,heroTop+heroH-22);ctx.lineTo(W-m-24,heroTop+heroH-22);ctx.stroke();ctx.globalAlpha=1;
  button(m+9,launchY,pw-18,60,"START RUN","#16994a","#07562c","#97ffc0");
  ctx.fillStyle="#d3e8f4";ctx.font="800 13px system-ui,sans-serif";ctx.fillText("HOLD TO FIRE  •  DRAG TO MOVE",W/2,launchY+88);
- ctx.fillStyle="#91aabd";ctx.font="bold 11px system-ui,sans-serif";ctx.fillText("VERSION 12.44",W/2,H-53);ctx.fillStyle="#fff";ctx.font="bold 13px system-ui,sans-serif";ctx.fillText("Built by Curtis Company Limited",W/2,H-35);
+ ctx.fillStyle="#91aabd";ctx.font="bold 11px system-ui,sans-serif";ctx.fillText("VERSION 12.45",W/2,H-53);ctx.fillStyle="#fff";ctx.font="bold 13px system-ui,sans-serif";ctx.fillText("Built by Curtis Company Limited",W/2,H-35);
  ctx.restore();
 }
 function drawVictory(){drawDead()}
