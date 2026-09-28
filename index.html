@@ -17,7 +17,7 @@ canvas{position:fixed;inset:0;width:100%;height:100%;display:block;touch-action:
 <body>
 <canvas id="game"></canvas>
 <script>
-// DINO INVADERS: SPACE V12.2 — CYBER DINO ENEMY
+// DINO INVADERS: SPACE V12.3 — POWERUP VISUAL REFRESH
 const canvas=document.getElementById("game");
 const ctx=canvas.getContext("2d",{alpha:false,desynchronized:true});
 let W=0,H=0;
@@ -140,11 +140,19 @@ function spawnPowerup(type="spread"){
 }
 function drawPowerups(){
  for(const p of powerups){
-  ctx.save();ctx.translate(p.x,p.y);const pulse=1+Math.sin(gameTime*.12+p.phase)*.12;ctx.scale(pulse,pulse);
+  ctx.save();ctx.translate(p.x,p.y);const pulse=1+Math.sin(gameTime*.12+p.phase)*.08;ctx.scale(pulse,pulse);
   const shield=p.type==="shield",over=p.type==="overdrive",core=p.type==="core";
-  ctx.shadowColor=shield?"#68ff8c":over?"#4d8cff":core?"#ffd45b":"#49f6ff";ctx.shadowBlur=14;ctx.fillStyle=shield?"rgba(20,125,63,.95)":over?"rgba(35,65,180,.95)":core?"rgba(150,95,15,.96)":"rgba(18,104,135,.95)";ctx.strokeStyle=shield?"#b9ffc9":over?"#9fc5ff":core?"#fff09a":"#b8fbff";ctx.lineWidth=3;
-  ctx.beginPath();ctx.arc(0,0,p.radius,0,Math.PI*2);ctx.fill();ctx.stroke();
-  ctx.shadowBlur=12;ctx.fillStyle="#fff";ctx.font="bold 16px Arial";ctx.textAlign="center";ctx.textBaseline="middle";ctx.fillText(shield?"S":over?"O":core?"C":"3",0,.5);ctx.restore();
+  const glow=shield?"#68ff8c":over?"#6d8dff":core?"#ffd45b":"#49f6ff";ctx.shadowColor=glow;ctx.shadowBlur=16;ctx.strokeStyle="#fff";ctx.fillStyle=glow;ctx.lineWidth=2.2;ctx.lineJoin="round";ctx.lineCap="round";
+  if(shield){
+   ctx.beginPath();ctx.moveTo(0,-18);ctx.lineTo(15,-11);ctx.lineTo(13,5);ctx.quadraticCurveTo(9,15,0,20);ctx.quadraticCurveTo(-9,15,-13,5);ctx.lineTo(-15,-11);ctx.closePath();ctx.globalAlpha=.3;ctx.fill();ctx.globalAlpha=1;ctx.stroke();ctx.beginPath();ctx.moveTo(0,-11);ctx.lineTo(0,12);ctx.moveTo(-8,-5);ctx.lineTo(8,-5);ctx.stroke();
+  }else if(over){
+   ctx.save();ctx.rotate(-.18);ctx.beginPath();ctx.moveTo(5,-21);ctx.lineTo(-9,-2);ctx.lineTo(-1,-2);ctx.lineTo(-7,20);ctx.lineTo(12,-5);ctx.lineTo(3,-5);ctx.closePath();ctx.globalAlpha=.88;ctx.fill();ctx.globalAlpha=1;ctx.stroke();ctx.restore();
+  }else if(core){
+   ctx.rotate(gameTime*.025);ctx.beginPath();for(let i=0;i<8;i++){const a=i*Math.PI/4-Math.PI/2,r=i%2?12:19,x=Math.cos(a)*r,y=Math.sin(a)*r;i?ctx.lineTo(x,y):ctx.moveTo(x,y)}ctx.closePath();ctx.globalAlpha=.75;ctx.fill();ctx.globalAlpha=1;ctx.stroke();ctx.beginPath();ctx.arc(0,0,6,0,Math.PI*2);ctx.fillStyle="#fff";ctx.fill();
+  }else{
+   ctx.beginPath();ctx.moveTo(-18,-10);ctx.lineTo(-4,-3);ctx.lineTo(-18,4);ctx.closePath();ctx.moveTo(-2,-10);ctx.lineTo(12,-3);ctx.lineTo(-2,4);ctx.closePath();ctx.moveTo(-10,5);ctx.lineTo(4,12);ctx.lineTo(-10,19);ctx.closePath();ctx.globalAlpha=.88;ctx.fill();ctx.globalAlpha=1;ctx.stroke();
+  }
+  ctx.shadowBlur=0;ctx.fillStyle="#fff";ctx.font="bold 8px Arial";ctx.textAlign="center";ctx.textBaseline="middle";ctx.fillText(shield?"SHIELD":over?"BOOST":core?"CORE":"TRI",0,27);ctx.restore();
  }
 }
 function spawnEnemy(type="scout",offset=0){
