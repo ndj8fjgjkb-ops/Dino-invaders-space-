@@ -17,11 +17,11 @@ content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,vie
 html,body{position:fixed;inset:0;width:100%;height:100%;margin:0;overflow:hidden;overscroll-behavior:none;touch-action:none;background:#02040d}
 canvas{position:fixed;inset:0;width:100%;height:100%;display:block;touch-action:none;-webkit-tap-highlight-color:transparent}
 </style>
-<meta name="dino-build" content="V14.0-Life-Continue-Screen"></head>
+<meta name="dino-build" content="V14.1-Menu-Boss-Polish"></head>
 <body>
 <canvas id="game"></canvas>
 <script>
-// DINO INVADERS: SPACE V14.0 — LIFE CONTINUE SCREEN
+// DINO INVADERS: SPACE V14.1 — MENU + BOSS POLISH
 const canvas=document.getElementById("game");
 const ctx=canvas.getContext("2d",{alpha:false,desynchronized:true});
 let W=0,H=0,SAFE_TOP=0,SAFE_BOTTOM=0;
@@ -256,7 +256,7 @@ function drawEnemy(e){
     ctx.save();ctx.translate(-30,-7);ctx.rotate(-.13-flap*.22);ctx.scale(1,1-flap*.1);ctx.drawImage(parts.left,-wingW*.82,-wingH*.5,wingW,wingH);ctx.restore();
     ctx.save();ctx.translate(30,-7);ctx.rotate(.13+flap*.22);ctx.scale(1,1-flap*.1);ctx.drawImage(parts.right,-wingW*.18,-wingH*.5,wingW,wingH);ctx.restore();
     ctx.save();ctx.translate(0,-Math.abs(flap)*2);ctx.rotate(flap*.018);ctx.drawImage(parts.body,-bodyW*.5,-bodyH*.5,bodyW,bodyH);
-    if(e.hitFlash>0){ctx.globalAlpha=e.hitFlash/16;ctx.fillStyle="#fff";ctx.beginPath();ctx.ellipse(0,0,bodyW*.29,bodyH*.32,0,0,Math.PI*2);ctx.fill()}ctx.restore();
+    if(e.hitFlash>0){ctx.globalAlpha=Math.min(.28,e.hitFlash/40);ctx.globalCompositeOperation="screen";ctx.drawImage(parts.body,-bodyW*.5,-bodyH*.5,bodyW,bodyH);ctx.globalCompositeOperation="source-over"}ctx.restore();
    }
   }else{
    const atlas=bossAtlases[def.kind],parts=atlas&&bossParts.get(atlas);
@@ -264,10 +264,12 @@ function drawEnemy(e){
     const scale=variant===1?1.08:variant===2?1.03:1.12,bodyW=112*scale,bodyH=78*scale,wingW=68*scale,wingH=58*scale;
     const amp=variant===1?.14:variant===2?.26:.11,pace=variant===1?.085:variant===2?.15:.07,beat=Math.sin(gameTime*pace+e.phase);
     // Side pieces articulate independently, while the central body rocks/breathes as one stable silhouette.
-    ctx.save();ctx.translate(-bodyW*.30,-8);ctx.rotate(-.10-beat*amp);ctx.drawImage(parts.left,-wingW*.78,-wingH*.52,wingW,wingH);ctx.restore();
-    ctx.save();ctx.translate(bodyW*.30,-8);ctx.rotate(.10+beat*amp);ctx.drawImage(parts.right,-wingW*.22,-wingH*.52,wingW,wingH);ctx.restore();
+    const wingY=variant===2?-3:variant===3?1:-8,wingAnchor=variant===2?.255:variant===3?.245:.30;
+    const leftInset=variant===2?.72:variant===3?.69:.78,rightInset=variant===2?.28:variant===3?.31:.22;
+    ctx.save();ctx.translate(-bodyW*wingAnchor,wingY);ctx.rotate(-.10-beat*amp);ctx.drawImage(parts.left,-wingW*leftInset,-wingH*.52,wingW,wingH);ctx.restore();
+    ctx.save();ctx.translate(bodyW*wingAnchor,wingY);ctx.rotate(.10+beat*amp);ctx.drawImage(parts.right,-wingW*rightInset,-wingH*.52,wingW,wingH);ctx.restore();
     ctx.save();ctx.translate(0,-Math.abs(beat)*(variant===2?3:1.5));ctx.rotate(beat*(variant===1?.012:variant===2?.026:.009));ctx.drawImage(parts.body,-bodyW*.5,-bodyH*.5,bodyW,bodyH);
-    if(e.hitFlash>0){ctx.globalAlpha=e.hitFlash/16;ctx.fillStyle="#fff";ctx.beginPath();ctx.ellipse(0,0,bodyW*.34,bodyH*.31,0,0,Math.PI*2);ctx.fill()}ctx.restore();
+    if(e.hitFlash>0){ctx.globalAlpha=Math.min(.25,e.hitFlash/44);ctx.globalCompositeOperation="screen";ctx.drawImage(parts.body,-bodyW*.5,-bodyH*.5,bodyW,bodyH);ctx.globalCompositeOperation="source-over"}ctx.restore();
    }else{
     // Asset-load fallback: keep gameplay readable without reverting to circles or synthetic boss shapes.
     const ready=bossBodyImg.complete&&bossBodyImg.naturalWidth;
@@ -550,11 +552,12 @@ function drawPlayer(){
 function gameFont(size,weight="700"){return weight+" "+size+"px Impact, Haettenschweiler, \"Arial Narrow Bold\", system-ui, sans-serif"}
 function panel(x,y,w,h,a="#07152d",b="#162b55",stroke="#58dfff"){const g=ctx.createLinearGradient(x,y,x+w,y+h);g.addColorStop(0,a);g.addColorStop(1,b);ctx.fillStyle=g;ctx.beginPath();ctx.roundRect(x,y,w,h,14);ctx.fill();ctx.strokeStyle=stroke;ctx.lineWidth=2;ctx.shadowColor=stroke;ctx.shadowBlur=10;ctx.stroke();ctx.shadowBlur=0}
 function button(x,y,w,h,label,c1="#0e5f86",c2="#152d69",stroke="#71edff"){
- const g=ctx.createLinearGradient(x,y,x,y+h);g.addColorStop(0,c1);g.addColorStop(1,c2);
- ctx.save();ctx.fillStyle="rgba(0,0,0,.55)";ctx.beginPath();ctx.roundRect(x+2,y+6,w,h,12);ctx.fill();
- ctx.shadowColor="rgba(0,0,0,.55)";ctx.shadowBlur=7;ctx.shadowOffsetY=4;ctx.fillStyle=g;ctx.beginPath();ctx.roundRect(x,y,w,h-5,12);ctx.fill();ctx.shadowBlur=0;ctx.shadowOffsetY=0;
- ctx.strokeStyle=stroke;ctx.lineWidth=2;ctx.stroke();ctx.globalAlpha=.28;ctx.strokeStyle="#fff";ctx.lineWidth=1;ctx.beginPath();ctx.roundRect(x+3,y+3,w-6,h*.42,9);ctx.stroke();ctx.globalAlpha=1;
- ctx.fillStyle="#fff";ctx.font=gameFont(16);ctx.textAlign="center";ctx.shadowColor="rgba(0,0,0,.75)";ctx.shadowBlur=3;ctx.fillText(label,x+w/2,y+h*.59);ctx.restore()
+ const faceH=h-5,g=ctx.createLinearGradient(x,y,x,y+faceH);g.addColorStop(0,c1);g.addColorStop(1,c2);
+ ctx.save();
+ ctx.fillStyle="rgba(0,0,0,.48)";ctx.beginPath();ctx.roundRect(x+2,y+5,w,h-3,12);ctx.fill();
+ ctx.fillStyle=g;ctx.beginPath();ctx.roundRect(x,y,w,faceH,12);ctx.fill();
+ ctx.strokeStyle=stroke;ctx.globalAlpha=.82;ctx.lineWidth=1.5;ctx.beginPath();ctx.roundRect(x+.75,y+.75,w-1.5,faceH-1.5,11);ctx.stroke();ctx.globalAlpha=1;
+ ctx.fillStyle="#fff";ctx.font=gameFont(16);ctx.textAlign="center";ctx.shadowColor="rgba(0,0,0,.8)";ctx.shadowBlur=2;ctx.fillText(label,x+w/2,y+faceH*.64);ctx.restore()
 }
 function drawHUD(){
  ctx.textBaseline="alphabetic";ctx.textAlign="left";ctx.globalAlpha=.68;ctx.fillStyle="rgba(2,10,24,.28)";ctx.fillRect(8,8+SAFE_TOP,Math.min(212,W-76),56);
@@ -589,20 +592,20 @@ function drawStart(){
  if(approvedFlyingEnemyImg.complete&&approvedFlyingEnemyImg.naturalWidth){ctx.save();ctx.globalAlpha=.075;ctx.filter="grayscale(1) brightness(1.8)";const uw=Math.min(190,W*.48),uh=uw*approvedFlyingEnemyImg.naturalHeight/approvedFlyingEnemyImg.naturalWidth;drawSprite(approvedFlyingEnemyImg,-uw*.22,H*.22,uw,uh);ctx.scale(-1,1);drawSprite(approvedFlyingEnemyImg,-W-uw*.18,H*.52,uw,uh);ctx.restore()}
  // Redesigned logo: score-attack identity only.
  ctx.textAlign="center";ctx.fillStyle="#ff9b3d";ctx.font=gameFont(Math.min(48,W*.122));ctx.shadowColor="#ff4d20";ctx.shadowBlur=18;ctx.fillText("DINO",W/2,top+38);ctx.fillStyle="#f4fbff";ctx.shadowColor="#48dfff";ctx.shadowBlur=15;ctx.fillText("INVADERS",W/2,top+79);ctx.shadowBlur=0;
- ctx.fillStyle="#80eaff";ctx.font="800 12px system-ui,sans-serif";ctx.letterSpacing="2px";ctx.fillText("ENDLESS SCORE ATTACK",W/2,top+103);ctx.letterSpacing="0px";
+ ctx.fillStyle="#80eaff";ctx.font="800 12px system-ui,sans-serif";ctx.letterSpacing="2px";ctx.fillText("ENDLESS SURVIVAL",W/2,top+103);ctx.letterSpacing="0px";
  // Records console.
  const pw=W-2*m;ctx.fillStyle="rgba(3,13,31,.78)";ctx.beginPath();ctx.roundRect(m,statsY,pw,64,12);ctx.fill();ctx.strokeStyle="rgba(88,226,255,.55)";ctx.lineWidth=1.4;ctx.stroke();
  const brm=Math.floor(bestRunTime/60),brs=Math.floor(bestRunTime%60),survivalRecord=brm+":"+String(brs).padStart(2,"0");const stats=[["HIGH SCORE",high],["BEST RUN",survivalRecord],["INVADERS",totalKills]];for(let i=0;i<3;i++){const x=m+pw*(i+.5)/3;ctx.fillStyle="#83a9c2";ctx.font="800 9px system-ui,sans-serif";ctx.fillText(stats[i][0],x,statsY+21);ctx.fillStyle="#fff";ctx.font=gameFont(21);ctx.fillText(stats[i][1],x,statsY+48)}
  // Central objective console: no character, no core-defense language, no top-right copy.
  const card=ctx.createLinearGradient(m,heroTop,W-m,heroTop+heroH);card.addColorStop(0,"rgba(4,18,39,.91)");card.addColorStop(.5,"rgba(8,35,58,.82)");card.addColorStop(1,"rgba(20,17,49,.90)");ctx.fillStyle=card;ctx.beginPath();ctx.roundRect(m,heroTop,pw,heroH,16);ctx.fill();ctx.strokeStyle="rgba(89,225,255,.62)";ctx.lineWidth=1.5;ctx.shadowColor="#35d8ff";ctx.shadowBlur=9;ctx.stroke();ctx.shadowBlur=0;
  ctx.fillStyle="#ffad4d";ctx.font=gameFont(20);ctx.fillText("NOVA // LAST PILOT",W/2,heroTop+35);
- ctx.fillStyle="#d8f6ff";ctx.font="800 13px system-ui,sans-serif";ctx.fillText("THE ARCADE DEFENSE BEGINS",W/2,heroTop+64);
- ctx.fillStyle="#91b8ce";ctx.font="700 11px system-ui,sans-serif";ctx.fillText("TWO INVADER BREEDS • FOUR BOSSES",W/2,heroTop+88);
+ ctx.fillStyle="#d8f6ff";ctx.font="800 13px system-ui,sans-serif";ctx.fillText("SURVIVE THE INVASION. PUSH YOUR SCORE.",W/2,heroTop+64);
+ ctx.fillStyle="#91b8ce";ctx.font="700 11px system-ui,sans-serif";ctx.fillText("3 LIVES • SHIELDS • BOSS ENCOUNTERS",W/2,heroTop+88);
  ctx.fillText("SURVIVE • BLAST • ADVANCE",W/2,heroTop+108);
  const pulse=.55+.25*Math.sin(gameTime*.06);ctx.globalAlpha=pulse;ctx.strokeStyle="#ff7b38";ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(m+24,heroTop+heroH-22);ctx.lineTo(W*.32,heroTop+heroH-22);ctx.moveTo(W*.68,heroTop+heroH-22);ctx.lineTo(W-m-24,heroTop+heroH-22);ctx.stroke();ctx.globalAlpha=1;
  button(m+9,launchY,pw-18,60,"LAUNCH NOVA","#a94729","#543258","#ffc86d");
  ctx.fillStyle="#d3e8f4";ctx.font="800 13px system-ui,sans-serif";ctx.fillText("HOLD TO FIRE  •  DRAG TO MOVE",W/2,launchY+88);
- ctx.fillStyle="#91aabd";ctx.font="bold 11px system-ui,sans-serif";ctx.fillText("VERSION 14.0",W/2,H-53);ctx.fillStyle="#fff";ctx.font="bold 13px system-ui,sans-serif";ctx.fillText("Built by Curtis Company Limited",W/2,H-35);
+ ctx.fillStyle="#91aabd";ctx.font="bold 11px system-ui,sans-serif";ctx.fillText("VERSION 14.1",W/2,H-53);ctx.fillStyle="#fff";ctx.font="bold 13px system-ui,sans-serif";ctx.fillText("Built by Curtis Company Limited",W/2,H-35);
  ctx.restore();
 }
 function endLayout(){const h=Math.min(410,Math.max(350,H-210)),top=Math.max(102,(H-h)*.47),buttonY=top+h-65;return{top,h,buttonY}}
