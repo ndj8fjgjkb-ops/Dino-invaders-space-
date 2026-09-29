@@ -17,11 +17,11 @@ content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,vie
 html,body{position:fixed;inset:0;width:100%;height:100%;margin:0;overflow:hidden;overscroll-behavior:none;touch-action:none;background:#02040d}
 canvas{position:fixed;inset:0;width:100%;height:100%;display:block;touch-action:none;-webkit-tap-highlight-color:transparent}
 </style>
-<meta name="dino-build" content="V16.1-Boss-Combat-Polish"></head>
+<meta name="dino-build" content="V16.2-How-To-Combat-Polish"></head>
 <body>
 <canvas id="game"></canvas>
 <script>
-// DINO INVADERS: SPACE V16.1 — BOSS COMBAT + EDGE POLISH
+// DINO INVADERS: SPACE V16.2 — HOW TO PLAY + COMBAT POLISH
 const canvas=document.getElementById("game");
 const ctx=canvas.getContext("2d",{alpha:false,desynchronized:true});
 let W=0,H=0,SAFE_TOP=0,SAFE_BOTTOM=0;
@@ -90,7 +90,7 @@ let runNewRecord=false;let splashStart=performance.now(),state="splash",score=0,
 const GAME_SPEED=.69;const player={x:100,y:300,radius:5,width:48,hitX:2,hitY:1,fireCooldown:0};
 let stars=[],bullets=[],enemyBullets=[],asteroids=[],particles=[],shockwaves=[],enemies=[],planets=[],galaxies=[],powerups=[],scorePops=[];
 let spreadTimer=0,shieldHits=0,powerMessage=0,powerMessageText="",combo=0,comboTimer=0,maxCombo=0,overdriveTimer=0,level=1,lastLevel=1,wave=0,bossSpawned=false,nextBossLevel=5,runXP=0,upgradeTier=0,rapidLevel=0,powerLevel=0,spreadLevel=0,pierceLevel=0,plasmaLevel=0,upgradeChoices=[],bossCount=0,bossesDefeated=0,weaponEvolved=false;
-let asteroidKills=0,invaderKills=0,meteorStormTimer=0,nextMeteorStorm=1800,totalKills=Number(localStorage.dinoTotalKills||0);let eventBannerTimer=0,eventBannerTitle="",eventBannerSub="",eventBannerType="enemy",bossAlertTimer=0,bossAlertName="",bossAlertColor="#ff3344";
+let asteroidKills=0,invaderKills=0,meteorStormTimer=0,nextMeteorStorm=1800,totalKills=Number(localStorage.dinoTotalKills||0);let eventBannerTimer=0,eventBannerTitle="",eventBannerSub="",eventBannerType="enemy",bossAlertTimer=0,bossAlertName="",bossAlertColor="#ff3344",bossDefeatTimer=0,bossDefeatName="",bossDefeatColor="#7ff6ff",waveDelayUntil=0;
 let moveTouchID=null,lastMoveX=0,lastMoveY=0,firing=false,resumeGrace=0,lives=3;
 let armorLevel=0,magnetLevel=0,critLevel=0,thrusterLevel=0;
 const SKINS=[{name:"NOVA",species:"RAPTOR",unlock:()=>true,beam:"#168dff",accent:"#55e8ff",mode:"tex",speed:1,damage:0,armor:0}];
@@ -209,7 +209,7 @@ function spawnEnemy(type="scout",offset=0){
  const elite=!boss&&level>=5&&Math.random()<Math.min(.18,.035+level*.008);const hp=dread?60:boss?42:warden?7:bomber?5:gunner?4:hunter?3:stalker?4:charger?2:1;
  enemies.push({x:stalker&&Math.random()<.55?W*.38+Math.random()*W*.5:W+70+offset,y:stalker&&Math.random()<.5?-45:H+45,baseY:y,vx:boss?-1.25:stalker?-1.05:-(warden?1.15:bomber?1.45:gunner?1.7:hunter?2.7:2.1)-Math.random()*.8-difficulty*.12,phase:Math.random()*Math.PI*2,health:elite?hp*2:hp,maxHealth:elite?hp*2:hp,radius:dread?44:boss?34:warden?21:bomber?18:gunner?16:hunter?15:stalker?17:charger?13:11.424,points:(dread?6500:boss?3200:warden?950:bomber?750:gunner?500:stalker?650:hunter?350:charger?300:180)*(elite?2:1),type,elite,shotTimer:70+Math.random()*80,flightPhase:Math.random()*Math.PI*2,flightAmp:8+Math.random()*8,flightRate:.032+Math.random()*.018,bank:0,diveCooldown:150+Math.random()*180,diveTimer:0,diveDir:Math.random()<.5?-1:1,hitFlash:0,hitKick:0,fireKick:0,formationY:0,formationPhase:0,formationStrength:0});const ne=enemies[enemies.length-1];if(stalker)ne.baseY=ne.y;if(boss){const def=BOSS_ROSTER[(bossCount-1)%BOSS_ROSTER.length];ne.bossDef=def;ne.health=ne.maxHealth=def.hp+Math.floor((bossCount-1)/3)*18;ne.radius=def.radius;ne.points=3200+bossCount*1100;ne.shotTimer=85}
 }
-function bossBounty(e){bossesDefeated++;bossesLifetime++;try{localStorage.dinoBossesLifetime=bossesLifetime}catch(_){}powerMessageText=(e.bossDef||BOSS_ROSTER[0]).name+" DESTROYED!";powerMessage=180;spawnPowerup("core");if(bossesDefeated%2===1)spawnPowerup("shield");sfx("win")}
+function bossBounty(e){bossesDefeated++;bossesLifetime++;try{localStorage.dinoBossesLifetime=bossesLifetime}catch(_){}const d=e.bossDef||BOSS_ROSTER[0];powerMessage=0;eventBannerTimer=0;bossDefeatName=d.name;bossDefeatColor=d.color;bossDefeatTimer=150;waveDelayUntil=gameTime+210;spawnPowerup("core");if(bossesDefeated%2===1)spawnPowerup("shield");sfx("win")}
 function spawnBoss(){
  if(bossSpawned)return;bossSpawned=true;bossCount++;enemies.length=0;enemyBullets.length=0;
  const def=BOSS_ROSTER[(bossCount-1)%BOSS_ROSTER.length];sfx("boss");powerMessage=0;bossAlertName=def.name;bossAlertColor=def.color;bossAlertTimer=150;screenShake=6;
@@ -218,7 +218,7 @@ function spawnBoss(){
 function spawnWave(){
  if(enemies.length>=10)return;
  wave++;const count=Math.min(10-enemies.length,3+Math.floor(level/2));
- eventBannerTitle="WAVE "+wave;eventBannerSub="ENEMY WAVE";eventBannerType="enemy";eventBannerTimer=105;if(audioReady){tone(185,.12,"sawtooth",.025,0,"sfx",700);tone(247,.16,"triangle",.022,.08,"sfx",800)};
+ eventBannerTitle="WAVE "+wave;eventBannerSub="";eventBannerType="enemy";eventBannerTimer=90;if(audioReady){tone(185,.12,"sawtooth",.025,0,"sfx",700);tone(247,.16,"triangle",.022,.08,"sfx",800)};
  const waveStart=enemies.length;
  for(let i=0;i<count;i++){let type=i===Math.floor(count/2)&&wave%2===0?"stalker":"scout";spawnEnemy(type,i*48)}
  const formed=enemies.slice(waveStart);const center=(formed.length-1)/2,formType=wave%2;
@@ -379,7 +379,7 @@ function update(){
  gameTime++;if(gameTime%30===0)combatMusicPulse();distance+=1/12;score=combatScore+Math.floor(distance);
 level=1+Math.floor(gameTime/600);difficulty=.82+gameTime/1450+level*.122
  if(level>lastLevel){lastLevel=level}
- if(spreadTimer>0)spreadTimer--;if(overdriveTimer>0)overdriveTimer--;if(meteorStormTimer>0)meteorStormTimer--;if(powerMessage>0)powerMessage--;if(eventBannerTimer>0)eventBannerTimer--;if(bossAlertTimer>0)bossAlertTimer--;
+ if(spreadTimer>0)spreadTimer--;if(overdriveTimer>0)overdriveTimer--;if(meteorStormTimer>0)meteorStormTimer--;if(powerMessage>0)powerMessage--;if(eventBannerTimer>0)eventBannerTimer--;if(bossAlertTimer>0)bossAlertTimer--;if(bossDefeatTimer>0)bossDefeatTimer--;
  if(gameTime===300||gameTime%840===0)spawnPowerup("spread");
  if(gameTime===480||gameTime%1080===0)spawnPowerup("shield");if(gameTime===840||gameTime%1380===0)spawnPowerup("overdrive");
  player.x=Math.max(12,Math.min(W-56,player.x));const bounds=playerBounds();player.y=Math.max(bounds.top,Math.min(bounds.bottom,player.y));
@@ -387,7 +387,7 @@ level=1+Math.floor(gameTime/600);difficulty=.82+gameTime/1450+level*.122
  const preBoss=enemies.some(e=>e.type==="boss"||e.type==="dreadnought");if(gameTime>=nextMeteorStorm&&!preBoss){meteorStormTimer=360;nextMeteorStorm=gameTime+1800;sfx("storm");eventBannerTitle="WAVE "+wave;eventBannerSub="METEOR STORM";eventBannerType="meteor";eventBannerTimer=130;screenShake=4}const spawnRate=meteorStormTimer>0?Math.max(14,32-Math.floor(difficulty*1.6)):Math.max(23,67-Math.floor(difficulty*5));if(gameTime%spawnRate===0&&asteroids.length<(preBoss?9:meteorStormTimer>0?22:20))spawnAsteroid();
  const bossActive=enemies.some(e=>e.type==="boss"||e.type==="dreadnought");
  if(!bossActive&&gameTime>240 && gameTime%Math.max(165,360-Math.floor(difficulty*12))===0){const r=Math.random();spawnEnemy(level>=2&&r<Math.min(.38,.16+level*.025)?"stalker":"scout")}
- if(!bossActive&&(gameTime===420||gameTime%720===0))spawnWave();
+ if(!bossActive&&gameTime>=waveDelayUntil&&(gameTime===420||gameTime%900===0))spawnWave();
  if(level>=nextBossLevel&&!bossActive){bossSpawned=false;spawnBoss();nextBossLevel+=5}
  for(let i=bullets.length-1;i>=0;i--){const b=bullets[i];b.x+=b.vx*GAME_SPEED;b.y+=(b.vy||0)*GAME_SPEED;if(b.x>W+40||b.y<-40||b.y>H+40)bullets.splice(i,1)}
  for(let i=enemyBullets.length-1;i>=0;i--){const b=enemyBullets[i];b.x+=b.vx*GAME_SPEED;b.y+=b.vy*GAME_SPEED;if(resumeGrace<=0&&hitPlayer(b.x,b.y,b.radius)){if(shieldHits>0){shieldHits--;shieldPulse=22;resumeGrace=Math.max(resumeGrace,25);burst(b.x,b.y,12,"hot",5);enemyBullets.splice(i,1);screenShake=4;continue}die();break}if(b.x<-30||b.y<-30||b.y>H+30)enemyBullets.splice(i,1)}
@@ -443,12 +443,12 @@ level=1+Math.floor(gameTime/600);difficulty=.82+gameTime/1450+level*.122
    }
   }
   if(e.type==="gunner"&&e.x<W*.92){e.shotTimer--;if(e.shotTimer<=0&&enemyBullets.length<16){const dx=player.x-e.x,dy=player.y-e.y,len=Math.hypot(dx,dy)||1,s=4.2+Math.min(2,difficulty*.12);enemyBullets.push({x:e.x-15,y:e.y,vx:dx/len*s,vy:dy/len*s,radius:4});e.fireKick=8;e.shotTimer=Math.max(55,115-level*3)}}
-  if(resumeGrace<=0&&hitPlayer(e.x,e.y,e.radius)){
+  const er=(e.type==="boss"||e.type==="dreadnought")?e.radius*.78:e.type==="stalker"?e.radius*.72:e.radius*.70;if(resumeGrace<=0&&hitPlayer(e.x,e.y,er)){
    if(shieldHits>0){shieldHits--;shieldPulse=22;resumeGrace=Math.max(resumeGrace,25);burst(player.x,player.y,24,"hot",7);if(shockwaves.length<14)shockwaves.push({x:player.x,y:player.y,radius:8,maxRadius:70,life:18,maxLife:18});const bossHit=e.type==="boss"||e.type==="dreadnought";if(bossHit){e.health-=5;player.x=Math.max(12,player.x-28);if(e.health<=0)destroyEnemy(i)}else enemies.splice(i,1);screenShake=7;continue}
    die();break}
   let enemyRemoved=false;
   for(let j=bullets.length-1;j>=0;j--){const b=bullets[j];
-   if(hitCircle(b.x,b.y,b.radius,e.x,e.y,e.radius)){
+   const shotR=(e.type==="boss"||e.type==="dreadnought")?e.radius*.82:e.type==="stalker"?e.radius*.76:e.radius*.73;if(hitCircle(b.x,b.y,b.radius,e.x,e.y,shotR)){
     if((b.pierce||0)>0)b.pierce--;else bullets.splice(j,1);e.health-=1+powerLevel+(critLevel>0&&Math.random()<critLevel*.10?2:0);e.hitFlash=6;e.hitKick=7;burst(b.x,b.y,9,"hot",4);for(let s=0;s<3;s++){const life=10+Math.random()*8;addParticle({x:b.x,y:b.y,vx:-2-Math.random()*4,vy:(Math.random()-.5)*5,life,maxLife:life,size:1.5+Math.random()*2,type:"hot"})}
     if(e.health<=0){destroyEnemy(i);enemyRemoved=true;break}
    }
@@ -486,14 +486,14 @@ function drawSpace(){
 }
 function drawAsteroid(a){
  ctx.save();ctx.translate(a.x,a.y);ctx.rotate(a.rotation);ctx.shadowColor="rgba(0,0,0,.7)";ctx.shadowBlur=0;
- const rock=ctx.createRadialGradient(-a.radius*.35,-a.radius*.4,2,0,0,a.radius*1.2);rock.addColorStop(0,"#aaa09a");rock.addColorStop(.28,"#766e69");rock.addColorStop(.65,"#4b4646");rock.addColorStop(1,"#242329");ctx.fillStyle=rock;
+ const rock=ctx.createRadialGradient(-a.radius*.38,-a.radius*.42,1,0,0,a.radius*1.18);rock.addColorStop(0,"#c2b5aa");rock.addColorStop(.18,"#857970");rock.addColorStop(.52,"#514b49");rock.addColorStop(.82,"#302e32");rock.addColorStop(1,"#17171d");ctx.fillStyle=rock;
  ctx.beginPath();const count=a.shape.length;
  for(let i=0;i<count;i++){const angle=i/count*Math.PI*2,r=a.radius*a.shape[i],x=Math.cos(angle)*r,y=Math.sin(angle)*r;i===0?ctx.moveTo(x,y):ctx.lineTo(x,y)}
  ctx.closePath();ctx.fill();ctx.shadowBlur=0;
  ctx.fillStyle="rgba(25,23,27,.65)";ctx.beginPath();ctx.ellipse(-a.radius*.28,-a.radius*.17,a.radius*.23,a.radius*.16,.3,0,Math.PI*2);ctx.fill();
  ctx.strokeStyle="rgba(190,175,160,.22)";ctx.lineWidth=Math.max(1,a.radius*.04);ctx.beginPath();ctx.ellipse(-a.radius*.28,-a.radius*.17,a.radius*.23,a.radius*.16,.3,Math.PI,Math.PI*2);ctx.stroke();
  ctx.fillStyle="rgba(30,28,31,.55)";ctx.beginPath();ctx.arc(a.radius*.3,a.radius*.18,a.radius*.13,0,Math.PI*2);ctx.fill();
- if(a.size>1){ctx.fillStyle="rgba(38,34,35,.48)";ctx.beginPath();ctx.arc(a.radius*.12,-a.radius*.43,a.radius*.10,0,Math.PI*2);ctx.fill()}
+ if(a.size>1){ctx.fillStyle="rgba(20,19,23,.72)";ctx.beginPath();ctx.arc(a.radius*.12,-a.radius*.43,a.radius*.11,0,Math.PI*2);ctx.fill();ctx.strokeStyle="rgba(215,190,165,.16)";ctx.lineWidth=1;ctx.stroke();ctx.strokeStyle="rgba(17,15,18,.55)";ctx.beginPath();ctx.moveTo(-a.radius*.58,a.radius*.18);ctx.lineTo(-a.radius*.18,a.radius*.05);ctx.lineTo(a.radius*.12,a.radius*.28);ctx.stroke()}
  if(a.health<a.size){ctx.globalAlpha=.8;ctx.strokeStyle="#ff6b25";ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(-a.radius*.05,-a.radius*.55);ctx.lineTo(a.radius*.05,-a.radius*.18);ctx.lineTo(-a.radius*.15,a.radius*.1);ctx.lineTo(a.radius*.12,a.radius*.4);ctx.stroke();ctx.globalAlpha=1}
  ctx.restore();
 }
@@ -569,7 +569,8 @@ const boss=enemies.find(e=>e.type==="boss"||e.type==="dreadnought");let hudY=94+
  if(state==="play"){const p=pauseRect();button(p.x,p.y,p.w,p.h,"II","#17304f","#09192e","#8cecff")}
 
  if(bossAlertTimer>0){const elapsed=150-bossAlertTimer,flash=elapsed<60&&Math.floor(elapsed/6)%2===0,fade=Math.min(1,bossAlertTimer/20),bw=Math.min(W-28,350),bh=76,bx=(W-bw)/2,by=Math.max(SAFE_TOP+66,74);ctx.save();if(flash){ctx.globalAlpha=.82;ctx.strokeStyle="#ff182c";ctx.lineWidth=8;ctx.shadowColor="#ff1028";ctx.shadowBlur=18;ctx.strokeRect(4,4,W-8,H-8)}ctx.globalAlpha=fade;ctx.fillStyle="rgba(20,0,6,.93)";ctx.beginPath();ctx.roundRect(bx,by,bw,bh,10);ctx.fill();ctx.strokeStyle=bossAlertColor;ctx.lineWidth=2.5;ctx.shadowColor=bossAlertColor;ctx.shadowBlur=14;ctx.stroke();ctx.shadowBlur=0;ctx.textAlign="center";ctx.fillStyle="#ff3348";ctx.font="900 12px system-ui,sans-serif";ctx.fillText("⚠ BOSS INBOUND ⚠",W/2,by+20);ctx.fillStyle="#fff";ctx.font=gameFont(20);ctx.fillText(bossAlertName,W/2,by+47);ctx.fillStyle=bossAlertColor;ctx.font="800 10px system-ui,sans-serif";ctx.fillText("HOSTILE COMMAND SHIP DETECTED",W/2,by+65);ctx.restore()}
- if(eventBannerTimer>0){const a=Math.min(1,eventBannerTimer/18),bw=Math.min(W-34,330),bh=60,bx=(W-bw)/2,by=Math.max(SAFE_TOP+64,72),accent=eventBannerType==="meteor"?"#ff9d32":"#52dcff";ctx.save();ctx.globalAlpha=a;ctx.fillStyle="rgba(3,10,24,.92)";ctx.beginPath();ctx.roundRect(bx,by,bw,bh,10);ctx.fill();ctx.strokeStyle=accent;ctx.lineWidth=2;ctx.stroke();ctx.textAlign="center";ctx.fillStyle="#fff";ctx.font=gameFont(20);ctx.fillText(eventBannerTitle,W/2,by+26);ctx.fillStyle=accent;ctx.font="900 12px system-ui,sans-serif";ctx.fillText(eventBannerSub,W/2,by+46);ctx.restore()}
+ if(bossDefeatTimer>0){const fade=Math.min(.82,bossDefeatTimer/18),bw=Math.min(W-36,330),bh=58,bx=(W-bw)/2,by=Math.max(SAFE_TOP+66,74);ctx.save();ctx.globalAlpha=fade;ctx.fillStyle="rgba(2,15,20,.48)";ctx.beginPath();ctx.roundRect(bx,by,bw,bh,10);ctx.fill();ctx.strokeStyle=bossDefeatColor;ctx.lineWidth=1.7;ctx.shadowColor=bossDefeatColor;ctx.shadowBlur=9;ctx.stroke();ctx.shadowBlur=0;ctx.textAlign="center";ctx.fillStyle="#dfffff";ctx.font="900 10px system-ui,sans-serif";ctx.fillText("COMMAND SHIP DESTROYED",W/2,by+19);ctx.fillStyle="#fff";ctx.font=gameFont(17);ctx.fillText(bossDefeatName,W/2,by+42);ctx.restore()}
+ if(eventBannerTimer>0){const a=Math.min(1,eventBannerTimer/18),bw=Math.min(W-34,330),bh=60,bx=(W-bw)/2,by=Math.max(SAFE_TOP+64,72),accent=eventBannerType==="meteor"?"#ff9d32":"#52dcff";ctx.save();ctx.globalAlpha=a;ctx.fillStyle="rgba(3,10,24,.92)";ctx.beginPath();ctx.roundRect(bx,by,bw,bh,10);ctx.fill();ctx.strokeStyle=accent;ctx.lineWidth=2;ctx.stroke();ctx.textAlign="center";ctx.fillStyle="#fff";ctx.font=gameFont(20);ctx.fillText(eventBannerTitle,W/2,by+26);if(eventBannerSub){ctx.fillStyle=accent;ctx.font="900 12px system-ui,sans-serif";ctx.fillText(eventBannerSub,W/2,by+46)}ctx.restore()}
  if(powerMessage>0){ctx.textAlign="center";ctx.globalAlpha=Math.min(1,powerMessage/20);ctx.font="bold 18px Arial";const msgY=Math.max(170,H*.30),tw=Math.min(W-40,ctx.measureText(powerMessageText).width+28);ctx.fillStyle="rgba(3,10,25,.78)";ctx.fillRect((W-tw)/2,msgY-25,tw,36);ctx.fillStyle="#fff";ctx.fillText(powerMessageText,W/2,msgY);ctx.globalAlpha=1}
 }
 function drawPause(){panel(W*.12,H*.32,W*.76,H*.28,"#071326","#171635","#6deaff");ctx.textAlign="center";ctx.fillStyle="#fff";ctx.font=gameFont(28);ctx.fillText("PAUSED",W/2,H*.405);ctx.fillStyle="#8cecff";ctx.font="700 13px system-ui,sans-serif";ctx.fillText("TAP RESUME TO CONTINUE",W/2,H*.455);button(W*.25,H*.50,W*.50,48,"RESUME","#075f83","#153665","#6deaff")}
@@ -593,16 +594,17 @@ function drawStart(){
  const brm=Math.floor(bestRunTime/60),brs=Math.floor(bestRunTime%60),survivalRecord=brm+":"+String(brs).padStart(2,"0");const stats=[["HIGH SCORE",high],["BEST RUN",survivalRecord],["INVADERS",totalKills]];for(let i=0;i<3;i++){const x=m+pw*(i+.5)/3;ctx.fillStyle="#83a9c2";ctx.font="800 9px system-ui,sans-serif";ctx.fillText(stats[i][0],x,statsY+21);ctx.fillStyle="#fff";ctx.font=gameFont(21);ctx.fillText(stats[i][1],x,statsY+48)}
  // Central objective console: no character, no core-defense language, no top-right copy.
  const card=ctx.createLinearGradient(m,heroTop,W-m,heroTop+heroH);card.addColorStop(0,"rgba(4,18,39,.91)");card.addColorStop(.5,"rgba(8,35,58,.82)");card.addColorStop(1,"rgba(20,17,49,.90)");ctx.fillStyle=card;ctx.beginPath();ctx.roundRect(m,heroTop,pw,heroH,16);ctx.fill();ctx.strokeStyle="rgba(89,225,255,.62)";ctx.lineWidth=1.5;ctx.shadowColor="#35d8ff";ctx.shadowBlur=9;ctx.stroke();ctx.shadowBlur=0;
- ctx.fillStyle="#ffad4d";ctx.font=gameFont(20);ctx.fillText("NOVA // LAST PILOT",W/2,heroTop+35);
+ ctx.fillStyle="#ffad4d";ctx.font=gameFont(20);ctx.fillText("NOVA — THE FINAL PILOT",W/2,heroTop+35);
  ctx.fillStyle="#d8f6ff";ctx.font="800 13px system-ui,sans-serif";ctx.fillText("SURVIVE THE INVASION. PUSH YOUR SCORE.",W/2,heroTop+64);
  ctx.fillStyle="#91b8ce";ctx.font="700 11px system-ui,sans-serif";ctx.fillText("3 LIVES • SHIELDS • BOSS ENCOUNTERS",W/2,heroTop+88);
  ctx.fillText("SURVIVE • BLAST • ADVANCE",W/2,heroTop+108);
  const pulse=.55+.25*Math.sin(gameTime*.06);ctx.globalAlpha=pulse;ctx.strokeStyle="#ff7b38";ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(m+24,heroTop+heroH-22);ctx.lineTo(W*.32,heroTop+heroH-22);ctx.moveTo(W*.68,heroTop+heroH-22);ctx.lineTo(W-m-24,heroTop+heroH-22);ctx.stroke();ctx.globalAlpha=1;
- button(m+9,launchY,pw-18,60,"LAUNCH NOVA","#a94729","#543258","#ffc86d");
- ctx.fillStyle="#d3e8f4";ctx.font="800 13px system-ui,sans-serif";ctx.fillText("HOLD TO FIRE  •  DRAG TO MOVE",W/2,launchY+88);
- ctx.fillStyle="#91aabd";ctx.font="bold 11px system-ui,sans-serif";ctx.fillText("VERSION 16.1",W/2,H-35);
+ button(m+9,launchY,pw-18,54,"LAUNCH NOVA","#a94729","#543258","#ffc86d");
+ button(m+9,launchY+60,pw-18,42,"HOW TO PLAY","#075f83","#153665","#6deaff");
+ ctx.fillStyle="#91aabd";ctx.font="bold 11px system-ui,sans-serif";ctx.fillText("VERSION 16.2",W/2,H-35);
  ctx.restore();
 }
+function drawHowTo(){ctx.save();ctx.fillStyle="rgba(0,4,14,.90)";ctx.fillRect(0,0,W,H);const m=16,top=Math.max(SAFE_TOP+18,28),pw=W-m*2,h=H-top-24;const g=ctx.createLinearGradient(m,top,W-m,top+h);g.addColorStop(0,"rgba(5,25,48,.95)");g.addColorStop(1,"rgba(24,10,42,.95)");ctx.fillStyle=g;ctx.beginPath();ctx.roundRect(m,top,pw,h,18);ctx.fill();ctx.strokeStyle="rgba(83,229,255,.65)";ctx.lineWidth=1.5;ctx.stroke();ctx.textAlign="center";ctx.fillStyle="#ff9b3d";ctx.font=gameFont(25);ctx.fillText("HOW TO PLAY",W/2,top+39);ctx.fillStyle="#8deeff";ctx.font="800 10px system-ui,sans-serif";ctx.fillText("NOVA — THE FINAL PILOT",W/2,top+59);const rows=[["MOVE + FIRE","Touch and hold anywhere. Drag to move. NOVA fires while held."],["SURVIVE","Dodge asteroids, enemy dinos and boss fire. You have 3 lives."],["TRI BURST","3-way blaster for 8 seconds."],["OVERDRIVE","Heavy 5-way blaster for 8 seconds."],["SHIELD","Blocks one hit. You can carry up to 2."],["BOSS CORE","Boss reward: +750 score."],["WAVES + BOSSES","Clear longer enemy waves. A UFO boss arrives every 5 levels."]];let y=top+88;for(const [head,body] of rows){ctx.textAlign="left";ctx.fillStyle="#ffbd69";ctx.font="900 11px system-ui,sans-serif";ctx.fillText(head,m+18,y);ctx.fillStyle="#d9edf7";ctx.font="600 10px system-ui,sans-serif";const words=body.split(" ");let line="",ly=y+16;for(const word of words){const test=line+word+" ";if(ctx.measureText(test).width>pw-36){ctx.fillText(line,m+18,ly);line=word+" ";ly+=13}else line=test}ctx.fillText(line,m+18,ly);y=ly+24}button(m+14,Math.min(top+h-58,y+2),pw-28,44,"BACK TO MENU","#075f83","#153665","#6deaff");ctx.restore()}
 function endLayout(){const h=Math.min(410,Math.max(350,H-210)),top=Math.max(102,(H-h)*.47),buttonY=top+h-65;return{top,h,buttonY}}
 function drawVictory(){drawDead()}
 function drawDead(){
@@ -657,7 +659,7 @@ function drawSplash(){
 function draw(){
  ctx.save();if(screenShake>0)ctx.translate((Math.random()-.5)*screenShake,(Math.random()-.5)*screenShake);
  drawSpace();if(state==="dead"||state==="lifeLost"){drawShockwaves();drawParticles()}else{for(const a of asteroids)drawAsteroid(a);for(const e of enemies)drawEnemy(e);drawPowerups();drawBullets();drawShockwaves();drawParticles();drawPlayer()}ctx.restore();
- if(state==="play"||state==="paused"||state==="lifeLost")drawHUD();if(state==="splash")drawSplash();if(state==="start")drawStart();if(state==="paused")drawPause();if(state==="lifeLost")drawLifeLost();if(state==="victory")drawVictory();if(state==="dead")drawDead();
+ if(state==="play"||state==="paused"||state==="lifeLost")drawHUD();if(state==="splash")drawSplash();if(state==="start")drawStart();if(state==="howto")drawHowTo();if(state==="paused")drawPause();if(state==="lifeLost")drawLifeLost();if(state==="victory")drawVictory();if(state==="dead")drawDead();
 }
 let last=performance.now(),accumulator=0;const STEP=1000/60;
 function loop(now){let delta=now-last;last=now;if(delta>66)delta=66;accumulator+=delta;let steps=0;while(accumulator>=STEP&&steps<3){update();accumulator-=STEP;steps++}if(steps===3&&accumulator>=STEP)accumulator=0;draw();requestAnimationFrame(loop)}
@@ -665,7 +667,7 @@ window.addEventListener("error",e=>{try{ctx.setTransform(1,0,0,1,0,0);ctx.fillSt
 requestAnimationFrame(loop);
 function touchPosition(touch){const rect=canvas.getBoundingClientRect();return{x:(touch.clientX-rect.left)*(W/rect.width),y:(touch.clientY-rect.top)*(H/rect.height)}}
 canvas.addEventListener("touchstart",function(e){
- e.preventDefault();initAudio();if(state==="splash")return;if(state==="start"&&audioReady){if(audioCtx&&audioCtx.state==="suspended")audioCtx.resume();startMenuMusic()}if(state==="victory"){for(const touch of e.changedTouches){const p=touchPosition(touch);if(p.y>=H*.59&&p.y<=H*.59+50){state="play";nextBossLevel=Math.max(nextBossLevel,15);return}if(p.y>=H*.67&&p.y<=H*.67+46){state="start";return}}return}if(state==="paused"){for(const touch of e.changedTouches){const p=touchPosition(touch);if(p.y>=H*.50-8&&p.y<=H*.50+56){resumeGrace=60;state="play";return}}return}if(state==="lifeLost"){for(const touch of e.changedTouches){const p=touchPosition(touch),width=Math.min(W-34,350),left=(W-width)/2,top=Math.max(128,H*.23);if(p.x>=left+20&&p.x<=left+width-20&&p.y>=top+160&&p.y<=top+208){enemyBullets.length=0;player.x=Math.min(100,W*.25);player.y=H*.5;resumeGrace=150;state="play";return}if(p.x>=left+20&&p.x<=left+width-20&&p.y>=top+220&&p.y<=top+262){state="start";firing=false;moveTouchID=null;startMenuMusic();return}}return}if(state==="play"){for(const touch of e.changedTouches){const p=touchPosition(touch);const pause=pauseRect();if(p.x>=pause.x-8&&p.y>=pause.y-8&&p.y<=pause.y+pause.h+8){state="paused";firing=false;moveTouchID=null;return}}}if(state==="start"){for(const touch of e.changedTouches){const p=touchPosition(touch),{launchY}=startLayout();if(p.y>=launchY&&p.y<=launchY+60){startGame();return}}return}if(state==="dead"){for(const touch of e.changedTouches){const p=touchPosition(touch),{buttonY}=endLayout();if(p.y>=buttonY&&p.y<=buttonY+48){if(p.x<W*.5)startGame();else{state="start";firing=false;moveTouchID=null;startMenuMusic()}return}}return}
+ e.preventDefault();initAudio();if(state==="splash")return;if(state==="start"&&audioReady){if(audioCtx&&audioCtx.state==="suspended")audioCtx.resume();startMenuMusic()}if(state==="victory"){for(const touch of e.changedTouches){const p=touchPosition(touch);if(p.y>=H*.59&&p.y<=H*.59+50){state="play";nextBossLevel=Math.max(nextBossLevel,15);return}if(p.y>=H*.67&&p.y<=H*.67+46){state="start";return}}return}if(state==="paused"){for(const touch of e.changedTouches){const p=touchPosition(touch);if(p.y>=H*.50-8&&p.y<=H*.50+56){resumeGrace=60;state="play";return}}return}if(state==="lifeLost"){for(const touch of e.changedTouches){const p=touchPosition(touch),width=Math.min(W-34,350),left=(W-width)/2,top=Math.max(128,H*.23);if(p.x>=left+20&&p.x<=left+width-20&&p.y>=top+160&&p.y<=top+208){enemyBullets.length=0;player.x=Math.min(100,W*.25);player.y=H*.5;resumeGrace=150;state="play";return}if(p.x>=left+20&&p.x<=left+width-20&&p.y>=top+220&&p.y<=top+262){state="start";firing=false;moveTouchID=null;startMenuMusic();return}}return}if(state==="play"){for(const touch of e.changedTouches){const p=touchPosition(touch);const pause=pauseRect();if(p.x>=pause.x-8&&p.y>=pause.y-8&&p.y<=pause.y+pause.h+8){state="paused";firing=false;moveTouchID=null;return}}}if(state==="start"){for(const touch of e.changedTouches){const p=touchPosition(touch),{launchY}=startLayout();if(p.y>=launchY&&p.y<=launchY+54){startGame();return}if(p.y>=launchY+60&&p.y<=launchY+102){state="howto";return}}return}if(state==="howto"){state="start";return}if(state==="dead"){for(const touch of e.changedTouches){const p=touchPosition(touch),{buttonY}=endLayout();if(p.y>=buttonY&&p.y<=buttonY+48){if(p.x<W*.5)startGame();else{state="start";firing=false;moveTouchID=null;startMenuMusic()}return}}return}
  for(const touch of e.changedTouches){const p=touchPosition(touch);
   if(moveTouchID===null){
    moveTouchID=touch.identifier;lastMoveX=p.x;lastMoveY=p.y;firing=true;if(player.fireCooldown<=0)shoot();
