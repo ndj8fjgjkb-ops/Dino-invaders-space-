@@ -17,11 +17,11 @@ content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,vie
 html,body{position:fixed;inset:0;width:100%;height:100%;margin:0;overflow:hidden;overscroll-behavior:none;touch-action:none;background:#02040d}
 canvas{position:fixed;inset:0;width:100%;height:100%;display:block;touch-action:none;-webkit-tap-highlight-color:transparent}
 </style>
-<meta name="dino-build" content="V15.1-Beagle-Bay"></head>
+<meta name="dino-build" content="V15.2-Deep-Beagle-Bay"></head>
 <body>
 <canvas id="game"></canvas>
 <script>
-// DINO INVADERS: SPACE V15.1 — BEAGLE BAY
+// DINO INVADERS: SPACE V15.2 — DEEP BEAGLE BAY
 const canvas=document.getElementById("game");
 const ctx=canvas.getContext("2d",{alpha:false,desynchronized:true});
 let W=0,H=0,SAFE_TOP=0,SAFE_BOTTOM=0;
@@ -54,11 +54,11 @@ function noiseBurst(dur=.16,vol=.05,cutoff=700,target="sfx"){if(!audioReady||!au
 function splashWhoosh(){if(!audioReady||!audioCtx||splashWhooshPlayed)return;splashWhooshPlayed=true;const dur=2.5,frames=Math.floor(audioCtx.sampleRate*dur),buf=audioCtx.createBuffer(2,frames,audioCtx.sampleRate);for(let c=0;c<2;c++){const d=buf.getChannelData(c);for(let i=0;i<frames;i++){const t=i/frames,env=Math.sin(Math.PI*t),flutter=.65+.35*Math.sin(i*.004+(c?1.7:0));d[i]=(Math.random()*2-1)*env*flutter}}const src=audioCtx.createBufferSource(),f=audioCtx.createBiquadFilter(),g=audioCtx.createGain(),pan=audioCtx.createStereoPanner?audioCtx.createStereoPanner():null;src.buffer=buf;f.type="bandpass";f.frequency.value=820;f.Q.value=.45;g.gain.value=.12;src.connect(f);f.connect(g);if(pan){g.connect(pan);pan.pan.setValueAtTime(-.45,audioCtx.currentTime);pan.pan.linearRampToValueAtTime(.45,audioCtx.currentTime+dur);pan.connect(sfxGain)}else g.connect(sfxGain);src.start()}
 function splashBark(){if(!audioReady||!audioCtx||splashBarkPlayed)return;splashBarkPlayed=true;noiseBurst(.10,.055,1500);tone(185,.10,"sawtooth",.035,0,"sfx",800);tone(260,.075,"triangle",.025,.045,"sfx",1200)}
 function splashBeagleHowl(){if(!audioReady||!audioCtx||splashHowlPlayed)return;splashHowlPlayed=true;
- const t=audioCtx.currentTime,d=2,mix=audioCtx.createGain(),lp=audioCtx.createBiquadFilter();lp.type="lowpass";lp.frequency.value=2100;mix.gain.setValueAtTime(.0001,t);mix.gain.linearRampToValueAtTime(.09,t+.08);mix.gain.setValueAtTime(.09,t+.35);mix.gain.linearRampToValueAtTime(.075,t+1.5);mix.gain.exponentialRampToValueAtTime(.0001,t+1.98);lp.connect(mix);mix.connect(sfxGain);
- const curve=[[260,0],[330,.12],[285,.28],[365,.48],[315,.72],[345,.98],[305,1.28],[275,1.55],[235,1.98]];
- [1,2,3,4].forEach((h,j)=>{const o=audioCtx.createOscillator(),g=audioCtx.createGain(),bp=audioCtx.createBiquadFilter();o.type=j<2?"sawtooth":"triangle";curve.forEach((p,k)=>{const hz=p[0]*h,at=t+p[1];if(k)o.frequency.linearRampToValueAtTime(hz,at);else o.frequency.setValueAtTime(hz,at)});g.gain.value=[.5,.22,.1,.045][j];bp.type="bandpass";bp.frequency.value=[360,700,1120,1580][j];bp.Q.value=[.7,1,1.2,1.35][j];o.connect(g);g.connect(bp);bp.connect(lp);o.start(t);o.stop(t+d+.02)});
- const n=Math.floor(audioCtx.sampleRate*d),buf=audioCtx.createBuffer(1,n,audioCtx.sampleRate),data=buf.getChannelData(0);for(let i=0;i<n;i++){const x=i/n,env=Math.min(1,x/.06)*Math.min(1,(1-x)/.16),rough=.6+.4*Math.sin(i*.0031)*Math.sin(i*.0017);data[i]=(Math.random()*2-1)*env*rough}const src=audioCtx.createBufferSource(),bp=audioCtx.createBiquadFilter(),ng=audioCtx.createGain();src.buffer=buf;bp.type="bandpass";bp.frequency.value=820;bp.Q.value=.65;ng.gain.setValueAtTime(.04,t);ng.gain.linearRampToValueAtTime(.018,t+.5);ng.gain.linearRampToValueAtTime(.027,t+1.35);ng.gain.exponentialRampToValueAtTime(.0001,t+1.98);src.connect(bp);bp.connect(ng);ng.connect(lp);src.start(t);src.stop(t+d);
- const attack=audioCtx.createOscillator(),ag=audioCtx.createGain();attack.type="sawtooth";attack.frequency.setValueAtTime(190,t);attack.frequency.exponentialRampToValueAtTime(145,t+.14);ag.gain.setValueAtTime(.065,t);ag.gain.exponentialRampToValueAtTime(.0001,t+.15);attack.connect(ag);ag.connect(lp);attack.start(t);attack.stop(t+.16)
+ const t=audioCtx.currentTime,d=2,mix=audioCtx.createGain(),lp=audioCtx.createBiquadFilter();lp.type="lowpass";lp.frequency.value=1450;mix.gain.setValueAtTime(.0001,t);mix.gain.linearRampToValueAtTime(.09,t+.08);mix.gain.setValueAtTime(.09,t+.35);mix.gain.linearRampToValueAtTime(.075,t+1.5);mix.gain.exponentialRampToValueAtTime(.0001,t+1.98);lp.connect(mix);mix.connect(sfxGain);
+ const curve=[[178,0],[214,.14],[192,.34],[238,.58],[205,.86],[224,1.12],[198,1.42],[178,1.68],[158,1.98]];
+ [1,2,3,4].forEach((h,j)=>{const o=audioCtx.createOscillator(),g=audioCtx.createGain(),bp=audioCtx.createBiquadFilter();o.type=j<2?"sawtooth":"triangle";curve.forEach((p,k)=>{const hz=p[0]*h,at=t+p[1];if(k)o.frequency.linearRampToValueAtTime(hz,at);else o.frequency.setValueAtTime(hz,at)});g.gain.value=[.62,.20,.065,.018][j];bp.type="bandpass";bp.frequency.value=[245,480,760,1080][j];bp.Q.value=[.62,.82,1.05,1.2][j];o.connect(g);g.connect(bp);bp.connect(lp);o.start(t);o.stop(t+d+.02)});
+ const n=Math.floor(audioCtx.sampleRate*d),buf=audioCtx.createBuffer(1,n,audioCtx.sampleRate),data=buf.getChannelData(0);for(let i=0;i<n;i++){const x=i/n,env=Math.min(1,x/.06)*Math.min(1,(1-x)/.16),rough=.6+.4*Math.sin(i*.0031)*Math.sin(i*.0017);data[i]=(Math.random()*2-1)*env*rough}const src=audioCtx.createBufferSource(),bp=audioCtx.createBiquadFilter(),ng=audioCtx.createGain();src.buffer=buf;bp.type="bandpass";bp.frequency.value=520;bp.Q.value=.65;ng.gain.setValueAtTime(.052,t);ng.gain.linearRampToValueAtTime(.027,t+.5);ng.gain.linearRampToValueAtTime(.035,t+1.35);ng.gain.exponentialRampToValueAtTime(.0001,t+1.98);src.connect(bp);bp.connect(ng);ng.connect(lp);src.start(t);src.stop(t+d);
+ const attack=audioCtx.createOscillator(),ag=audioCtx.createGain();attack.type="sawtooth";attack.frequency.setValueAtTime(142,t);attack.frequency.exponentialRampToValueAtTime(112,t+.17);ag.gain.setValueAtTime(.085,t);ag.gain.exponentialRampToValueAtTime(.0001,t+.19);attack.connect(ag);ag.connect(lp);attack.start(t);attack.stop(t+.20)
 }
 function sfx(name){if(!audioReady)return;
  if(name==="laser"){const now=audioCtx.currentTime;if(now-lastLaserAt<.05)return;lastLaserAt=now;tone(520,.045,"sine",.026,0,"sfx",1500);tone(310,.065,"triangle",.014,.006,"sfx",950)}
@@ -618,7 +618,7 @@ function drawStart(){
  const pulse=.55+.25*Math.sin(gameTime*.06);ctx.globalAlpha=pulse;ctx.strokeStyle="#ff7b38";ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(m+24,heroTop+heroH-22);ctx.lineTo(W*.32,heroTop+heroH-22);ctx.moveTo(W*.68,heroTop+heroH-22);ctx.lineTo(W-m-24,heroTop+heroH-22);ctx.stroke();ctx.globalAlpha=1;
  button(m+9,launchY,pw-18,60,"LAUNCH NOVA","#a94729","#543258","#ffc86d");
  ctx.fillStyle="#d3e8f4";ctx.font="800 13px system-ui,sans-serif";ctx.fillText("HOLD TO FIRE  •  DRAG TO MOVE",W/2,launchY+88);
- ctx.fillStyle="#91aabd";ctx.font="bold 11px system-ui,sans-serif";ctx.fillText("VERSION 15.1",W/2,H-53);ctx.fillStyle="#fff";ctx.font="bold 13px system-ui,sans-serif";ctx.fillText("Built by Curtis Company Limited",W/2,H-35);
+ ctx.fillStyle="#91aabd";ctx.font="bold 11px system-ui,sans-serif";ctx.fillText("VERSION 15.2",W/2,H-53);ctx.fillStyle="#fff";ctx.font="bold 13px system-ui,sans-serif";ctx.fillText("Built by Curtis Company Limited",W/2,H-35);
  ctx.restore();
 }
 function endLayout(){const h=Math.min(410,Math.max(350,H-210)),top=Math.max(102,(H-h)*.47),buttonY=top+h-65;return{top,h,buttonY}}
