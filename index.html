@@ -17,11 +17,11 @@ content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,vie
 html,body{position:fixed;inset:0;width:100%;height:100%;margin:0;overflow:hidden;overscroll-behavior:none;touch-action:none;background:#02040d}
 canvas{position:fixed;inset:0;width:100%;height:100%;display:block;touch-action:none;-webkit-tap-highlight-color:transparent}
 </style>
-<meta name="dino-build" content="V13.6-Distinct-Boss-Rigs"></head>
+<meta name="dino-build" content="V13.7-Balance-Hitbox"></head>
 <body>
 <canvas id="game"></canvas>
 <script>
-// DINO INVADERS: SPACE V13.6 — DISTINCT BOSS RIGS
+// DINO INVADERS: SPACE V13.7 — BALANCE + HITBOX
 const canvas=document.getElementById("game");
 const ctx=canvas.getContext("2d",{alpha:false,desynchronized:true});
 let W=0,H=0,SAFE_TOP=0,SAFE_BOTTOM=0;
@@ -247,7 +247,7 @@ function destroyEnemy(index){
 }
 function drawInvaderDino(kind,accent,body){const map={rex:"rex",trike:"bruiser",stego:"spike",spino:"spine",anky:"anka",raptor:"rex"},key=map[kind]||"rex",im=pilotSprites[key];if(!im||!im.complete||!im.naturalWidth)return;const sizes={rex:88,bruiser:91,spike:92,spine:94,anka:90},w=sizes[key]||88,h=w*im.naturalHeight/im.naturalWidth;ctx.save();ctx.shadowColor=accent;ctx.shadowBlur=5;ctx.globalAlpha=.22;ctx.drawImage(im,-w*.5-1,-h*.5,w+2,h+2);ctx.globalAlpha=1;ctx.shadowBlur=0;ctx.drawImage(im,-w*.5,-h*.5,w,h);ctx.restore()}
 function drawEnemy(e){
- ctx.save();const drift=Math.sin((gameTime+(e.y||0)*2)*.018)*1.5;ctx.translate(e.x,e.y+drift);const depth=1+Math.sin((gameTime+(e.x||0))*.012)*.018;ctx.scale(depth,depth);if(e.elite){ctx.strokeStyle="#ffd45b";ctx.lineWidth=1.4;ctx.globalAlpha=.42;ctx.beginPath();ctx.arc(0,0,e.radius+5,0,Math.PI*2);ctx.stroke();ctx.globalAlpha=1}
+ ctx.save();const drift=Math.sin((gameTime+(e.y||0)*2)*.018)*1.5;ctx.translate(e.x,e.y+drift);const depth=1+Math.sin((gameTime+(e.x||0))*.012)*.018;ctx.scale(depth,depth);
  const dread=e.type==="dreadnought",boss=e.type==="boss"||dread;
  if(boss){const def=e.bossDef||BOSS_ROSTER[0],hp=e.health/e.maxHealth,flap=Math.sin(gameTime*.12+e.phase),bob=Math.sin(gameTime*.055+e.phase)*2.5,recoil=e.fireKick>0?e.fireKick*.6:0;ctx.translate(recoil,bob);
   // Boss 1 keeps the proven articulated flying rig. Bosses 2-4 use their own prebuilt atlases,
@@ -406,17 +406,17 @@ function update(){
  if(state!=="play")return;
  if(resumeGrace>0)resumeGrace--;
  gameTime++;if(gameTime%30===0)combatMusicPulse();distance+=1/12;score=combatScore+Math.floor(distance);
-level=1+Math.floor(gameTime/600);sector=Math.min(5,1+Math.floor((level-1)/2));difficulty=.92+gameTime/1050+level*.15+sector*.055;if(sector>maxSector){maxSector=sector;localStorage.dinoMaxSector=maxSector}if(sector>lastSector){lastSector=sector;sectorKills=0;powerMessageText="SECTOR "+sector+" • "+SECTOR_NAMES[sector-1];powerMessage=180;screenShake=4}
+level=1+Math.floor(gameTime/600);sector=Math.min(5,1+Math.floor((level-1)/2));difficulty=.78+gameTime/1450+level*.105+sector*.035;if(sector>maxSector){maxSector=sector;localStorage.dinoMaxSector=maxSector}if(sector>lastSector){lastSector=sector;sectorKills=0;powerMessageText="SECTOR "+sector+" • "+SECTOR_NAMES[sector-1];powerMessage=180;screenShake=4}
  if(level>lastLevel){lastLevel=level;const tier=level>=9?"ONSLAUGHT":level>=6?"ASSAULT":level>=3?"ESCALATION":"LEVEL "+level;powerMessageText=level>=3?tier+" • LEVEL "+level:"LEVEL "+level;powerMessage=110;screenShake=Math.max(screenShake,level>=6?4:2);if(audioReady){tone(level>=6?330:260,.16,"sawtooth",.028,0,"sfx",900);tone(level>=6?440:350,.22,"triangle",.025,.10,"sfx",1100)}}
  if(spreadTimer>0)spreadTimer--;if(overdriveTimer>0)overdriveTimer--;if(meteorStormTimer>0)meteorStormTimer--;if(powerMessage>0)powerMessage--;if(comboTimer>0){comboTimer--;if(comboTimer===0)combo=0}
  if(gameTime===300||gameTime%840===0)spawnPowerup("spread");
  if(gameTime===480||gameTime%1080===0)spawnPowerup("shield");if(gameTime===840||gameTime%1380===0)spawnPowerup("overdrive");
  player.x=Math.max(50,Math.min(W-65,player.x));const bounds=playerBounds();player.y=Math.max(bounds.top,Math.min(bounds.bottom,player.y));
  if(player.fireCooldown>0)player.fireCooldown--;if(firing&&player.fireCooldown<=0)shoot();
- const preBoss=enemies.some(e=>e.type==="boss"||e.type==="dreadnought");if(gameTime>=nextMeteorStorm&&!preBoss){meteorStormTimer=360;nextMeteorStorm=gameTime+1800;sfx("storm");powerMessageText="METEOR STORM!";powerMessage=150;screenShake=4}const spawnRate=meteorStormTimer>0?Math.max(11,29-Math.floor(difficulty*2)):Math.max(19,60-Math.floor(difficulty*6));if(gameTime%spawnRate===0&&asteroids.length<(preBoss?9:meteorStormTimer>0?22:20))spawnAsteroid();
+ const preBoss=enemies.some(e=>e.type==="boss"||e.type==="dreadnought");if(gameTime>=nextMeteorStorm&&!preBoss){meteorStormTimer=360;nextMeteorStorm=gameTime+1800;sfx("storm");powerMessageText="METEOR STORM!";powerMessage=150;screenShake=4}const spawnRate=meteorStormTimer>0?Math.max(15,34-Math.floor(difficulty*1.6)):Math.max(25,72-Math.floor(difficulty*5));if(gameTime%spawnRate===0&&asteroids.length<(preBoss?9:meteorStormTimer>0?22:20))spawnAsteroid();
  const bossActive=enemies.some(e=>e.type==="boss"||e.type==="dreadnought");
- if(!bossActive&&gameTime>210 && gameTime%Math.max(138,315-Math.floor(difficulty*14))===0){const r=Math.random();spawnEnemy(level>=2&&r<Math.min(.38,.16+level*.025)?"stalker":"scout")}
- if(!bossActive&&(gameTime===390||gameTime%630===0))spawnWave();
+ if(!bossActive&&gameTime>240 && gameTime%Math.max(165,360-Math.floor(difficulty*12))===0){const r=Math.random();spawnEnemy(level>=2&&r<Math.min(.38,.16+level*.025)?"stalker":"scout")}
+ if(!bossActive&&(gameTime===420||gameTime%720===0))spawnWave();
  if(level>=nextBossLevel&&!bossActive){bossSpawned=false;spawnBoss();nextBossLevel+=5}
  for(let i=bullets.length-1;i>=0;i--){const b=bullets[i];b.x+=b.vx*GAME_SPEED;b.y+=(b.vy||0)*GAME_SPEED;if(b.x>W+40||b.y<-40||b.y>H+40)bullets.splice(i,1)}
  for(let i=enemyBullets.length-1;i>=0;i--){const b=enemyBullets[i];b.x+=b.vx*GAME_SPEED;b.y+=b.vy*GAME_SPEED;if(resumeGrace<=0&&hitPlayer(b.x,b.y,b.radius)){if(shieldHits>0){shieldHits--;shieldPulse=22;resumeGrace=Math.max(resumeGrace,25);burst(b.x,b.y,12,"hot",5);enemyBullets.splice(i,1);screenShake=4;continue}die();break}if(b.x<-30||b.y<-30||b.y>H+30)enemyBullets.splice(i,1)}
@@ -540,7 +540,7 @@ function drawParticles(){
 }
 function drawPlayer(){
  if(!raptorReady)return;ctx.save();ctx.translate(Math.round(player.x),Math.round(player.y));
- if(shieldHits>0||shieldPulse>0){const r=player.width*.66,pulse=shieldPulse/22;ctx.save();ctx.scale(1,.85);const field=ctx.createRadialGradient(-r*.32,-r*.3,2,0,0,r);field.addColorStop(0,"rgba(140,238,255,.02)");field.addColorStop(.68,"rgba(45,155,255,.06)");field.addColorStop(1,"rgba(97,225,255,"+(.24+pulse*.48)+")");ctx.fillStyle=field;ctx.beginPath();ctx.arc(0,0,r,0,Math.PI*2);ctx.fill();ctx.clip();ctx.strokeStyle="rgba(120,233,255,"+(.12+pulse*.3)+")";ctx.lineWidth=.7;
+ if(shieldHits>0||shieldPulse>0){const r=player.width*.54,pulse=shieldPulse/22;ctx.save();ctx.scale(1,.85);const field=ctx.createRadialGradient(-r*.32,-r*.3,2,0,0,r);field.addColorStop(0,"rgba(140,238,255,.02)");field.addColorStop(.68,"rgba(45,155,255,.06)");field.addColorStop(1,"rgba(97,225,255,"+(.24+pulse*.48)+")");ctx.fillStyle=field;ctx.beginPath();ctx.arc(0,0,r,0,Math.PI*2);ctx.fill();ctx.clip();ctx.strokeStyle="rgba(120,233,255,"+(.12+pulse*.3)+")";ctx.lineWidth=.7;
   for(let row=-3;row<=3;row++)for(let col=-3;col<=3;col++){const hx=col*12+(row%2)*6,hy=row*10;ctx.beginPath();for(let k=0;k<6;k++){const a=k*Math.PI/3;const x=hx+Math.cos(a)*7,y=hy+Math.sin(a)*7;k?ctx.lineTo(x,y):ctx.moveTo(x,y)}ctx.closePath();ctx.stroke()}
   ctx.restore();ctx.save();ctx.scale(1,.85);ctx.lineWidth=1.4;ctx.strokeStyle="rgba(151,244,255,.8)";for(let j=0;j<3;j++){const a=gameTime*.013+j*Math.PI*2/3;ctx.beginPath();ctx.arc(0,0,r-1,a,a+.85);ctx.stroke()}ctx.strokeStyle="rgba(222,255,255,.48)";ctx.lineWidth=1;ctx.beginPath();ctx.ellipse(-r*.1,-r*.35,r*.65,r*.32,-.3,Math.PI,Math.PI*1.8);ctx.stroke();ctx.restore()}
 
@@ -595,7 +595,7 @@ function drawStart(){
  const pulse=.55+.25*Math.sin(gameTime*.06);ctx.globalAlpha=pulse;ctx.strokeStyle="#ff7b38";ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(m+24,heroTop+heroH-22);ctx.lineTo(W*.32,heroTop+heroH-22);ctx.moveTo(W*.68,heroTop+heroH-22);ctx.lineTo(W-m-24,heroTop+heroH-22);ctx.stroke();ctx.globalAlpha=1;
  button(m+9,launchY,pw-18,60,"LAUNCH NOVA","#a94729","#543258","#ffc86d");
  ctx.fillStyle="#d3e8f4";ctx.font="800 13px system-ui,sans-serif";ctx.fillText("HOLD TO FIRE  •  DRAG TO MOVE",W/2,launchY+88);
- ctx.fillStyle="#91aabd";ctx.font="bold 11px system-ui,sans-serif";ctx.fillText("VERSION 13.6",W/2,H-53);ctx.fillStyle="#fff";ctx.font="bold 13px system-ui,sans-serif";ctx.fillText("Built by Curtis Company Limited",W/2,H-35);
+ ctx.fillStyle="#91aabd";ctx.font="bold 11px system-ui,sans-serif";ctx.fillText("VERSION 13.7",W/2,H-53);ctx.fillStyle="#fff";ctx.font="bold 13px system-ui,sans-serif";ctx.fillText("Built by Curtis Company Limited",W/2,H-35);
  ctx.restore();
 }
 function endLayout(){const h=Math.min(410,Math.max(350,H-210)),top=Math.max(102,(H-h)*.47),buttonY=top+h-65;return{top,h,buttonY}}
