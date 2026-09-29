@@ -17,11 +17,11 @@ content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,vie
 html,body{position:fixed;inset:0;width:100%;height:100%;margin:0;overflow:hidden;overscroll-behavior:none;touch-action:none;background:#02040d}
 canvas{position:fixed;inset:0;width:100%;height:100%;display:block;touch-action:none;-webkit-tap-highlight-color:transparent}
 </style>
-<meta name="dino-build" content="V15.8A-Wave-Field-Test"></head>
+<meta name="dino-build" content="V15.8B-Clean-Pickups"></head>
 <body>
 <canvas id="game"></canvas>
 <script>
-// DINO INVADERS: SPACE V15.8A — WAVE HUD + FIELD TEST
+// DINO INVADERS: SPACE V15.8B — CLEAN PICKUPS
 const canvas=document.getElementById("game");
 const ctx=canvas.getContext("2d",{alpha:false,desynchronized:true});
 let W=0,H=0,SAFE_TOP=0,SAFE_BOTTOM=0;
@@ -427,11 +427,11 @@ level=1+Math.floor(gameTime/600);difficulty=.82+gameTime/1450+level*.122
  for(let i=enemyBullets.length-1;i>=0;i--){const b=enemyBullets[i];b.x+=b.vx*GAME_SPEED;b.y+=b.vy*GAME_SPEED;if(resumeGrace<=0&&hitPlayer(b.x,b.y,b.radius)){if(shieldHits>0){shieldHits--;shieldPulse=22;resumeGrace=Math.max(resumeGrace,25);burst(b.x,b.y,12,"hot",5);enemyBullets.splice(i,1);screenShake=4;continue}die();break}if(b.x<-30||b.y<-30||b.y>H+30)enemyBullets.splice(i,1)}
  for(let i=powerups.length-1;i>=0;i--){const p=powerups[i];p.x+=p.vx;
   if(hitCircle(player.x,player.y,player.radius+5,p.x,p.y,p.radius)){
-   if(p.type==="shield"){shieldHits=Math.min(2,shieldHits+1);powerMessageText="SHIELD READY!"}
-   else if(p.type==="overdrive"){overdriveTimer=480;powerMessageText="NOVA OVERDRIVE!"}
-   else if(p.type==="core"){combatScore+=750;score=combatScore+Math.floor(distance);powerMessageText="BOSS CORE +750 SCORE"}
-   else{spreadTimer=480;powerMessageText="TRI BURST!"}
-   powerMessage=90;sfx("pickup");burst(p.x,p.y,20,"hot",6);powerups.splice(i,1);screenShake=Math.max(screenShake,3);continue}
+   if(p.type==="shield"){shieldHits=Math.min(2,shieldHits+1)}
+   else if(p.type==="overdrive"){overdriveTimer=480}
+   else if(p.type==="core"){combatScore+=750;score=combatScore+Math.floor(distance)}
+   else{spreadTimer=480}
+   sfx("pickup");burst(p.x,p.y,20,"hot",6);powerups.splice(i,1);screenShake=Math.max(screenShake,3);continue}
   if(p.x<-40)powerups.splice(i,1);
  }
  for(let i=enemies.length-1;i>=0;i--){
@@ -628,7 +628,7 @@ function drawStart(){
  const pulse=.55+.25*Math.sin(gameTime*.06);ctx.globalAlpha=pulse;ctx.strokeStyle="#ff7b38";ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(m+24,heroTop+heroH-22);ctx.lineTo(W*.32,heroTop+heroH-22);ctx.moveTo(W*.68,heroTop+heroH-22);ctx.lineTo(W-m-24,heroTop+heroH-22);ctx.stroke();ctx.globalAlpha=1;
  button(m+9,launchY,pw-18,60,"LAUNCH NOVA","#a94729","#543258","#ffc86d");
  ctx.fillStyle="#d3e8f4";ctx.font="800 13px system-ui,sans-serif";ctx.fillText("HOLD TO FIRE  •  DRAG TO MOVE",W/2,launchY+88);
- ctx.fillStyle="#91aabd";ctx.font="bold 11px system-ui,sans-serif";ctx.fillText("VERSION 15.8A",W/2,H-35);
+ ctx.fillStyle="#91aabd";ctx.font="bold 11px system-ui,sans-serif";ctx.fillText("VERSION 15.8B",W/2,H-35);
  ctx.restore();
 }
 function endLayout(){const h=Math.min(410,Math.max(350,H-210)),top=Math.max(102,(H-h)*.47),buttonY=top+h-65;return{top,h,buttonY}}
