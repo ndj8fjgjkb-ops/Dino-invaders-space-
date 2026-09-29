@@ -17,11 +17,11 @@ content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,vie
 html,body{position:fixed;inset:0;width:100%;height:100%;margin:0;overflow:hidden;overscroll-behavior:none;touch-action:none;background:#02040d}
 canvas{position:fixed;inset:0;width:100%;height:100%;display:block;touch-action:none;-webkit-tap-highlight-color:transparent}
 </style>
-<meta name="dino-build" content="V13.5-Proven-Boss-Rig"></head>
+<meta name="dino-build" content="V13.6-Distinct-Boss-Rigs"></head>
 <body>
 <canvas id="game"></canvas>
 <script>
-// DINO INVADERS: SPACE V13.5 — PROVEN BOSS RIG
+// DINO INVADERS: SPACE V13.6 — DISTINCT BOSS RIGS
 const canvas=document.getElementById("game");
 const ctx=canvas.getContext("2d",{alpha:false,desynchronized:true});
 let W=0,H=0,SAFE_TOP=0,SAFE_BOTTOM=0;
@@ -250,18 +250,32 @@ function drawEnemy(e){
  ctx.save();const drift=Math.sin((gameTime+(e.y||0)*2)*.018)*1.5;ctx.translate(e.x,e.y+drift);const depth=1+Math.sin((gameTime+(e.x||0))*.012)*.018;ctx.scale(depth,depth);if(e.elite){ctx.strokeStyle="#ffd45b";ctx.lineWidth=1.4;ctx.globalAlpha=.42;ctx.beginPath();ctx.arc(0,0,e.radius+5,0,Math.PI*2);ctx.stroke();ctx.globalAlpha=1}
  const dread=e.type==="dreadnought",boss=e.type==="boss"||dread;
  if(boss){const def=e.bossDef||BOSS_ROSTER[0],hp=e.health/e.maxHealth,flap=Math.sin(gameTime*.12+e.phase),bob=Math.sin(gameTime*.055+e.phase)*2.5,recoil=e.fireKick>0?e.fireKick*.6:0;ctx.translate(recoil,bob);
-  // Every boss now uses the original proven articulated flying-boss rig.
-  // Later bosses change silhouette/read through scale, stance and armor accents without replacing the working animation.
-  const ready=bossBodyImg.complete&&bossBodyImg.naturalWidth&&bossWingLeftImg.naturalWidth&&bossWingRightImg.naturalWidth;
-  if(ready){const parts={body:spriteCache.get(bossBodyImg)||bossBodyImg,left:spriteCache.get(bossWingLeftImg)||bossWingLeftImg,right:spriteCache.get(bossWingRightImg)||bossWingRightImg};
-   const variant=def.kind==="bruiser"?1:def.kind==="spine"?2:def.kind==="anka"?3:0;
-   const scale=[1,1.10,1.06,1.16][variant],wingW=84*scale,wingH=57*scale,bodyW=94*scale,bodyH=bodyW*bossBodyImg.naturalHeight/bossBodyImg.naturalWidth;
-   const flapAmp=[.22,.17,.28,.14][variant],stance=[0,.08,-.06,.12][variant];
-   ctx.save();ctx.translate(-30*scale,-7);ctx.rotate(-.13-stance-flap*flapAmp);ctx.scale(1,1-flap*.1);ctx.drawImage(parts.left,-wingW*.82,-wingH*.5,wingW,wingH);ctx.restore();
-   ctx.save();ctx.translate(30*scale,-7);ctx.rotate(.13+stance+flap*flapAmp);ctx.scale(1,1-flap*.1);ctx.drawImage(parts.right,-wingW*.18,-wingH*.5,wingW,wingH);ctx.restore();
-   ctx.save();ctx.translate(0,-Math.abs(flap)*2);ctx.rotate(flap*.018);ctx.drawImage(parts.body,-bodyW*.5,-bodyH*.5,bodyW,bodyH);
-   if(variant>0){ctx.globalAlpha=.72;ctx.strokeStyle=def.color;ctx.lineWidth=variant===3?3:2;ctx.shadowColor=def.color;ctx.shadowBlur=5;ctx.beginPath();if(variant===1){ctx.moveTo(-bodyW*.30,-bodyH*.18);ctx.lineTo(-bodyW*.42,-bodyH*.42);ctx.moveTo(bodyW*.30,-bodyH*.18);ctx.lineTo(bodyW*.42,-bodyH*.42)}else if(variant===2){for(let s=-2;s<=2;s++){const x=s*bodyW*.12;ctx.moveTo(x,-bodyH*.28);ctx.lineTo(x+bodyW*.035,-bodyH*.48)}}else{ctx.ellipse(0,0,bodyW*.40,bodyH*.34,0,0,Math.PI*2)}ctx.stroke();ctx.shadowBlur=0;ctx.globalAlpha=1}
-   if(e.hitFlash>0){ctx.globalAlpha=e.hitFlash/16;ctx.fillStyle="#fff";ctx.beginPath();ctx.ellipse(0,0,bodyW*.29,bodyH*.32,0,0,Math.PI*2);ctx.fill()}ctx.restore();
+  // Boss 1 keeps the proven articulated flying rig. Bosses 2-4 use their own prebuilt atlases,
+  // split once at load into body + left/right moving parts for animation without per-frame image work.
+  if(def.kind==="dread"){
+   const ready=bossBodyImg.complete&&bossBodyImg.naturalWidth&&bossWingLeftImg.naturalWidth&&bossWingRightImg.naturalWidth;
+   if(ready){const parts={body:spriteCache.get(bossBodyImg)||bossBodyImg,left:spriteCache.get(bossWingLeftImg)||bossWingLeftImg,right:spriteCache.get(bossWingRightImg)||bossWingRightImg};
+    const wingW=84,wingH=57,bodyW=94,bodyH=bodyW*bossBodyImg.naturalHeight/bossBodyImg.naturalWidth;
+    ctx.save();ctx.translate(-30,-7);ctx.rotate(-.13-flap*.22);ctx.scale(1,1-flap*.1);ctx.drawImage(parts.left,-wingW*.82,-wingH*.5,wingW,wingH);ctx.restore();
+    ctx.save();ctx.translate(30,-7);ctx.rotate(.13+flap*.22);ctx.scale(1,1-flap*.1);ctx.drawImage(parts.right,-wingW*.18,-wingH*.5,wingW,wingH);ctx.restore();
+    ctx.save();ctx.translate(0,-Math.abs(flap)*2);ctx.rotate(flap*.018);ctx.drawImage(parts.body,-bodyW*.5,-bodyH*.5,bodyW,bodyH);
+    if(e.hitFlash>0){ctx.globalAlpha=e.hitFlash/16;ctx.fillStyle="#fff";ctx.beginPath();ctx.ellipse(0,0,bodyW*.29,bodyH*.32,0,0,Math.PI*2);ctx.fill()}ctx.restore();
+   }
+  }else{
+   const atlas=bossAtlases[def.kind],parts=atlas&&bossParts.get(atlas);
+   if(parts){const variant=def.kind==="bruiser"?1:def.kind==="spine"?2:3;
+    const scale=variant===1?1.08:variant===2?1.03:1.12,bodyW=112*scale,bodyH=78*scale,wingW=68*scale,wingH=58*scale;
+    const amp=variant===1?.14:variant===2?.26:.11,pace=variant===1?.085:variant===2?.15:.07,beat=Math.sin(gameTime*pace+e.phase);
+    // Side pieces articulate independently, while the central body rocks/breathes as one stable silhouette.
+    ctx.save();ctx.translate(-bodyW*.30,-8);ctx.rotate(-.10-beat*amp);ctx.drawImage(parts.left,-wingW*.78,-wingH*.52,wingW,wingH);ctx.restore();
+    ctx.save();ctx.translate(bodyW*.30,-8);ctx.rotate(.10+beat*amp);ctx.drawImage(parts.right,-wingW*.22,-wingH*.52,wingW,wingH);ctx.restore();
+    ctx.save();ctx.translate(0,-Math.abs(beat)*(variant===2?3:1.5));ctx.rotate(beat*(variant===1?.012:variant===2?.026:.009));ctx.drawImage(parts.body,-bodyW*.5,-bodyH*.5,bodyW,bodyH);
+    if(e.hitFlash>0){ctx.globalAlpha=e.hitFlash/16;ctx.fillStyle="#fff";ctx.beginPath();ctx.ellipse(0,0,bodyW*.34,bodyH*.31,0,0,Math.PI*2);ctx.fill()}ctx.restore();
+   }else{
+    // Asset-load fallback: keep gameplay readable without reverting to circles or synthetic boss shapes.
+    const ready=bossBodyImg.complete&&bossBodyImg.naturalWidth;
+    if(ready){const body=spriteCache.get(bossBodyImg)||bossBodyImg,w=98,h=w*bossBodyImg.naturalHeight/bossBodyImg.naturalWidth;ctx.save();ctx.scale(1+flap*.015,1-flap*.015);ctx.drawImage(body,-w*.5,-h*.5,w,h);ctx.restore()}
+   }
   }
   ctx.fillStyle="#071928";ctx.fillRect(-34,41,68,4);ctx.fillStyle=def.color;ctx.fillRect(-34,41,68*hp,4);ctx.restore();return}
  // Standard enemy roster intentionally uses only two visual species.
@@ -581,7 +595,7 @@ function drawStart(){
  const pulse=.55+.25*Math.sin(gameTime*.06);ctx.globalAlpha=pulse;ctx.strokeStyle="#ff7b38";ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(m+24,heroTop+heroH-22);ctx.lineTo(W*.32,heroTop+heroH-22);ctx.moveTo(W*.68,heroTop+heroH-22);ctx.lineTo(W-m-24,heroTop+heroH-22);ctx.stroke();ctx.globalAlpha=1;
  button(m+9,launchY,pw-18,60,"LAUNCH NOVA","#a94729","#543258","#ffc86d");
  ctx.fillStyle="#d3e8f4";ctx.font="800 13px system-ui,sans-serif";ctx.fillText("HOLD TO FIRE  •  DRAG TO MOVE",W/2,launchY+88);
- ctx.fillStyle="#91aabd";ctx.font="bold 11px system-ui,sans-serif";ctx.fillText("VERSION 13.5",W/2,H-53);ctx.fillStyle="#fff";ctx.font="bold 13px system-ui,sans-serif";ctx.fillText("Built by Curtis Company Limited",W/2,H-35);
+ ctx.fillStyle="#91aabd";ctx.font="bold 11px system-ui,sans-serif";ctx.fillText("VERSION 13.6",W/2,H-53);ctx.fillStyle="#fff";ctx.font="bold 13px system-ui,sans-serif";ctx.fillText("Built by Curtis Company Limited",W/2,H-35);
  ctx.restore();
 }
 function endLayout(){const h=Math.min(410,Math.max(350,H-210)),top=Math.max(102,(H-h)*.47),buttonY=top+h-65;return{top,h,buttonY}}
