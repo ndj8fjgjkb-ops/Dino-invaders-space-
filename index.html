@@ -17,16 +17,16 @@ content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,vie
 html,body{position:fixed;inset:0;width:100%;height:100%;margin:0;overflow:hidden;overscroll-behavior:none;touch-action:none;background:#02040d}
 canvas{position:fixed;inset:0;width:100%;height:100%;display:block;touch-action:none;-webkit-tap-highlight-color:transparent}
 </style>
-<meta name="dino-build" content="V13.9-Three-Lives"></head>
+<meta name="dino-build" content="V14.0-Life-Continue-Screen"></head>
 <body>
 <canvas id="game"></canvas>
 <script>
-// DINO INVADERS: SPACE V13.9 — THREE LIVES
+// DINO INVADERS: SPACE V14.0 — LIFE CONTINUE SCREEN
 const canvas=document.getElementById("game");
 const ctx=canvas.getContext("2d",{alpha:false,desynchronized:true});
 let W=0,H=0,SAFE_TOP=0,SAFE_BOTTOM=0;
 function readSafeInsets(){if(!document.body||!window.getComputedStyle)return;const probe=document.createElement("div");probe.style.cssText="position:fixed;visibility:hidden;padding-top:env(safe-area-inset-top);padding-bottom:env(safe-area-inset-bottom)";document.body.appendChild(probe);const style=window.getComputedStyle(probe);SAFE_TOP=parseFloat(style.paddingTop)||0;SAFE_BOTTOM=parseFloat(style.paddingBottom)||0;probe.remove()}
-function pauseRect(){return{x:W-54,y:18+SAFE_TOP,w:42,h:34}}
+function pauseRect(){return{x:W-54,y:82+SAFE_TOP,w:42,h:34}}
 function playerBounds(){return{top:Math.max(50,SAFE_TOP+42),bottom:Math.max(100,H-65-SAFE_BOTTOM)}}
 document.addEventListener("touchmove",e=>e.preventDefault(),{passive:false});
 document.addEventListener("gesturestart",e=>e.preventDefault(),{passive:false});
@@ -375,7 +375,7 @@ function hitPlayer(bx,by,br=0){
  return false;
 }
 function die(){
- if(state!=="play"||resumeGrace>0)return;sfx("hurt");const pilotArmor=0;if((armorLevel>0||pilotArmor>0)&&Math.random()<(armorLevel*.12+pilotArmor*.08)){powerMessageText="ARMOR DEFLECT!";powerMessage=90;resumeGrace=45;screenShake=5;return}lives--;firing=false;moveTouchID=null;screenShake=13;burst(player.x,player.y,32,"red",9);if(lives>0){enemyBullets.length=0;player.x=Math.min(100,W*.25);player.y=H*.5;resumeGrace=150;powerMessageText="LIFE LOST — "+lives+" REMAINING";powerMessage=110;return}state="dead";flushRecords();
+ if(state!=="play"||resumeGrace>0)return;sfx("hurt");const pilotArmor=0;if((armorLevel>0||pilotArmor>0)&&Math.random()<(armorLevel*.12+pilotArmor*.08)){powerMessageText="ARMOR DEFLECT!";powerMessage=90;resumeGrace=45;screenShake=5;return}lives--;firing=false;moveTouchID=null;screenShake=13;burst(player.x,player.y,32,"red",9);if(lives>0){state="lifeLost";powerMessage=0;return}state="dead";flushRecords();
  runNewRecord=score>high;if(runNewRecord)high=score;if(level>bestLevel)bestLevel=level;lastCredits=0;runs++;const runSeconds=gameTime/60;if(runSeconds>bestRunTime)bestRunTime=runSeconds;if(distance>bestRunDistance)bestRunDistance=distance;try{localStorage.spaceHigh=high;localStorage.dinoBestLevel=bestLevel;localStorage.dinoRuns=runs;localStorage.dinoBestRunTime=bestRunTime;localStorage.dinoBestRunDistance=bestRunDistance}catch(_){}
 }
 function destroyAsteroid(index){
@@ -549,7 +549,13 @@ function drawPlayer(){
 }
 function gameFont(size,weight="700"){return weight+" "+size+"px Impact, Haettenschweiler, \"Arial Narrow Bold\", system-ui, sans-serif"}
 function panel(x,y,w,h,a="#07152d",b="#162b55",stroke="#58dfff"){const g=ctx.createLinearGradient(x,y,x+w,y+h);g.addColorStop(0,a);g.addColorStop(1,b);ctx.fillStyle=g;ctx.beginPath();ctx.roundRect(x,y,w,h,14);ctx.fill();ctx.strokeStyle=stroke;ctx.lineWidth=2;ctx.shadowColor=stroke;ctx.shadowBlur=10;ctx.stroke();ctx.shadowBlur=0}
-function button(x,y,w,h,label,c1="#0e5f86",c2="#152d69",stroke="#71edff"){const g=ctx.createLinearGradient(x,y,x,y+h);g.addColorStop(0,c1);g.addColorStop(1,c2);ctx.fillStyle=g;ctx.beginPath();ctx.roundRect(x,y,w,h,12);ctx.fill();ctx.strokeStyle=stroke;ctx.lineWidth=2;ctx.shadowColor=stroke;ctx.shadowBlur=12;ctx.stroke();ctx.shadowBlur=0;ctx.fillStyle="#fff";ctx.font=gameFont(16);ctx.textAlign="center";ctx.fillText(label,x+w/2,y+h*.64)}
+function button(x,y,w,h,label,c1="#0e5f86",c2="#152d69",stroke="#71edff"){
+ const g=ctx.createLinearGradient(x,y,x,y+h);g.addColorStop(0,c1);g.addColorStop(1,c2);
+ ctx.save();ctx.fillStyle="rgba(0,0,0,.55)";ctx.beginPath();ctx.roundRect(x+2,y+6,w,h,12);ctx.fill();
+ ctx.shadowColor="rgba(0,0,0,.55)";ctx.shadowBlur=7;ctx.shadowOffsetY=4;ctx.fillStyle=g;ctx.beginPath();ctx.roundRect(x,y,w,h-5,12);ctx.fill();ctx.shadowBlur=0;ctx.shadowOffsetY=0;
+ ctx.strokeStyle=stroke;ctx.lineWidth=2;ctx.stroke();ctx.globalAlpha=.28;ctx.strokeStyle="#fff";ctx.lineWidth=1;ctx.beginPath();ctx.roundRect(x+3,y+3,w-6,h*.42,9);ctx.stroke();ctx.globalAlpha=1;
+ ctx.fillStyle="#fff";ctx.font=gameFont(16);ctx.textAlign="center";ctx.shadowColor="rgba(0,0,0,.75)";ctx.shadowBlur=3;ctx.fillText(label,x+w/2,y+h*.59);ctx.restore()
+}
 function drawHUD(){
  ctx.textBaseline="alphabetic";ctx.textAlign="left";ctx.globalAlpha=.68;ctx.fillStyle="rgba(2,10,24,.28)";ctx.fillRect(8,8+SAFE_TOP,Math.min(212,W-76),56);
  ctx.fillStyle="#fff";ctx.font=gameFont(22);ctx.shadowColor="#49dfff";ctx.shadowBlur=7;ctx.fillText("SCORE "+score,16,31+SAFE_TOP);ctx.shadowBlur=0;
@@ -596,7 +602,7 @@ function drawStart(){
  const pulse=.55+.25*Math.sin(gameTime*.06);ctx.globalAlpha=pulse;ctx.strokeStyle="#ff7b38";ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(m+24,heroTop+heroH-22);ctx.lineTo(W*.32,heroTop+heroH-22);ctx.moveTo(W*.68,heroTop+heroH-22);ctx.lineTo(W-m-24,heroTop+heroH-22);ctx.stroke();ctx.globalAlpha=1;
  button(m+9,launchY,pw-18,60,"LAUNCH NOVA","#a94729","#543258","#ffc86d");
  ctx.fillStyle="#d3e8f4";ctx.font="800 13px system-ui,sans-serif";ctx.fillText("HOLD TO FIRE  •  DRAG TO MOVE",W/2,launchY+88);
- ctx.fillStyle="#91aabd";ctx.font="bold 11px system-ui,sans-serif";ctx.fillText("VERSION 13.9",W/2,H-53);ctx.fillStyle="#fff";ctx.font="bold 13px system-ui,sans-serif";ctx.fillText("Built by Curtis Company Limited",W/2,H-35);
+ ctx.fillStyle="#91aabd";ctx.font="bold 11px system-ui,sans-serif";ctx.fillText("VERSION 14.0",W/2,H-53);ctx.fillStyle="#fff";ctx.font="bold 13px system-ui,sans-serif";ctx.fillText("Built by Curtis Company Limited",W/2,H-35);
  ctx.restore();
 }
 function endLayout(){const h=Math.min(410,Math.max(350,H-210)),top=Math.max(102,(H-h)*.47),buttonY=top+h-65;return{top,h,buttonY}}
@@ -619,10 +625,20 @@ function drawDead(){
  ctx.fillStyle="#bbd9e8";ctx.font="700 11px system-ui,sans-serif";ctx.fillText("SECTOR "+sector+"  •  LEVEL "+level+"  •  BEST "+high.toLocaleString(),center,buttonY-13);
  const gap=10,bw=(width-34-gap)/2,x1=left+17,x2=x1+bw+gap;button(x1,buttonY,bw,48,"RELAUNCH","#a74b2b","#633153","#ffb477");button(x2,buttonY,bw,48,"MENU","#075f83","#153665","#6deaff")
 }
+function drawLifeLost(){
+ ctx.fillStyle="rgba(1,5,16,.82)";ctx.fillRect(0,0,W,H);const width=Math.min(W-34,350),left=(W-width)/2,top=Math.max(128,H*.23);
+ panel(left,top,width,278,"#180b18","#28122c","#ff6978");ctx.textAlign="center";
+ ctx.fillStyle="#ff7886";ctx.font=gameFont(31,"900");ctx.shadowColor="#ff4258";ctx.shadowBlur=12;ctx.fillText("LIFE LOST",W/2,top+48);ctx.shadowBlur=0;
+ ctx.fillStyle="#fff";ctx.font="800 14px system-ui,sans-serif";ctx.fillText(lives+" "+(lives===1?"LIFE":"LIVES")+" REMAINING",W/2,top+79);
+ ctx.font="900 24px system-ui,sans-serif";ctx.fillStyle="#ff6f78";ctx.fillText("♥".repeat(lives)+"♡".repeat(3-lives),W/2,top+113);
+ ctx.fillStyle="#b9d5e4";ctx.font="700 11px system-ui,sans-serif";ctx.fillText("CONTINUE THIS RUN OR RETURN TO BASE",W/2,top+139);
+ button(left+20,top+160,width-40,48,"USE NEXT LIFE","#14769a","#123c72","#78efff");
+ button(left+20,top+220,width-40,42,"MAIN MENU","#52253b","#321b38","#ff8195");
+}
 function draw(){
  ctx.save();if(screenShake>0)ctx.translate((Math.random()-.5)*screenShake,(Math.random()-.5)*screenShake);
- drawSpace();if(state==="dead"){drawShockwaves();drawParticles()}else{for(const a of asteroids)drawAsteroid(a);for(const e of enemies)drawEnemy(e);drawPowerups();drawBullets();drawShockwaves();drawParticles();drawPlayer()}ctx.restore();
- if(state==="play"||state==="paused")drawHUD();if(state==="start")drawStart();if(state==="paused")drawPause();if(state==="victory")drawVictory();if(state==="dead")drawDead();
+ drawSpace();if(state==="dead"||state==="lifeLost"){drawShockwaves();drawParticles()}else{for(const a of asteroids)drawAsteroid(a);for(const e of enemies)drawEnemy(e);drawPowerups();drawBullets();drawShockwaves();drawParticles();drawPlayer()}ctx.restore();
+ if(state==="play"||state==="paused"||state==="lifeLost")drawHUD();if(state==="start")drawStart();if(state==="paused")drawPause();if(state==="lifeLost")drawLifeLost();if(state==="victory")drawVictory();if(state==="dead")drawDead();
 }
 let last=performance.now(),accumulator=0;const STEP=1000/60;
 function loop(now){let delta=now-last;last=now;if(delta>66)delta=66;accumulator+=delta;let steps=0;while(accumulator>=STEP&&steps<3){update();accumulator-=STEP;steps++}if(steps===3&&accumulator>=STEP)accumulator=0;draw();requestAnimationFrame(loop)}
@@ -630,7 +646,7 @@ window.addEventListener("error",e=>{try{ctx.setTransform(1,0,0,1,0,0);ctx.fillSt
 requestAnimationFrame(loop);
 function touchPosition(touch){const rect=canvas.getBoundingClientRect();return{x:touch.clientX-rect.left,y:touch.clientY-rect.top}}
 canvas.addEventListener("touchstart",function(e){
- e.preventDefault();initAudio();if(state==="start"&&audioReady){if(audioCtx&&audioCtx.state==="suspended")audioCtx.resume();startMenuMusic()}if(state==="victory"){for(const touch of e.changedTouches){const p=touchPosition(touch);if(p.y>=H*.59&&p.y<=H*.59+50){state="play";nextBossLevel=Math.max(nextBossLevel,15);return}if(p.y>=H*.67&&p.y<=H*.67+46){state="start";return}}return}if(state==="paused"){for(const touch of e.changedTouches){const p=touchPosition(touch);if(p.y>=H*.50-8&&p.y<=H*.50+56){resumeGrace=60;state="play";return}}return}if(state==="play"){for(const touch of e.changedTouches){const p=touchPosition(touch);const pause=pauseRect();if(p.x>=pause.x-8&&p.y>=pause.y-8&&p.y<=pause.y+pause.h+8){state="paused";firing=false;moveTouchID=null;return}}}if(state==="start"){for(const touch of e.changedTouches){const p=touchPosition(touch),{launchY}=startLayout();if(p.y>=launchY&&p.y<=launchY+60){startGame();return}}return}if(state==="dead"){for(const touch of e.changedTouches){const p=touchPosition(touch),{buttonY}=endLayout();if(p.y>=buttonY&&p.y<=buttonY+48){if(p.x<W*.5)startGame();else{state="start";firing=false;moveTouchID=null;startMenuMusic()}return}}return}
+ e.preventDefault();initAudio();if(state==="start"&&audioReady){if(audioCtx&&audioCtx.state==="suspended")audioCtx.resume();startMenuMusic()}if(state==="victory"){for(const touch of e.changedTouches){const p=touchPosition(touch);if(p.y>=H*.59&&p.y<=H*.59+50){state="play";nextBossLevel=Math.max(nextBossLevel,15);return}if(p.y>=H*.67&&p.y<=H*.67+46){state="start";return}}return}if(state==="paused"){for(const touch of e.changedTouches){const p=touchPosition(touch);if(p.y>=H*.50-8&&p.y<=H*.50+56){resumeGrace=60;state="play";return}}return}if(state==="lifeLost"){for(const touch of e.changedTouches){const p=touchPosition(touch),width=Math.min(W-34,350),left=(W-width)/2,top=Math.max(128,H*.23);if(p.x>=left+20&&p.x<=left+width-20&&p.y>=top+160&&p.y<=top+208){enemyBullets.length=0;player.x=Math.min(100,W*.25);player.y=H*.5;resumeGrace=150;state="play";return}if(p.x>=left+20&&p.x<=left+width-20&&p.y>=top+220&&p.y<=top+262){state="start";firing=false;moveTouchID=null;startMenuMusic();return}}return}if(state==="play"){for(const touch of e.changedTouches){const p=touchPosition(touch);const pause=pauseRect();if(p.x>=pause.x-8&&p.y>=pause.y-8&&p.y<=pause.y+pause.h+8){state="paused";firing=false;moveTouchID=null;return}}}if(state==="start"){for(const touch of e.changedTouches){const p=touchPosition(touch),{launchY}=startLayout();if(p.y>=launchY&&p.y<=launchY+60){startGame();return}}return}if(state==="dead"){for(const touch of e.changedTouches){const p=touchPosition(touch),{buttonY}=endLayout();if(p.y>=buttonY&&p.y<=buttonY+48){if(p.x<W*.5)startGame();else{state="start";firing=false;moveTouchID=null;startMenuMusic()}return}}return}
  for(const touch of e.changedTouches){const p=touchPosition(touch);
   if(moveTouchID===null){
    moveTouchID=touch.identifier;lastMoveX=p.x;lastMoveY=p.y;firing=true;if(player.fireCooldown<=0)shoot();
