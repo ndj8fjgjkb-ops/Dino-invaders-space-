@@ -17,7 +17,7 @@ content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,vie
 html,body{position:fixed;inset:0;width:100%;height:100%;margin:0;overflow:hidden;overscroll-behavior:none;touch-action:none;background:#02040d}
 canvas{position:fixed;inset:0;width:100%;height:100%;display:block;touch-action:none;-webkit-tap-highlight-color:transparent}
 </style>
-<meta name="dino-build" content="V16.3-Upbeat-Combat-Music"></head>
+<meta name="dino-build" content="V16.4-Neon-Drive-Music"></head>
 <body>
 <canvas id="game"></canvas>
 <script>
@@ -44,7 +44,7 @@ const milkyImg=new Image();let milkyReady=false;milkyImg.onload=()=>milkyReady=t
 let audioCtx=null,masterGain=null,musicGain=null,sfxGain=null,compressor=null,audioReady=false,musicTimer=null,musicStep=0,lastLaserAt=0,lastBoomAt=0;
 function initAudio(){if(audioReady){if(audioCtx&&audioCtx.state==="suspended")audioCtx.resume();return}try{
  audioCtx=new (window.AudioContext||window.webkitAudioContext)();masterGain=audioCtx.createGain();musicGain=audioCtx.createGain();sfxGain=audioCtx.createGain();compressor=audioCtx.createDynamicsCompressor();
- masterGain.gain.value=.82;musicGain.gain.value=.72;sfxGain.gain.value=.64;
+ masterGain.gain.value=.86;musicGain.gain.value=.90;sfxGain.gain.value=.61;
  compressor.threshold.value=-8;compressor.knee.value=10;compressor.ratio.value=3;compressor.attack.value=.008;compressor.release.value=.14;
  musicGain.connect(masterGain);sfxGain.connect(masterGain);masterGain.connect(compressor);compressor.connect(audioCtx.destination);
  audioReady=true;audioCtx.resume();startMenuMusic()
@@ -75,17 +75,17 @@ function startMenuMusic(){if(!audioReady||musicTimer)return;
 }
 function stopMenuMusic(){if(musicTimer){clearInterval(musicTimer);musicTimer=null}}
 function combatMusicPulse(){if(!audioReady||state!=="play")return;
- const boss=enemies.some(e=>e.type==="boss"||e.type==="dreadnought"),storm=meteorStormTimer>0,intensity=Math.min(3,Math.floor(level/4)+(storm?1:0)+(boss?1:0));
- // Light 120-BPM space-drive groove: simple bass pulse, restrained arpeggio and soft percussion.
- const root=boss?55:level>=7?61.74:65.41,step=Math.floor(gameTime/30)%16;
- const bass=[1,1,1.5,1,1.25,1,1.5,1,1,.75,1.25,1,1.5,1.25,1,.75];
- const arp=[3,4,4.5,3.75,3,4.5,5,4,3.75,4.5,3,5,4,3.75,4.5,3];
- tone(root*bass[step],.20,"triangle",.021+intensity*.0015,0,"music",520);
- if(step%2===0)tone(root*arp[step],.115,"sine",.0125+intensity*.0008,.015,"music",1750);
- if(step%4===0){tone(root/2,.20,"sine",.020,0,"music",260);noiseBurst(.045,.0065,1150,"music")}
- if(step%4===2)noiseBurst(.025,.0048,1900,"music");
- if(storm&&step%4===0)tone(root*2.5,.09,"triangle",.007,0,"music",1350);
- if(boss&&step%8===0)tone(root/4,.34,"sine",.024,0,"music",180)
+ const boss=enemies.some(e=>e.type==="boss"||e.type==="dreadnought"),storm=meteorStormTimer>0,step=Math.floor(gameTime/30)%16;
+ // Neon-flight soundtrack: bright syncopated pulse and floating space melody, deliberately unlike the prior bass/arpeggio groove.
+ const root=boss?58.27:69.30,seq=[1,1.5,2,1.5,1.25,1.875,2.5,1.875,1,1.5,2.25,1.5,1.25,2,2.5,1.5],mel=[4,5,6,5,7.5,6,5,4.5,4,6,5,7.5,6,5,4.5,3.75];
+ tone(root*seq[step],.16,"square",.025,0,"music",820);
+ tone(root*2,.32,"triangle",.018,0,"music",680);
+ if(step%2===0)tone(root*mel[step],.19,"sine",.025,.018,"music",2400);
+ if(step%4===1||step%4===3)tone(root*3,.055,"triangle",.012,0,"music",1800);
+ if(step%4===0){noiseBurst(.055,.010,1500,"music");tone(root/2,.18,"sine",.025,0,"music",330)}
+ if(step%8===4)tone(root*4,.24,"sine",.018,.03,"music",2800);
+ if(storm&&step%2===0)noiseBurst(.035,.007,2200,"music");
+ if(boss&&step%4===0)tone(root*.5,.28,"sawtooth",.020,0,"music",420)
 }
 let hangarMessage="",hangarMessageTimer=0;
 let runNewRecord=false;let splashStart=performance.now(),state="splash",score=0,combatScore=0,distance=0,high=Number(localStorage.spaceHigh||0),bestRunTime=Number(localStorage.dinoBestRunTime||0),bestRunDistance=Number(localStorage.dinoBestRunDistance||0),credits=Number(localStorage.dinoCredits||0),bestLevel=Number(localStorage.dinoBestLevel||1),runs=Number(localStorage.dinoRuns||0),permShield=Number(localStorage.permShield||0),permRapid=Number(localStorage.permRapid||0),permPower=Number(localStorage.permPower||0),lastCredits=0,gameTime=0,difficulty=1,screenShake=0;
@@ -603,7 +603,7 @@ function drawStart(){
  const pulse=.55+.25*Math.sin(gameTime*.06);ctx.globalAlpha=pulse;ctx.strokeStyle="#ff7b38";ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(m+24,heroTop+heroH-22);ctx.lineTo(W*.32,heroTop+heroH-22);ctx.moveTo(W*.68,heroTop+heroH-22);ctx.lineTo(W-m-24,heroTop+heroH-22);ctx.stroke();ctx.globalAlpha=1;
  button(m+9,launchY,pw-18,54,"LAUNCH NOVA","#a94729","#543258","#ffc86d");
  button(m+9,launchY+60,pw-18,42,"HOW TO PLAY","#075f83","#153665","#6deaff");
- ctx.fillStyle="#91aabd";ctx.font="bold 11px system-ui,sans-serif";ctx.fillText("VERSION 16.3",W/2,H-35);
+ ctx.fillStyle="#91aabd";ctx.font="bold 11px system-ui,sans-serif";ctx.fillText("VERSION 16.4",W/2,H-35);
  ctx.restore();
 }
 function drawHowTo(){ctx.save();ctx.fillStyle="rgba(0,4,14,.90)";ctx.fillRect(0,0,W,H);const m=16,top=Math.max(SAFE_TOP+18,28),pw=W-m*2,h=H-top-24;const g=ctx.createLinearGradient(m,top,W-m,top+h);g.addColorStop(0,"rgba(5,25,48,.95)");g.addColorStop(1,"rgba(24,10,42,.95)");ctx.fillStyle=g;ctx.beginPath();ctx.roundRect(m,top,pw,h,18);ctx.fill();ctx.strokeStyle="rgba(83,229,255,.65)";ctx.lineWidth=1.5;ctx.stroke();ctx.textAlign="center";ctx.fillStyle="#ff9b3d";ctx.font=gameFont(25);ctx.fillText("HOW TO PLAY",W/2,top+39);ctx.fillStyle="#8deeff";ctx.font="800 10px system-ui,sans-serif";ctx.fillText("NOVA — THE FINAL PILOT",W/2,top+59);const rows=[["MOVE + FIRE","Touch and hold anywhere. Drag to move. NOVA fires while held."],["SURVIVE","Dodge asteroids, enemy dinos and boss fire. You have 3 lives."],["TRI BURST","3-way blaster for 8 seconds."],["OVERDRIVE","Heavy 5-way blaster for 8 seconds."],["SHIELD","Blocks one hit. You can carry up to 2."],["BOSS CORE","Boss reward: +750 score."],["WAVES + BOSSES","Clear longer enemy waves. A UFO boss arrives every 5 levels."]];let y=top+88;for(const [head,body] of rows){ctx.textAlign="left";ctx.fillStyle="#ffbd69";ctx.font="900 11px system-ui,sans-serif";ctx.fillText(head,m+18,y);ctx.fillStyle="#d9edf7";ctx.font="600 10px system-ui,sans-serif";const words=body.split(" ");let line="",ly=y+16;for(const word of words){const test=line+word+" ";if(ctx.measureText(test).width>pw-36){ctx.fillText(line,m+18,ly);line=word+" ";ly+=13}else line=test}ctx.fillText(line,m+18,ly);y=ly+24}button(m+14,Math.min(top+h-58,y+2),pw-28,44,"BACK TO MENU","#075f83","#153665","#6deaff");ctx.restore()}
