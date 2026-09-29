@@ -17,11 +17,11 @@ content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,vie
 html,body{position:fixed;inset:0;width:100%;height:100%;margin:0;overflow:hidden;overscroll-behavior:none;touch-action:none;background:#02040d}
 canvas{position:fixed;inset:0;width:100%;height:100%;display:block;touch-action:none;-webkit-tap-highlight-color:transparent}
 </style>
-<meta name="dino-build" content="V14.3-Cinematic-Forge-Continuous-Control"></head>
+<meta name="dino-build" content="V14.4-Chrome-Smash-Ident"></head>
 <body>
 <canvas id="game"></canvas>
 <script>
-// DINO INVADERS: SPACE V14.3 — CINEMATIC FORGE + CONTINUOUS CONTROL
+// DINO INVADERS: SPACE V14.4 — CHROME SMASH IDENT
 const canvas=document.getElementById("game");
 const ctx=canvas.getContext("2d",{alpha:false,desynchronized:true});
 let W=0,H=0,SAFE_TOP=0,SAFE_BOTTOM=0;
@@ -609,7 +609,7 @@ function drawStart(){
  const pulse=.55+.25*Math.sin(gameTime*.06);ctx.globalAlpha=pulse;ctx.strokeStyle="#ff7b38";ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(m+24,heroTop+heroH-22);ctx.lineTo(W*.32,heroTop+heroH-22);ctx.moveTo(W*.68,heroTop+heroH-22);ctx.lineTo(W-m-24,heroTop+heroH-22);ctx.stroke();ctx.globalAlpha=1;
  button(m+9,launchY,pw-18,60,"LAUNCH NOVA","#a94729","#543258","#ffc86d");
  ctx.fillStyle="#d3e8f4";ctx.font="800 13px system-ui,sans-serif";ctx.fillText("HOLD TO FIRE  •  DRAG TO MOVE",W/2,launchY+88);
- ctx.fillStyle="#91aabd";ctx.font="bold 11px system-ui,sans-serif";ctx.fillText("VERSION 14.3",W/2,H-53);ctx.fillStyle="#fff";ctx.font="bold 13px system-ui,sans-serif";ctx.fillText("Built by Curtis Company Limited",W/2,H-35);
+ ctx.fillStyle="#91aabd";ctx.font="bold 11px system-ui,sans-serif";ctx.fillText("VERSION 14.4",W/2,H-53);ctx.fillStyle="#fff";ctx.font="bold 13px system-ui,sans-serif";ctx.fillText("Built by Curtis Company Limited",W/2,H-35);
  ctx.restore();
 }
 function endLayout(){const h=Math.min(410,Math.max(350,H-210)),top=Math.max(102,(H-h)*.47),buttonY=top+h-65;return{top,h,buttonY}}
@@ -643,22 +643,25 @@ function drawLifeLost(){
  button(left+20,top+220,width-40,42,"MAIN MENU","#52253b","#321b38","#ff8195");
 }
 function drawSplash(){
- const e=performance.now()-splashStart,t=Math.min(1,e/5000),out=e>4650?Math.max(0,(5000-e)/350):1;
- ctx.save();ctx.fillStyle="#010204";ctx.fillRect(0,0,W,H);
- const impact=Math.max(0,1-Math.abs(e-1550)/320),shake=impact*impact*9,ix=(Math.sin(e*.19)+Math.sin(e*.071))*shake,iy=Math.cos(e*.16)*shake*.55;ctx.translate(ix,iy);
- const furnace=ctx.createRadialGradient(W*.5,H*.51,4,W*.5,H*.51,Math.max(W,H)*.55);furnace.addColorStop(0,"rgba(255,103,24,"+(.10+impact*.20)+")");furnace.addColorStop(.38,"rgba(63,75,82,.10)");furnace.addColorStop(1,"rgba(0,0,0,0)");ctx.fillStyle=furnace;ctx.fillRect(-20,-20,W+40,H+40);
- // Impact fractures and hot metal sparks.
- if(e>1350){const age=Math.min(1,(e-1350)/900);ctx.save();ctx.translate(W*.5,H*.49);ctx.globalAlpha=(1-age*.65)*out;for(let i=0;i<20;i++){const ang=i*.314+Math.sin(i*8.1)*.16,len=(22+(i%7)*13)*age;ctx.strokeStyle=i%4===0?"rgba(255,126,35,.85)":"rgba(155,171,177,.38)";ctx.lineWidth=i%4===0?1.4:.7;ctx.beginPath();ctx.moveTo(Math.cos(ang)*22,Math.sin(ang)*12);ctx.lineTo(Math.cos(ang)*len,Math.sin(ang)*len*.55);ctx.stroke()}for(let i=0;i<30;i++){const ang=i*2.399,sp=28+(i%9)*12,age2=Math.min(1,(e-1450)/700);const x=Math.cos(ang)*sp*age2,y=Math.sin(ang)*sp*.6*age2+age2*age2*18;ctx.fillStyle=i%3?"#ff8a24":"#ffd071";ctx.globalAlpha=(1-age2)*.9;ctx.fillRect(x,y,1.5+(i%2),1.5+(i%2))}ctx.restore()}
- // The mark arrives from camera depth and slams into its final plane.
- const p=Math.max(0,Math.min(1,(e-450)/1050)),ease=1-Math.pow(1-p,4),overshoot=e>1500&&e<1900?1+Math.sin((e-1500)/400*Math.PI)*.055:1,scale=(2.65-(1.65*ease))*overshoot;
+ const e=performance.now()-splashStart,out=e>5550?Math.max(0,(6000-e)/450):1;
+ ctx.save();ctx.fillStyle="#010205";ctx.fillRect(0,0,W,H);
+ const hit=Math.max(0,1-Math.abs(e-1750)/360),shake=hit*hit*13;ctx.translate((Math.sin(e*.23)+Math.sin(e*.077))*shake,Math.cos(e*.19)*shake*.62);
+ const blast=Math.max(0,Math.min(1,(e-1600)/180))*(1-Math.max(0,Math.min(1,(e-1900)/900)));
+ if(blast>0){const rg=ctx.createRadialGradient(W*.5,H*.49,2,W*.5,H*.49,Math.max(W,H)*.64);rg.addColorStop(0,"rgba(255,245,214,"+(.88*blast)+")");rg.addColorStop(.08,"rgba(255,158,49,"+(.78*blast)+")");rg.addColorStop(.30,"rgba(255,69,14,"+(.32*blast)+")");rg.addColorStop(1,"rgba(0,0,0,0)");ctx.fillStyle=rg;ctx.fillRect(-30,-30,W+60,H+60)}
+ // Screen fragments and hot debris explode outward across the full display.
+ if(e>1650){const age=Math.min(1,(e-1650)/1750);ctx.save();ctx.translate(W*.5,H*.49);for(let i=0;i<58;i++){const ang=i*2.399963+Math.sin(i*13.7)*.32,spd=70+(i%13)*18,x=Math.cos(ang)*spd*age,y=Math.sin(ang)*spd*.82*age+age*age*70,sz=2+(i%5)*1.7,rot=ang+age*(i%2?6:-5);ctx.save();ctx.translate(x,y);ctx.rotate(rot);ctx.globalAlpha=Math.max(0,1-age*.72)*out;ctx.fillStyle=i%7===0?"#ff9b37":i%4===0?"#dfe8eb":"#59636a";ctx.beginPath();ctx.moveTo(-sz,-sz*.5);ctx.lineTo(sz*1.6,-sz*.25);ctx.lineTo(sz*.55,sz);ctx.lineTo(-sz*.9,sz*.55);ctx.closePath();ctx.fill();ctx.restore()}ctx.restore()}
+ // Cracked-screen rays remain briefly behind the mark.
+ if(e>1600&&e<3500){const age=(e-1600)/1900;ctx.save();ctx.translate(W*.5,H*.49);ctx.globalAlpha=(1-age)*.58*out;for(let i=0;i<26;i++){const ang=i*.2417+Math.sin(i*5.3)*.13,len=50+(i%8)*32;ctx.strokeStyle=i%5?"#aab5ba":"#ff8a2c";ctx.lineWidth=i%5?.75:1.25;ctx.beginPath();ctx.moveTo(Math.cos(ang)*25,Math.sin(ang)*13);ctx.lineTo(Math.cos(ang)*len,Math.sin(ang)*len*.78);ctx.stroke()}ctx.restore()}
+ // Oversized chrome title punches forward through the impact plane.
+ const p=Math.max(0,Math.min(1,(e-500)/1250)),ease=1-Math.pow(1-p,5),rebound=e>1750&&e<2200?1+Math.sin((e-1750)/450*Math.PI)*.075:1,scale=(3.25-2.25*ease)*rebound;
  ctx.translate(W*.5,H*.49);ctx.scale(scale,scale);ctx.translate(-W*.5,-H*.49);
- const metal=ctx.createLinearGradient(0,H*.38,0,H*.58);metal.addColorStop(0,"#ffffff");metal.addColorStop(.10,"#747d82");metal.addColorStop(.25,"#dce1e2");metal.addColorStop(.42,"#343a3e");metal.addColorStop(.58,"#9fa7aa");metal.addColorStop(.72,"#292f33");metal.addColorStop(.88,"#c5cbcd");metal.addColorStop(1,"#555d61");
- ctx.textAlign="center";ctx.textBaseline="middle";ctx.globalAlpha=Math.min(1,p*2)*out;ctx.shadowColor="rgba(0,0,0,.95)";ctx.shadowBlur=12;ctx.shadowOffsetY=8;ctx.font=gameFont(Math.min(46,W*.115),"900");ctx.lineWidth=7;ctx.strokeStyle="#101417";ctx.strokeText("CURTIS",W*.5,H*.455);ctx.fillStyle=metal;ctx.fillText("CURTIS",W*.5,H*.455);
- ctx.shadowBlur=5;ctx.shadowOffsetY=4;ctx.font=gameFont(Math.min(22,W*.055),"900");ctx.lineWidth=4;ctx.strokeText("COMPANY LIMITED",W*.5,H*.525);ctx.fillStyle=metal;ctx.fillText("COMPANY LIMITED",W*.5,H*.525);
- // Hardened edge, rivets, and a thin molten seam — industrial rather than flame-heavy.
- if(e>1850){const a=Math.min(1,(e-1850)/650)*out,pw=Math.min(W*.82,345),ph=Math.min(145,H*.205),px=(W-pw)/2,py=H*.385;ctx.globalAlpha=a;ctx.shadowBlur=0;ctx.strokeStyle="rgba(205,218,222,.62)";ctx.lineWidth=1.6;ctx.beginPath();ctx.roundRect(px,py,pw,ph,9);ctx.stroke();ctx.strokeStyle="rgba(255,102,28,.48)";ctx.lineWidth=.8;ctx.beginPath();ctx.moveTo(px+25,py+ph-5);ctx.lineTo(px+pw-25,py+ph-5);ctx.stroke();for(const x of [px+11,px+pw-11])for(const y of [py+11,py+ph-11]){ctx.fillStyle="#838c90";ctx.beginPath();ctx.arc(x,y,2.4,0,Math.PI*2);ctx.fill();ctx.strokeStyle="#252b2e";ctx.stroke()}}
- ctx.setTransform(1,0,0,1,0,0);ctx.globalAlpha=Math.min(1,Math.max(0,(e-2450)/650))*out*.72;ctx.textAlign="center";ctx.fillStyle="#aeb8bc";ctx.font="800 9px system-ui,sans-serif";ctx.fillText("FORGED TO PLAY",W*.5,H*.70);ctx.restore();
- if(e>=5000){state="start";startMenuMusic()}
+ const chrome=ctx.createLinearGradient(0,H*.37,0,H*.60);chrome.addColorStop(0,"#ffffff");chrome.addColorStop(.10,"#bfc9ce");chrome.addColorStop(.20,"#4c555b");chrome.addColorStop(.31,"#f8ffff");chrome.addColorStop(.43,"#8d989e");chrome.addColorStop(.53,"#252b30");chrome.addColorStop(.66,"#f4fbfd");chrome.addColorStop(.78,"#69737a");chrome.addColorStop(.91,"#eaf2f4");chrome.addColorStop(1,"#454d52");
+ ctx.globalAlpha=Math.min(1,p*2)*out;ctx.textAlign="center";ctx.textBaseline="middle";ctx.shadowColor="rgba(0,0,0,.98)";ctx.shadowBlur=15;ctx.shadowOffsetY=9;
+ ctx.font=gameFont(Math.min(60,W*.148),"900");ctx.lineWidth=8;ctx.strokeStyle="#0b0e11";ctx.strokeText("CURTIS",W*.5,H*.445);ctx.fillStyle=chrome;ctx.fillText("CURTIS",W*.5,H*.445);
+ ctx.shadowBlur=8;ctx.shadowOffsetY=5;ctx.font=gameFont(Math.min(29,W*.071),"900");ctx.lineWidth=5;ctx.strokeText("COMPANY LIMITED",W*.5,H*.535);ctx.fillStyle=chrome;ctx.fillText("COMPANY LIMITED",W*.5,H*.535);
+ // Fine white specular sweep gives the settled chrome a polished shine.
+ if(e>2250){const sweep=((e-2250)/2100)%1,xx=W*(.22+sweep*.56);ctx.save();ctx.globalCompositeOperation="screen";ctx.globalAlpha=.18*out;const sg=ctx.createLinearGradient(xx-24,0,xx+24,0);sg.addColorStop(0,"rgba(255,255,255,0)");sg.addColorStop(.5,"rgba(255,255,255,.9)");sg.addColorStop(1,"rgba(255,255,255,0)");ctx.fillStyle=sg;ctx.fillRect(xx-25,H*.38,50,H*.22);ctx.restore()}
+ ctx.restore();if(e>=6000){state="start";startMenuMusic()}
 }
 function draw(){
  ctx.save();if(screenShake>0)ctx.translate((Math.random()-.5)*screenShake,(Math.random()-.5)*screenShake);
