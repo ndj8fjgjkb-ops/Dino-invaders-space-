@@ -17,11 +17,11 @@ content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,vie
 html,body{position:fixed;inset:0;width:100%;height:100%;margin:0;overflow:hidden;overscroll-behavior:none;touch-action:none;background:#02040d}
 canvas{position:fixed;inset:0;width:100%;height:100%;display:block;touch-action:none;-webkit-tap-highlight-color:transparent}
 </style>
-<meta name="dino-build" content="V15.6-Boss-Wing-Powerup-Polish"></head>
+<meta name="dino-build" content="V15.7-Distinct-Boss-Attacks"></head>
 <body>
 <canvas id="game"></canvas>
 <script>
-// DINO INVADERS: SPACE V15.6 — BOSS WING POWERUP POLISH
+// DINO INVADERS: SPACE V15.7 — DISTINCT BOSS ATTACKS
 const canvas=document.getElementById("game");
 const ctx=canvas.getContext("2d",{alpha:false,desynchronized:true});
 let W=0,H=0,SAFE_TOP=0,SAFE_BOTTOM=0;
@@ -447,11 +447,27 @@ level=1+Math.floor(gameTime/600);sector=Math.min(5,1+Math.floor((level-1)/2));di
    if(e.x<W*.9){e.shotTimer-=enraged?1.32:1;if(e.shotTimer<=0&&enemyBullets.length<13){
     const fire=(vx,vy,r=4)=>{if(enemyBullets.length<13)enemyBullets.push({x:e.x-35,y:e.y,vx,vy,radius:r,color:def.color})};
     const dx=player.x-e.x,dy=player.y-e.y,len=Math.hypot(dx,dy)||1;
-    if(def.pattern==="target"){fire(dx/len*5,dy/len*5,4.5);if(enraged)fire(dx/len*5,dy/len*5+.7)}
-    else if(def.pattern==="wall"){for(let a=-2;a<=2;a++)fire(-4.1,a*(enraged?1.25:1.05))}
-    else if(def.pattern==="fan"){for(let a=-2;a<=2;a++)fire(-4.4,dy/len*1.3+a*(enraged?1.1:.8))}
-    else{for(let a=0;a<(enraged?7:5);a++){const theta=Math.PI+(a-(enraged?3:2))*.31;fire(Math.cos(theta)*4.2,Math.sin(theta)*4.2)}}
-    e.shotTimer=enraged?64:96;e.fireKick=8
+    if(def.pattern==="target"){
+     // Dreadnought: fast precision burst aimed at NOVA's current path.
+     const sp=enraged?5.8:5.35;fire(dx/len*sp,dy/len*sp,4.4);
+     if(enraged){fire(dx/len*sp,(dy/len*sp)-.42,3.7);fire(dx/len*sp,(dy/len*sp)+.42,3.7)}
+     e.shotTimer=enraged?48:72;
+    }else if(def.pattern==="wall"){
+     // Triceratops Siege: lane-denial wall with one moving safe gap.
+     const lanes=enraged?7:6,gap=(Math.floor(t/95)+bossCount)%lanes,step=Math.min(48,H/(lanes+2));
+     for(let a=0;a<lanes;a++){if(a===gap)continue;const ty=H*.5+(a-(lanes-1)/2)*step;fire(-3.75,(ty-e.y)/72,5.1)}
+     e.shotTimer=enraged?82:108;
+    }else if(def.pattern==="fan"){
+     // Void Spinosaur: oscillating fan that sweeps vertically instead of tracking as a wall.
+     const sweep=Math.sin(t*.045+e.phase)*(enraged?1.45:1.05),count=enraged?7:5;
+     for(let a=0;a<count;a++){const off=a-(count-1)/2;fire(-4.25,sweep+off*(enraged?.72:.82),4)}
+     e.shotTimer=enraged?58:78;
+    }else{
+     // Apex Ankylosaur: rhythmic pulse ring with a deliberately open escape sector.
+     const count=enraged?10:8,gap=Math.floor(t/120)%count;
+     for(let a=0;a<count;a++){if(a===gap||a===(gap+1)%count)continue;const theta=Math.PI+(a-(count-1)/2)*(enraged?.23:.27);fire(Math.cos(theta)*4.45,Math.sin(theta)*4.45,4.3)}
+     e.shotTimer=enraged?70:94;
+    }e.fireKick=8
    }}
   }
   else{
@@ -611,7 +627,7 @@ function drawStart(){
  const pulse=.55+.25*Math.sin(gameTime*.06);ctx.globalAlpha=pulse;ctx.strokeStyle="#ff7b38";ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(m+24,heroTop+heroH-22);ctx.lineTo(W*.32,heroTop+heroH-22);ctx.moveTo(W*.68,heroTop+heroH-22);ctx.lineTo(W-m-24,heroTop+heroH-22);ctx.stroke();ctx.globalAlpha=1;
  button(m+9,launchY,pw-18,60,"LAUNCH NOVA","#a94729","#543258","#ffc86d");
  ctx.fillStyle="#d3e8f4";ctx.font="800 13px system-ui,sans-serif";ctx.fillText("HOLD TO FIRE  •  DRAG TO MOVE",W/2,launchY+88);
- ctx.fillStyle="#91aabd";ctx.font="bold 11px system-ui,sans-serif";ctx.fillText("VERSION 15.6",W/2,H-35);
+ ctx.fillStyle="#91aabd";ctx.font="bold 11px system-ui,sans-serif";ctx.fillText("VERSION 15.7",W/2,H-35);
  ctx.restore();
 }
 function endLayout(){const h=Math.min(410,Math.max(350,H-210)),top=Math.max(102,(H-h)*.47),buttonY=top+h-65;return{top,h,buttonY}}
