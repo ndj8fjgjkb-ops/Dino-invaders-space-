@@ -17,11 +17,11 @@ content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,vie
 html,body{position:fixed;inset:0;width:100%;height:100%;margin:0;overflow:hidden;overscroll-behavior:none;touch-action:none;background:#02040d}
 canvas{position:fixed;inset:0;width:100%;height:100%;display:block;touch-action:none;-webkit-tap-highlight-color:transparent}
 </style>
-<meta name="dino-build" content="V15.5-Stability-Cleanup"></head>
+<meta name="dino-build" content="V15.6-Boss-Wing-Powerup-Polish"></head>
 <body>
 <canvas id="game"></canvas>
 <script>
-// DINO INVADERS: SPACE V15.5 — STABILITY CLEANUP
+// DINO INVADERS: SPACE V15.6 — BOSS WING POWERUP POLISH
 const canvas=document.getElementById("game");
 const ctx=canvas.getContext("2d",{alpha:false,desynchronized:true});
 let W=0,H=0,SAFE_TOP=0,SAFE_BOTTOM=0;
@@ -271,8 +271,10 @@ function drawEnemy(e){
     const wingScale=variant===1?.94:variant===2?.91:.93;
     const rw=wingW*wingScale,rh=wingH*wingScale;
     ctx.save();ctx.translate(-rootX,rootY);ctx.rotate(-.075-beat*amp*.62);ctx.drawImage(parts.left,-rw,-rh*.50,rw,rh);ctx.restore();
+    ctx.save();ctx.translate(0,-Math.abs(beat)*(variant===2?3:1.5));ctx.rotate(beat*(variant===1?.012:variant===2?.026:.009));ctx.drawImage(parts.body,-bodyW*.5,-bodyH*.5,bodyW,bodyH);ctx.restore();
+    // Right boss wing intentionally renders above the body so its root is never hidden behind the torso.
     ctx.save();ctx.translate(rootX,rootY);ctx.rotate(.075+beat*amp*.62);ctx.drawImage(parts.right,0,-rh*.50,rw,rh);ctx.restore();
-    ctx.save();ctx.translate(0,-Math.abs(beat)*(variant===2?3:1.5));ctx.rotate(beat*(variant===1?.012:variant===2?.026:.009));ctx.drawImage(parts.body,-bodyW*.5,-bodyH*.5,bodyW,bodyH);
+    ctx.save();
     if(e.hitFlash>0){ctx.globalAlpha=Math.min(.25,e.hitFlash/44);ctx.globalCompositeOperation="screen";ctx.drawImage(parts.body,-bodyW*.5,-bodyH*.5,bodyW,bodyH);ctx.globalCompositeOperation="source-over"}ctx.restore();
    }else{
     // Asset-load fallback: keep gameplay readable without reverting to circles or synthetic boss shapes.
@@ -428,7 +430,7 @@ level=1+Math.floor(gameTime/600);sector=Math.min(5,1+Math.floor((level-1)/2));di
    if(p.type==="shield"){shieldHits=Math.min(2,shieldHits+1);powerMessageText="SHIELD READY!"}
    else if(p.type==="overdrive"){overdriveTimer=480;powerMessageText="NOVA OVERDRIVE!"}
    else if(p.type==="core"){combatScore+=750;score=combatScore+Math.floor(distance);powerMessageText="BOSS CORE +750 SCORE"}
-   else{spreadTimer=90;powerMessageText="TRI BURST!"}
+   else{spreadTimer=480;powerMessageText="TRI BURST!"}
    powerMessage=90;sfx("pickup");burst(p.x,p.y,20,"hot",6);powerups.splice(i,1);screenShake=Math.max(screenShake,3);continue}
   if(p.x<-40)powerups.splice(i,1);
  }
@@ -609,7 +611,7 @@ function drawStart(){
  const pulse=.55+.25*Math.sin(gameTime*.06);ctx.globalAlpha=pulse;ctx.strokeStyle="#ff7b38";ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(m+24,heroTop+heroH-22);ctx.lineTo(W*.32,heroTop+heroH-22);ctx.moveTo(W*.68,heroTop+heroH-22);ctx.lineTo(W-m-24,heroTop+heroH-22);ctx.stroke();ctx.globalAlpha=1;
  button(m+9,launchY,pw-18,60,"LAUNCH NOVA","#a94729","#543258","#ffc86d");
  ctx.fillStyle="#d3e8f4";ctx.font="800 13px system-ui,sans-serif";ctx.fillText("HOLD TO FIRE  •  DRAG TO MOVE",W/2,launchY+88);
- ctx.fillStyle="#91aabd";ctx.font="bold 11px system-ui,sans-serif";ctx.fillText("VERSION 15.5",W/2,H-53);ctx.fillStyle="#fff";ctx.font="bold 13px system-ui,sans-serif";ctx.fillText("Built by Curtis Company Limited",W/2,H-35);
+ ctx.fillStyle="#91aabd";ctx.font="bold 11px system-ui,sans-serif";ctx.fillText("VERSION 15.6",W/2,H-35);
  ctx.restore();
 }
 function endLayout(){const h=Math.min(410,Math.max(350,H-210)),top=Math.max(102,(H-h)*.47),buttonY=top+h-65;return{top,h,buttonY}}
