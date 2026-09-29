@@ -17,11 +17,11 @@ content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,vie
 html,body{position:fixed;inset:0;width:100%;height:100%;margin:0;overflow:hidden;overscroll-behavior:none;touch-action:none;background:#02040d}
 canvas{position:fixed;inset:0;width:100%;height:100%;display:block;touch-action:none;-webkit-tap-highlight-color:transparent}
 </style>
-<meta name="dino-build" content="V15.9-UFO-Bosses"></head>
+<meta name="dino-build" content="V16.0-Living-UFO-Polish"></head>
 <body>
 <canvas id="game"></canvas>
 <script>
-// DINO INVADERS: SPACE V15.9 — ANIMATED UFO BOSSES
+// DINO INVADERS: SPACE V16.0 — LIVING UFO + NOVA JET POLISH
 const canvas=document.getElementById("game");
 const ctx=canvas.getContext("2d",{alpha:false,desynchronized:true});
 let W=0,H=0,SAFE_TOP=0,SAFE_BOTTOM=0;
@@ -240,8 +240,12 @@ function drawEnemy(e){
   ctx.translate(recoil,hover*3.5);ctx.rotate(bank);ctx.scale(breath,1-hover*.01);
   if(im.complete&&im.naturalWidth){const w=def.kind==="void"?146:def.kind==="obsidian"?142:136,h=w*im.naturalHeight/im.naturalWidth;
    ctx.save();ctx.shadowColor=def.color;ctx.shadowBlur=10;drawSprite(im,-w*.5,-h*.5,w,h);ctx.restore();
-   const pulse=.55+.32*Math.sin(gameTime*.13+e.phase),cy=h*.14;ctx.save();ctx.globalCompositeOperation="screen";ctx.globalAlpha=pulse;const rg=ctx.createRadialGradient(0,cy,1,0,cy,20);rg.addColorStop(0,"#fff");rg.addColorStop(.2,def.color);rg.addColorStop(1,"rgba(0,0,0,0)");ctx.fillStyle=rg;ctx.beginPath();ctx.arc(0,cy,20,0,Math.PI*2);ctx.fill();ctx.restore();
-   for(let k=-1;k<=1;k+=2){ctx.save();ctx.globalAlpha=.35+.25*Math.sin(gameTime*.16+e.phase+k);ctx.fillStyle=def.color;ctx.shadowColor=def.color;ctx.shadowBlur=8;ctx.beginPath();ctx.ellipse(k*w*.27,h*.21,5,2.3,0,0,Math.PI*2);ctx.fill();ctx.restore()}
+   const pulse=.55+.32*Math.sin(gameTime*.13+e.phase),cy=h*.14;ctx.save();ctx.globalCompositeOperation="screen";ctx.globalAlpha=pulse;const rg=ctx.createRadialGradient(0,cy,1,0,cy,22);rg.addColorStop(0,"#fff");rg.addColorStop(.18,def.color);rg.addColorStop(1,"rgba(0,0,0,0)");ctx.fillStyle=rg;ctx.beginPath();ctx.arc(0,cy,22,0,Math.PI*2);ctx.fill();ctx.restore();
+   // Moving specular sweep makes the existing hull read as reflective metal rather than a static illustration.
+   const sweep=((gameTime*1.15+e.phase*70)%(w*1.65))-w*.82;ctx.save();ctx.globalCompositeOperation="screen";ctx.globalAlpha=.12;const sg=ctx.createLinearGradient(sweep-18,0,sweep+18,0);sg.addColorStop(0,"rgba(255,255,255,0)");sg.addColorStop(.5,"rgba(220,245,255,.9)");sg.addColorStop(1,"rgba(255,255,255,0)");ctx.fillStyle=sg;ctx.beginPath();ctx.ellipse(0,-h*.05,w*.43,h*.22,0,0,Math.PI*2);ctx.fill();ctx.restore();
+   // Independent running lights and engine breathing keep multiple parts of the craft visibly active.
+   for(let k=-1;k<=1;k+=2){ctx.save();const ep=.34+.28*Math.sin(gameTime*.17+e.phase+k);ctx.globalAlpha=ep;ctx.fillStyle=def.color;ctx.shadowColor=def.color;ctx.shadowBlur=9;ctx.beginPath();ctx.ellipse(k*w*.27,h*.21,5.5,2.5,0,0,Math.PI*2);ctx.fill();ctx.restore()}
+   ctx.save();ctx.globalCompositeOperation="lighter";for(let k=-2;k<=2;k++){const phase=gameTime*.11+e.phase+k*.9,la=.18+.20*(.5+.5*Math.sin(phase));ctx.globalAlpha=la;ctx.fillStyle=def.color;ctx.shadowColor=def.color;ctx.shadowBlur=6;ctx.beginPath();ctx.arc(k*w*.115,h*.08,1.6+(k===0?1:0),0,Math.PI*2);ctx.fill()}ctx.restore()
    if(e.hitFlash>0){ctx.save();ctx.globalAlpha=Math.min(.25,e.hitFlash/40);ctx.globalCompositeOperation="screen";drawSprite(im,-w*.5,-h*.5,w,h);ctx.restore()}
   }
   ctx.fillStyle="#071928";ctx.fillRect(-38,47,76,4);ctx.fillStyle=def.color;ctx.fillRect(-38,47,76*hp,4);ctx.restore();return}
@@ -374,7 +378,7 @@ function update(){
  if(resumeGrace>0)resumeGrace--;
  gameTime++;if(gameTime%30===0)combatMusicPulse();distance+=1/12;score=combatScore+Math.floor(distance);
 level=1+Math.floor(gameTime/600);difficulty=.82+gameTime/1450+level*.122
- if(level>lastLevel){lastLevel=level;const tier=level>=9?"ONSLAUGHT":level>=6?"ASSAULT":level>=3?"ESCALATION":"LEVEL "+level;powerMessageText=level>=3?tier+" • LEVEL "+level:"LEVEL "+level;powerMessage=110;screenShake=Math.max(screenShake,level>=6?4:2);if(audioReady){tone(level>=6?330:260,.16,"sawtooth",.028,0,"sfx",900);tone(level>=6?440:350,.22,"triangle",.025,.10,"sfx",1100)}}
+ if(level>lastLevel){lastLevel=level}
  if(spreadTimer>0)spreadTimer--;if(overdriveTimer>0)overdriveTimer--;if(meteorStormTimer>0)meteorStormTimer--;if(powerMessage>0)powerMessage--;if(eventBannerTimer>0)eventBannerTimer--;
  if(gameTime===300||gameTime%840===0)spawnPowerup("spread");
  if(gameTime===480||gameTime%1080===0)spawnPowerup("shield");if(gameTime===840||gameTime%1380===0)spawnPowerup("overdrive");
@@ -522,8 +526,14 @@ function drawPlayer(){
   for(let row=-3;row<=3;row++)for(let col=-3;col<=3;col++){const hx=col*12+(row%2)*6,hy=row*10;ctx.beginPath();for(let k=0;k<6;k++){const a=k*Math.PI/3;const x=hx+Math.cos(a)*7,y=hy+Math.sin(a)*7;k?ctx.lineTo(x,y):ctx.moveTo(x,y)}ctx.closePath();ctx.stroke()}
   ctx.restore();ctx.save();ctx.scale(1,.85);ctx.lineWidth=1.4;ctx.strokeStyle="rgba(151,244,255,.8)";for(let j=0;j<3;j++){const a=gameTime*.013+j*Math.PI*2/3;ctx.beginPath();ctx.arc(0,0,r-1,a,a+.85);ctx.stroke()}ctx.strokeStyle="rgba(222,255,255,.48)";ctx.lineWidth=1;ctx.beginPath();ctx.ellipse(-r*.1,-r*.35,r*.65,r*.32,-.3,Math.PI,Math.PI*1.8);ctx.stroke();ctx.restore()}
 
- const hover=Math.sin(gameTime*.16)*1.4,thrust=7+Math.sin(gameTime*.46)*3,firePulse=player.fireCooldown>2&&firing;
- ctx.fillStyle="#ffb44a";ctx.shadowColor="#ff9b30";ctx.shadowBlur=10;ctx.beginPath();ctx.moveTo(-player.width*.27,-5);ctx.lineTo(-player.width*.27-thrust,-4);ctx.lineTo(-player.width*.27,0);ctx.fill();ctx.beginPath();ctx.moveTo(-player.width*.28,5);ctx.lineTo(-player.width*.28-thrust*.85,6);ctx.lineTo(-player.width*.28,9);ctx.fill();ctx.shadowBlur=0;
+ const hover=Math.sin(gameTime*.16)*1.4,thrust=10+Math.sin(gameTime*.46)*2.2+(firing?2:0),firePulse=player.fireCooldown>2&&firing;
+ // NOVA's twin exhaust is anchored to the rear pack nozzles and layered for a compact plasma look.
+ const jetX=-player.width*.39,jetYs=[-5.8,6.4];ctx.save();ctx.globalCompositeOperation="lighter";
+ for(const jy of jetYs){const flick=.9+Math.sin(gameTime*.63+jy)*.08,len=thrust*flick;
+  ctx.shadowColor="#20bfff";ctx.shadowBlur=8;ctx.fillStyle="rgba(30,145,255,.34)";ctx.beginPath();ctx.moveTo(jetX,jy-2.8);ctx.quadraticCurveTo(jetX-len*.62,jy-1.7,jetX-len,jy);ctx.quadraticCurveTo(jetX-len*.62,jy+1.7,jetX,jy+2.8);ctx.fill();
+  ctx.shadowColor="#78efff";ctx.shadowBlur=5;ctx.fillStyle="rgba(105,235,255,.82)";ctx.beginPath();ctx.moveTo(jetX,jy-1.45);ctx.quadraticCurveTo(jetX-len*.52,jy-.7,jetX-len*.72,jy);ctx.quadraticCurveTo(jetX-len*.52,jy+.7,jetX,jy+1.45);ctx.fill();
+  ctx.fillStyle="rgba(245,255,255,.94)";ctx.beginPath();ctx.ellipse(jetX-.8,jy,2.4,1.15,0,0,Math.PI*2);ctx.fill()}
+ ctx.restore();
  ctx.translate(0,hover);ctx.rotate(Math.sin(gameTime*.055)*.025+(firing?.015:0));
  const w=player.width,h=w*texCrop.h/texCrop.w;ctx.shadowColor="rgba(85,235,255,.25)";ctx.shadowBlur=7;ctx.drawImage(raptorImg,texCrop.x,texCrop.y,texCrop.w,texCrop.h,Math.round(-w*.48),Math.round(-h*.5),Math.round(w),Math.round(h));ctx.shadowBlur=0;
  if(firePulse){ctx.fillStyle="#fff6be";ctx.shadowColor="#54eaff";ctx.shadowBlur=13;ctx.beginPath();ctx.arc(w*.47,-h*.10,2.5+Math.random()*2,0,Math.PI*2);ctx.fill()}ctx.restore()
@@ -554,7 +564,7 @@ const boss=enemies.find(e=>e.type==="boss"||e.type==="dreadnought");let hudY=94+
  for(const p of scorePops){ctx.globalAlpha=Math.max(0,p.life/p.maxLife);ctx.textAlign="center";ctx.fillStyle="#ffe07a";ctx.font="900 12px system-ui,sans-serif";ctx.fillText(p.text,p.x,p.y)}ctx.globalAlpha=1;
  if(state==="play"){const p=pauseRect();button(p.x,p.y,p.w,p.h,"II","#17304f","#09192e","#8cecff")}
 
- if(eventBannerTimer>0){const a=Math.min(1,eventBannerTimer/18),bw=Math.min(W-34,330),bh=60,bx=(W-bw)/2,by=Math.max(142,H*.235),accent=eventBannerType==="meteor"?"#ff9d32":"#52dcff";ctx.save();ctx.globalAlpha=a;ctx.fillStyle="rgba(3,10,24,.92)";ctx.beginPath();ctx.roundRect(bx,by,bw,bh,10);ctx.fill();ctx.strokeStyle=accent;ctx.lineWidth=2;ctx.stroke();ctx.textAlign="center";ctx.fillStyle="#fff";ctx.font=gameFont(20);ctx.fillText(eventBannerTitle,W/2,by+26);ctx.fillStyle=accent;ctx.font="900 12px system-ui,sans-serif";ctx.fillText(eventBannerSub,W/2,by+46);ctx.restore()}
+ if(eventBannerTimer>0){const a=Math.min(1,eventBannerTimer/18),bw=Math.min(W-34,330),bh=60,bx=(W-bw)/2,by=Math.max(SAFE_TOP+64,72),accent=eventBannerType==="meteor"?"#ff9d32":"#52dcff";ctx.save();ctx.globalAlpha=a;ctx.fillStyle="rgba(3,10,24,.92)";ctx.beginPath();ctx.roundRect(bx,by,bw,bh,10);ctx.fill();ctx.strokeStyle=accent;ctx.lineWidth=2;ctx.stroke();ctx.textAlign="center";ctx.fillStyle="#fff";ctx.font=gameFont(20);ctx.fillText(eventBannerTitle,W/2,by+26);ctx.fillStyle=accent;ctx.font="900 12px system-ui,sans-serif";ctx.fillText(eventBannerSub,W/2,by+46);ctx.restore()}
  if(powerMessage>0){ctx.textAlign="center";ctx.globalAlpha=Math.min(1,powerMessage/20);ctx.font="bold 18px Arial";const msgY=Math.max(170,H*.30),tw=Math.min(W-40,ctx.measureText(powerMessageText).width+28);ctx.fillStyle="rgba(3,10,25,.78)";ctx.fillRect((W-tw)/2,msgY-25,tw,36);ctx.fillStyle="#fff";ctx.fillText(powerMessageText,W/2,msgY);ctx.globalAlpha=1}
 }
 function drawPause(){panel(W*.12,H*.32,W*.76,H*.28,"#071326","#171635","#6deaff");ctx.textAlign="center";ctx.fillStyle="#fff";ctx.font=gameFont(28);ctx.fillText("PAUSED",W/2,H*.405);ctx.fillStyle="#8cecff";ctx.font="700 13px system-ui,sans-serif";ctx.fillText("TAP RESUME TO CONTINUE",W/2,H*.455);button(W*.25,H*.50,W*.50,48,"RESUME","#075f83","#153665","#6deaff")}
@@ -585,7 +595,7 @@ function drawStart(){
  const pulse=.55+.25*Math.sin(gameTime*.06);ctx.globalAlpha=pulse;ctx.strokeStyle="#ff7b38";ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(m+24,heroTop+heroH-22);ctx.lineTo(W*.32,heroTop+heroH-22);ctx.moveTo(W*.68,heroTop+heroH-22);ctx.lineTo(W-m-24,heroTop+heroH-22);ctx.stroke();ctx.globalAlpha=1;
  button(m+9,launchY,pw-18,60,"LAUNCH NOVA","#a94729","#543258","#ffc86d");
  ctx.fillStyle="#d3e8f4";ctx.font="800 13px system-ui,sans-serif";ctx.fillText("HOLD TO FIRE  •  DRAG TO MOVE",W/2,launchY+88);
- ctx.fillStyle="#91aabd";ctx.font="bold 11px system-ui,sans-serif";ctx.fillText("VERSION 15.9",W/2,H-35);
+ ctx.fillStyle="#91aabd";ctx.font="bold 11px system-ui,sans-serif";ctx.fillText("VERSION 16.0",W/2,H-35);
  ctx.restore();
 }
 function endLayout(){const h=Math.min(410,Math.max(350,H-210)),top=Math.max(102,(H-h)*.47),buttonY=top+h-65;return{top,h,buttonY}}
