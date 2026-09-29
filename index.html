@@ -17,11 +17,11 @@ content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,vie
 html,body{position:fixed;inset:0;width:100%;height:100%;margin:0;overflow:hidden;overscroll-behavior:none;touch-action:none;background:#02040d}
 canvas{position:fixed;inset:0;width:100%;height:100%;display:block;touch-action:none;-webkit-tap-highlight-color:transparent}
 </style>
-<meta name="dino-build" content="V14.5-3D-Concrete-CCL"></head>
+<meta name="dino-build" content="V14.6-Forward-3D-Title"></head>
 <body>
 <canvas id="game"></canvas>
 <script>
-// DINO INVADERS: SPACE V14.5 — 3D CONCRETE CCL
+// DINO INVADERS: SPACE V14.6 — FORWARD 3D TITLE
 const canvas=document.getElementById("game");
 const ctx=canvas.getContext("2d",{alpha:false,desynchronized:true});
 let W=0,H=0,SAFE_TOP=0,SAFE_BOTTOM=0;
@@ -609,7 +609,7 @@ function drawStart(){
  const pulse=.55+.25*Math.sin(gameTime*.06);ctx.globalAlpha=pulse;ctx.strokeStyle="#ff7b38";ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(m+24,heroTop+heroH-22);ctx.lineTo(W*.32,heroTop+heroH-22);ctx.moveTo(W*.68,heroTop+heroH-22);ctx.lineTo(W-m-24,heroTop+heroH-22);ctx.stroke();ctx.globalAlpha=1;
  button(m+9,launchY,pw-18,60,"LAUNCH NOVA","#a94729","#543258","#ffc86d");
  ctx.fillStyle="#d3e8f4";ctx.font="800 13px system-ui,sans-serif";ctx.fillText("HOLD TO FIRE  •  DRAG TO MOVE",W/2,launchY+88);
- ctx.fillStyle="#91aabd";ctx.font="bold 11px system-ui,sans-serif";ctx.fillText("VERSION 14.5",W/2,H-53);ctx.fillStyle="#fff";ctx.font="bold 13px system-ui,sans-serif";ctx.fillText("Built by Curtis Company Limited",W/2,H-35);
+ ctx.fillStyle="#91aabd";ctx.font="bold 11px system-ui,sans-serif";ctx.fillText("VERSION 14.6",W/2,H-53);ctx.fillStyle="#fff";ctx.font="bold 13px system-ui,sans-serif";ctx.fillText("Built by Curtis Company Limited",W/2,H-35);
  ctx.restore();
 }
 function endLayout(){const h=Math.min(410,Math.max(350,H-210)),top=Math.max(102,(H-h)*.47),buttonY=top+h-65;return{top,h,buttonY}}
@@ -643,32 +643,31 @@ function drawLifeLost(){
  button(left+20,top+220,width-40,42,"MAIN MENU","#52253b","#321b38","#ff8195");
 }
 function drawSplash(){
- const e=performance.now()-splashStart,out=e>5550?Math.max(0,(6000-e)/450):1,impact=Math.max(0,1-Math.abs(e-1850)/330),after=Math.max(0,Math.min(1,(e-1800)/850));
- ctx.save();ctx.fillStyle="#08090a";ctx.fillRect(0,0,W,H);
- // Concrete slab: layered aggregate, seams and vignette give the wall physical depth.
- const cg=ctx.createLinearGradient(0,0,W,H);cg.addColorStop(0,"#55585a");cg.addColorStop(.45,"#343739");cg.addColorStop(1,"#202326");ctx.fillStyle=cg;ctx.fillRect(0,0,W,H);
- for(let i=0;i<95;i++){const x=(i*83.17)%W,y=(i*137.53)%H,r=.5+(i%4)*.55;ctx.globalAlpha=.08+(i%3)*.025;ctx.fillStyle=i%2?"#d1d0c9":"#080909";ctx.beginPath();ctx.arc(x,y,r,0,Math.PI*2);ctx.fill()}ctx.globalAlpha=1;
- const vg=ctx.createRadialGradient(W*.5,H*.49,20,W*.5,H*.49,Math.max(W,H)*.67);vg.addColorStop(0,"rgba(255,255,255,.035)");vg.addColorStop(.58,"rgba(0,0,0,.08)");vg.addColorStop(1,"rgba(0,0,0,.55)");ctx.fillStyle=vg;ctx.fillRect(0,0,W,H);
- const shake=impact*impact*15;ctx.translate((Math.sin(e*.31)+Math.sin(e*.091))*shake,Math.cos(e*.23)*shake*.55);
- // Impact crater punched into the slab.
- if(e>1700){const cr=Math.min(1,(e-1700)/500),cx=W*.5,cy=H*.49,rx=Math.min(W*.41,170)*cr,ry=Math.min(H*.15,105)*cr;ctx.save();ctx.translate(cx,cy);ctx.globalAlpha=.94*out;const hole=ctx.createRadialGradient(0,0,5,0,0,rx);hole.addColorStop(0,"#08090a");hole.addColorStop(.52,"#111315");hole.addColorStop(.78,"#292c2e");hole.addColorStop(1,"rgba(46,49,50,0)");ctx.scale(1,ry/Math.max(1,rx));ctx.fillStyle=hole;ctx.beginPath();ctx.arc(0,0,rx,0,Math.PI*2);ctx.fill();ctx.restore();
-  // Branching concrete cracks.
-  ctx.save();ctx.translate(cx,cy);ctx.globalAlpha=Math.min(1,cr*1.7)*out;for(let i=0;i<30;i++){const ang=i*.20944+Math.sin(i*7.73)*.18,len=(55+(i%9)*22)*cr;ctx.strokeStyle=i%6===0?"rgba(12,13,14,.95)":"rgba(24,25,26,.78)";ctx.lineWidth=i%6===0?2.2:1.05;ctx.beginPath();let px=Math.cos(ang)*34,py=Math.sin(ang)*18;ctx.moveTo(px,py);for(let k=1;k<=3;k++){const d=len*k/3,off=Math.sin(i*19+k*4.1)*7;ctx.lineTo(Math.cos(ang)*d+Math.cos(ang+1.57)*off,Math.sin(ang)*d*.72+Math.sin(ang+1.57)*off)}ctx.stroke()}ctx.restore()}
- // Concrete chunks burst toward and across the viewer.
- if(e>1780){const age=Math.min(1,(e-1780)/1900);ctx.save();ctx.translate(W*.5,H*.49);for(let i=0;i<72;i++){const ang=i*2.399963+Math.sin(i*9.31)*.28,spd=65+(i%15)*20,z=1+age*(i%6)*.32,x=Math.cos(ang)*spd*age,y=Math.sin(ang)*spd*.75*age+age*age*82,sz=(2.5+(i%6)*1.8)*z;ctx.save();ctx.translate(x,y);ctx.rotate(ang+age*(i%2?7:-6));ctx.globalAlpha=Math.max(0,1-age*.68)*out;ctx.fillStyle=i%5===0?"#8a8c89":i%3===0?"#222426":"#555856";ctx.beginPath();ctx.moveTo(-sz,-sz*.55);ctx.lineTo(sz*1.35,-sz*.2);ctx.lineTo(sz*.55,sz);ctx.lineTo(-sz*.85,sz*.62);ctx.closePath();ctx.fill();ctx.strokeStyle="rgba(8,9,9,.5)";ctx.lineWidth=.7;ctx.stroke();ctx.restore()}ctx.restore()}
- // Dust cloud rolls out of the crater after impact.
- if(e>1800){const age=Math.min(1,(e-1800)/1500);for(let i=0;i<20;i++){const ang=i*.93,x=W*.5+Math.cos(ang)*(30+age*(45+(i%6)*16)),y=H*.5+Math.sin(ang)*age*(25+(i%5)*12),r=(10+(i%5)*5)*(1+age);ctx.globalAlpha=(1-age)*.10*out;ctx.fillStyle="#d0ccc0";ctx.beginPath();ctx.arc(x,y,r,0,Math.PI*2);ctx.fill()}}ctx.globalAlpha=1;
- // CCL is rendered as a solid extruded object: dark side faces first, chrome face last.
- const p=Math.max(0,Math.min(1,(e-450)/1400)),ease=1-Math.pow(1-p,5),rebound=e>1850&&e<2300?1+Math.sin((e-1850)/450*Math.PI)*.055:1,scale=(3.55-2.55*ease)*rebound;
- ctx.translate(W*.5,H*.49);ctx.scale(scale,scale);ctx.translate(-W*.5,-H*.49);ctx.textAlign="center";ctx.textBaseline="middle";ctx.globalAlpha=Math.min(1,p*2)*out;
- const fs=Math.min(78,W*.19),label="CCL";ctx.font=gameFont(fs,"900");
- // 3D extrusion layers visibly offset down/right.
- for(let d=15;d>=1;d--){const q=d/15;ctx.fillStyle=d%3===0?"#171b1e":"#252b2f";ctx.strokeStyle="#080a0b";ctx.lineWidth=5;ctx.strokeText(label,W*.5+d*.72,H*.455+d*.62);ctx.fillText(label,W*.5+d*.72,H*.455+d*.62)}
- const chrome=ctx.createLinearGradient(0,H*.38,0,H*.52);chrome.addColorStop(0,"#ffffff");chrome.addColorStop(.12,"#9ba5aa");chrome.addColorStop(.24,"#f9ffff");chrome.addColorStop(.39,"#4c555b");chrome.addColorStop(.52,"#eef6f8");chrome.addColorStop(.65,"#252b30");chrome.addColorStop(.81,"#cbd4d8");chrome.addColorStop(1,"#5b656a");
- ctx.shadowColor="rgba(0,0,0,.9)";ctx.shadowBlur=8;ctx.shadowOffsetY=5;ctx.lineWidth=6;ctx.strokeStyle="#0b0e10";ctx.strokeText(label,W*.5,H*.455);ctx.fillStyle=chrome;ctx.fillText(label,W*.5,H*.455);
- ctx.shadowBlur=4;ctx.shadowOffsetY=3;ctx.font=gameFont(Math.min(23,W*.057),"900");ctx.lineWidth=4;ctx.strokeText("CURTIS COMPANY LIMITED",W*.5,H*.565);ctx.fillStyle=chrome;ctx.fillText("CURTIS COMPANY LIMITED",W*.5,H*.565);
- // Chrome glint after the emblem settles.
- if(e>2600){const sweep=((e-2600)/2200)%1,xx=W*(.30+sweep*.40);ctx.save();ctx.globalCompositeOperation="screen";ctx.globalAlpha=.22*out;const sg=ctx.createLinearGradient(xx-20,0,xx+20,0);sg.addColorStop(0,"rgba(255,255,255,0)");sg.addColorStop(.5,"rgba(255,255,255,.95)");sg.addColorStop(1,"rgba(255,255,255,0)");ctx.fillStyle=sg;ctx.fillRect(xx-21,H*.38,42,H*.24);ctx.restore()}
+ const e=performance.now()-splashStart,out=e>5650?Math.max(0,(6000-e)/350):1;
+ ctx.save();ctx.fillStyle="#090a0b";ctx.fillRect(0,0,W,H);
+ const wall=ctx.createLinearGradient(0,0,W,H);wall.addColorStop(0,"#5a5d5e");wall.addColorStop(.52,"#343738");wall.addColorStop(1,"#1e2022");ctx.fillStyle=wall;ctx.fillRect(0,0,W,H);
+ for(let i=0;i<110;i++){const x=(i*79.31)%W,y=(i*131.77)%H;ctx.globalAlpha=.05+(i%4)*.018;ctx.fillStyle=i%2?"#d0cec6":"#080909";ctx.fillRect(x,y,1+(i%3),1+(i%2))}ctx.globalAlpha=1;
+ // Reference-inspired camera approach: title begins deep, grows continuously, breaks the wall,
+ // then keeps advancing until the object itself passes the screen edges.
+ const approach=Math.max(0,Math.min(1,(e-250)/5000)),smooth=approach*approach*(3-2*approach);
+ const wallHit=Math.max(0,Math.min(1,(e-2250)/260)),hitPulse=Math.max(0,1-Math.abs(e-2380)/300);
+ const shake=hitPulse*hitPulse*12;ctx.translate(Math.sin(e*.27)*shake,Math.cos(e*.21)*shake*.55);
+ if(wallHit>0){const cx=W*.5,cy=H*.49,cr=Math.min(1,(e-2250)/650),rx=Math.min(185,W*.44)*cr;const hole=ctx.createRadialGradient(cx,cy,4,cx,cy,rx);hole.addColorStop(0,"#070809");hole.addColorStop(.48,"#111315");hole.addColorStop(.77,"#282b2c");hole.addColorStop(1,"rgba(45,47,48,0)");ctx.fillStyle=hole;ctx.fillRect(0,0,W,H);
+  ctx.save();ctx.translate(cx,cy);ctx.globalAlpha=Math.min(1,cr*1.7)*out;for(let i=0;i<34;i++){const ang=i*.1848+Math.sin(i*7.9)*.17,len=(60+(i%10)*24)*cr;ctx.strokeStyle=i%6?"rgba(20,21,22,.82)":"rgba(5,6,6,.96)";ctx.lineWidth=i%6?1:2.2;ctx.beginPath();ctx.moveTo(Math.cos(ang)*30,Math.sin(ang)*16);ctx.lineTo(Math.cos(ang)*len,Math.sin(ang)*len*.74);ctx.stroke()}ctx.restore()}
+ // Perspective debris: pieces scale up as their simulated Z approaches the camera.
+ if(e>2300){const age=Math.min(1,(e-2300)/2500);ctx.save();ctx.translate(W*.5,H*.49);for(let i=0;i<78;i++){const ang=i*2.399963+Math.sin(i*11.2)*.3,depth=.35+(i%9)*.095,z=1+age*depth*4.2,travel=(35+(i%14)*12)*age*z,x=Math.cos(ang)*travel,y=Math.sin(ang)*travel*.72+age*age*45,sz=(1.8+(i%5)*1.3)*z;ctx.save();ctx.translate(x,y);ctx.rotate(ang+age*(i%2?8:-7));ctx.globalAlpha=Math.max(0,1-age*.76)*out;ctx.fillStyle=i%5===0?"#8c8d89":i%3===0?"#242627":"#565957";ctx.beginPath();ctx.moveTo(-sz,-sz*.55);ctx.lineTo(sz*1.4,-sz*.15);ctx.lineTo(sz*.48,sz);ctx.lineTo(-sz*.8,sz*.6);ctx.closePath();ctx.fill();ctx.strokeStyle="rgba(8,9,9,.55)";ctx.stroke();ctx.restore()}ctx.restore()}
+ // Dust expands toward camera as a soft secondary depth cue.
+ if(e>2350){const age=Math.min(1,(e-2350)/1800);for(let i=0;i<18;i++){const ang=i*.91,r=(8+(i%5)*5)*(1+age*3),x=W*.5+Math.cos(ang)*(25+age*(50+(i%6)*17)),y=H*.5+Math.sin(ang)*age*(30+(i%5)*15);ctx.globalAlpha=(1-age)*.075*out;ctx.fillStyle="#d4d0c5";ctx.beginPath();ctx.arc(x,y,r,0,Math.PI*2);ctx.fill()}}ctx.globalAlpha=1;
+ // Continuous Z-motion modeled after the uploaded reference. It deliberately becomes larger than viewport.
+ const zScale=.22+smooth*3.95,vertical=H*.49-smooth*H*.015;
+ ctx.translate(W*.5,vertical);ctx.scale(zScale,zScale);ctx.translate(-W*.5,-H*.49);
+ const fs=Math.min(61,W*.148);ctx.textAlign="center";ctx.textBaseline="middle";ctx.globalAlpha=Math.min(1,approach*4)*out;
+ const chrome=ctx.createLinearGradient(0,H*.385,0,H*.59);chrome.addColorStop(0,"#ffffff");chrome.addColorStop(.10,"#aab4b9");chrome.addColorStop(.22,"#f9ffff");chrome.addColorStop(.35,"#59636a");chrome.addColorStop(.49,"#eef6f8");chrome.addColorStop(.62,"#242a2e");chrome.addColorStop(.78,"#d6dfe2");chrome.addColorStop(1,"#606a70");
+ ctx.font=gameFont(fs,"900");
+ // Extrusion becomes increasingly visible during the approach.
+ const depth=10;for(let d=depth;d>=1;d--){ctx.fillStyle=d%2?"#202529":"#30373b";ctx.strokeStyle="#090b0c";ctx.lineWidth=5;ctx.strokeText("CURTIS",W*.5+d*.75,H*.455+d*.62);ctx.fillText("CURTIS",W*.5+d*.75,H*.455+d*.62)}
+ ctx.shadowColor="rgba(0,0,0,.92)";ctx.shadowBlur=8;ctx.shadowOffsetY=5;ctx.lineWidth=6;ctx.strokeStyle="#090c0e";ctx.strokeText("CURTIS",W*.5,H*.455);ctx.fillStyle=chrome;ctx.fillText("CURTIS",W*.5,H*.455);
+ ctx.font=gameFont(Math.min(26,W*.063),"900");ctx.lineWidth=4;for(let d=7;d>=1;d--){ctx.fillStyle="#272d31";ctx.strokeText("COMPANY LIMITED",W*.5+d*.6,H*.555+d*.5);ctx.fillText("COMPANY LIMITED",W*.5+d*.6,H*.555+d*.5)}ctx.strokeText("COMPANY LIMITED",W*.5,H*.555);ctx.fillStyle=chrome;ctx.fillText("COMPANY LIMITED",W*.5,H*.555);
  ctx.restore();if(e>=6000){state="start";startMenuMusic()}
 }
 function draw(){
