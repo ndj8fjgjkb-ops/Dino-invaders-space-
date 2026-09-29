@@ -17,7 +17,7 @@ content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,vie
 html,body{position:fixed;inset:0;width:100%;height:100%;margin:0;overflow:hidden;overscroll-behavior:none;touch-action:none;background:#02040d}
 canvas{position:fixed;inset:0;width:100%;height:100%;display:block;touch-action:none;-webkit-tap-highlight-color:transparent}
 </style>
-<meta name="dino-build" content="V16.2-How-To-Combat-Polish"></head>
+<meta name="dino-build" content="V16.2A-Menu-Copy"></head>
 <body>
 <canvas id="game"></canvas>
 <script>
@@ -596,12 +596,12 @@ function drawStart(){
  const card=ctx.createLinearGradient(m,heroTop,W-m,heroTop+heroH);card.addColorStop(0,"rgba(4,18,39,.91)");card.addColorStop(.5,"rgba(8,35,58,.82)");card.addColorStop(1,"rgba(20,17,49,.90)");ctx.fillStyle=card;ctx.beginPath();ctx.roundRect(m,heroTop,pw,heroH,16);ctx.fill();ctx.strokeStyle="rgba(89,225,255,.62)";ctx.lineWidth=1.5;ctx.shadowColor="#35d8ff";ctx.shadowBlur=9;ctx.stroke();ctx.shadowBlur=0;
  ctx.fillStyle="#ffad4d";ctx.font=gameFont(20);ctx.fillText("NOVA — THE FINAL PILOT",W/2,heroTop+35);
  ctx.fillStyle="#d8f6ff";ctx.font="800 13px system-ui,sans-serif";ctx.fillText("SURVIVE THE INVASION. PUSH YOUR SCORE.",W/2,heroTop+64);
- ctx.fillStyle="#91b8ce";ctx.font="700 11px system-ui,sans-serif";ctx.fillText("3 LIVES • SHIELDS • BOSS ENCOUNTERS",W/2,heroTop+88);
+ ctx.fillStyle="#91b8ce";ctx.font="700 11px system-ui,sans-serif";ctx.fillText("ENDLESS WAVES • POWERUPS • UFO BOSSES",W/2,heroTop+88);
  ctx.fillText("SURVIVE • BLAST • ADVANCE",W/2,heroTop+108);
  const pulse=.55+.25*Math.sin(gameTime*.06);ctx.globalAlpha=pulse;ctx.strokeStyle="#ff7b38";ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(m+24,heroTop+heroH-22);ctx.lineTo(W*.32,heroTop+heroH-22);ctx.moveTo(W*.68,heroTop+heroH-22);ctx.lineTo(W-m-24,heroTop+heroH-22);ctx.stroke();ctx.globalAlpha=1;
  button(m+9,launchY,pw-18,54,"LAUNCH NOVA","#a94729","#543258","#ffc86d");
  button(m+9,launchY+60,pw-18,42,"HOW TO PLAY","#075f83","#153665","#6deaff");
- ctx.fillStyle="#91aabd";ctx.font="bold 11px system-ui,sans-serif";ctx.fillText("VERSION 16.2",W/2,H-35);
+ ctx.fillStyle="#91aabd";ctx.font="bold 11px system-ui,sans-serif";ctx.fillText("VERSION 16.2A",W/2,H-35);
  ctx.restore();
 }
 function drawHowTo(){ctx.save();ctx.fillStyle="rgba(0,4,14,.90)";ctx.fillRect(0,0,W,H);const m=16,top=Math.max(SAFE_TOP+18,28),pw=W-m*2,h=H-top-24;const g=ctx.createLinearGradient(m,top,W-m,top+h);g.addColorStop(0,"rgba(5,25,48,.95)");g.addColorStop(1,"rgba(24,10,42,.95)");ctx.fillStyle=g;ctx.beginPath();ctx.roundRect(m,top,pw,h,18);ctx.fill();ctx.strokeStyle="rgba(83,229,255,.65)";ctx.lineWidth=1.5;ctx.stroke();ctx.textAlign="center";ctx.fillStyle="#ff9b3d";ctx.font=gameFont(25);ctx.fillText("HOW TO PLAY",W/2,top+39);ctx.fillStyle="#8deeff";ctx.font="800 10px system-ui,sans-serif";ctx.fillText("NOVA — THE FINAL PILOT",W/2,top+59);const rows=[["MOVE + FIRE","Touch and hold anywhere. Drag to move. NOVA fires while held."],["SURVIVE","Dodge asteroids, enemy dinos and boss fire. You have 3 lives."],["TRI BURST","3-way blaster for 8 seconds."],["OVERDRIVE","Heavy 5-way blaster for 8 seconds."],["SHIELD","Blocks one hit. You can carry up to 2."],["BOSS CORE","Boss reward: +750 score."],["WAVES + BOSSES","Clear longer enemy waves. A UFO boss arrives every 5 levels."]];let y=top+88;for(const [head,body] of rows){ctx.textAlign="left";ctx.fillStyle="#ffbd69";ctx.font="900 11px system-ui,sans-serif";ctx.fillText(head,m+18,y);ctx.fillStyle="#d9edf7";ctx.font="600 10px system-ui,sans-serif";const words=body.split(" ");let line="",ly=y+16;for(const word of words){const test=line+word+" ";if(ctx.measureText(test).width>pw-36){ctx.fillText(line,m+18,ly);line=word+" ";ly+=13}else line=test}ctx.fillText(line,m+18,ly);y=ly+24}button(m+14,Math.min(top+h-58,y+2),pw-28,44,"BACK TO MENU","#075f83","#153665","#6deaff");ctx.restore()}
