@@ -17,14 +17,17 @@ content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,vie
 html,body{position:fixed;inset:0;width:100%;height:100%;margin:0;overflow:hidden;overscroll-behavior:none;touch-action:none;background:#02040d}
 canvas{position:fixed;inset:0;width:100%;height:100%;display:block;touch-action:none;-webkit-tap-highlight-color:transparent}
 </style>
-<meta name="dino-build" content="V13.3-Run-Summary"></head>
+<meta name="dino-build" content="V13.4-iPhone-Controls"></head>
 <body>
 <canvas id="game"></canvas>
 <script>
-// DINO INVADERS: SPACE V13.3 — RUN SUMMARY
+// DINO INVADERS: SPACE V13.4 — IPHONE CONTROLS
 const canvas=document.getElementById("game");
 const ctx=canvas.getContext("2d",{alpha:false,desynchronized:true});
-let W=0,H=0;
+let W=0,H=0,SAFE_TOP=0,SAFE_BOTTOM=0;
+function readSafeInsets(){if(!document.body||!window.getComputedStyle)return;const probe=document.createElement("div");probe.style.cssText="position:fixed;visibility:hidden;padding-top:env(safe-area-inset-top);padding-bottom:env(safe-area-inset-bottom)";document.body.appendChild(probe);const style=window.getComputedStyle(probe);SAFE_TOP=parseFloat(style.paddingTop)||0;SAFE_BOTTOM=parseFloat(style.paddingBottom)||0;probe.remove()}
+function pauseRect(){return{x:W-54,y:18+SAFE_TOP,w:42,h:34}}
+function playerBounds(){return{top:Math.max(50,SAFE_TOP+42),bottom:Math.max(100,H-65-SAFE_BOTTOM)}}
 document.addEventListener("touchmove",e=>e.preventDefault(),{passive:false});
 document.addEventListener("gesturestart",e=>e.preventDefault(),{passive:false});
 document.addEventListener("gesturechange",e=>e.preventDefault(),{passive:false});
@@ -127,9 +130,9 @@ function flushRecords(){if(!recordsDirty)return;try{localStorage.dinoTotalKills=
 function addParticle(p){if(particles.length<120)particles.push(p)}
 
 function resize(){
- W=document.documentElement.clientWidth||innerWidth;H=document.documentElement.clientHeight||innerHeight;const pixels=W*H,dpr=Math.min(window.devicePixelRatio||1,pixels>650000?1.25:1.5);canvas.width=Math.round(W*dpr);canvas.height=Math.round(H*dpr);canvas.style.width=W+"px";canvas.style.height=H+"px";ctx.setTransform(dpr,0,0,dpr,0,0);ctx.imageSmoothingEnabled=true;ctx.imageSmoothingQuality="high";
+ readSafeInsets();W=document.documentElement.clientWidth||innerWidth;H=document.documentElement.clientHeight||innerHeight;const pixels=W*H,dpr=Math.min(window.devicePixelRatio||1,pixels>650000?1.25:1.5);canvas.width=Math.round(W*dpr);canvas.height=Math.round(H*dpr);canvas.style.width=W+"px";canvas.style.height=H+"px";ctx.setTransform(dpr,0,0,dpr,0,0);ctx.imageSmoothingEnabled=true;ctx.imageSmoothingQuality="high";
  createStars();createPlanets();createGalaxies();
- player.x=Math.max(55,Math.min(W-65,player.x));player.y=Math.max(55,Math.min(H-65,player.y));
+ player.x=Math.max(55,Math.min(W-65,player.x));const bounds=playerBounds();player.y=Math.max(bounds.top,Math.min(bounds.bottom,player.y));
 }
 addEventListener("resize",resize);addEventListener("orientationchange",()=>setTimeout(resize,180));
 
@@ -388,7 +391,7 @@ level=1+Math.floor(gameTime/600);sector=Math.min(5,1+Math.floor((level-1)/2));di
  if(spreadTimer>0)spreadTimer--;if(overdriveTimer>0)overdriveTimer--;if(meteorStormTimer>0)meteorStormTimer--;if(powerMessage>0)powerMessage--;if(comboTimer>0){comboTimer--;if(comboTimer===0)combo=0}
  if(gameTime===300||gameTime%840===0)spawnPowerup("spread");
  if(gameTime===480||gameTime%1080===0)spawnPowerup("shield");if(gameTime===840||gameTime%1380===0)spawnPowerup("overdrive");
- player.x=Math.max(50,Math.min(W-65,player.x));player.y=Math.max(50,Math.min(H-65,player.y));
+ player.x=Math.max(50,Math.min(W-65,player.x));const bounds=playerBounds();player.y=Math.max(bounds.top,Math.min(bounds.bottom,player.y));
  if(player.fireCooldown>0)player.fireCooldown--;if(firing&&player.fireCooldown<=0)shoot();
  const preBoss=enemies.some(e=>e.type==="boss"||e.type==="dreadnought");if(gameTime>=nextMeteorStorm&&!preBoss){meteorStormTimer=360;nextMeteorStorm=gameTime+1800;sfx("storm");powerMessageText="METEOR STORM!";powerMessage=150;screenShake=4}const spawnRate=meteorStormTimer>0?Math.max(11,29-Math.floor(difficulty*2)):Math.max(19,60-Math.floor(difficulty*6));if(gameTime%spawnRate===0&&asteroids.length<(preBoss?9:meteorStormTimer>0?22:20))spawnAsteroid();
  const bossActive=enemies.some(e=>e.type==="boss"||e.type==="dreadnought");
@@ -531,16 +534,16 @@ function gameFont(size,weight="700"){return weight+" "+size+"px Impact, Haettens
 function panel(x,y,w,h,a="#07152d",b="#162b55",stroke="#58dfff"){const g=ctx.createLinearGradient(x,y,x+w,y+h);g.addColorStop(0,a);g.addColorStop(1,b);ctx.fillStyle=g;ctx.beginPath();ctx.roundRect(x,y,w,h,14);ctx.fill();ctx.strokeStyle=stroke;ctx.lineWidth=2;ctx.shadowColor=stroke;ctx.shadowBlur=10;ctx.stroke();ctx.shadowBlur=0}
 function button(x,y,w,h,label,c1="#0e5f86",c2="#152d69",stroke="#71edff"){const g=ctx.createLinearGradient(x,y,x,y+h);g.addColorStop(0,c1);g.addColorStop(1,c2);ctx.fillStyle=g;ctx.beginPath();ctx.roundRect(x,y,w,h,12);ctx.fill();ctx.strokeStyle=stroke;ctx.lineWidth=2;ctx.shadowColor=stroke;ctx.shadowBlur=12;ctx.stroke();ctx.shadowBlur=0;ctx.fillStyle="#fff";ctx.font=gameFont(16);ctx.textAlign="center";ctx.fillText(label,x+w/2,y+h*.64)}
 function drawHUD(){
- ctx.textBaseline="alphabetic";ctx.textAlign="left";ctx.globalAlpha=.68;ctx.fillStyle="rgba(2,10,24,.28)";ctx.fillRect(8,8,Math.min(212,W-76),56);
- ctx.fillStyle="#fff";ctx.font=gameFont(22);ctx.shadowColor="#49dfff";ctx.shadowBlur=7;ctx.fillText("SCORE "+score,16,31);ctx.shadowBlur=0;
- ctx.fillStyle="#bfeeff";ctx.font="700 10px system-ui,sans-serif";ctx.fillText("SECTOR "+sector+"/5   LV "+level+"   KILLS "+invaderKills,16,50);
- ctx.globalAlpha=1;const boss=enemies.find(e=>e.type==="boss"||e.type==="dreadnought");let hudY=94;
- if(boss){const bw=Math.min(250,W*.60),bx=(W-bw)/2,by=75;ctx.fillStyle="rgba(0,0,0,.65)";ctx.fillRect(bx-2,by-2,bw+4,12);ctx.fillStyle="#fff";ctx.fillRect(bx,by,bw,8);ctx.fillStyle=(boss.bossDef||BOSS_ROSTER[0]).color;ctx.fillRect(bx,by,bw*(boss.health/boss.maxHealth),8);ctx.textAlign="center";ctx.fillStyle="#fff";ctx.font="bold 10px Arial";ctx.fillText((boss.bossDef||BOSS_ROSTER[0]).name,W/2,by+23);hudY=116}
+ ctx.textBaseline="alphabetic";ctx.textAlign="left";ctx.globalAlpha=.68;ctx.fillStyle="rgba(2,10,24,.28)";ctx.fillRect(8,8+SAFE_TOP,Math.min(212,W-76),56);
+ ctx.fillStyle="#fff";ctx.font=gameFont(22);ctx.shadowColor="#49dfff";ctx.shadowBlur=7;ctx.fillText("SCORE "+score,16,31+SAFE_TOP);ctx.shadowBlur=0;
+ ctx.fillStyle="#bfeeff";ctx.font="700 10px system-ui,sans-serif";ctx.fillText("SECTOR "+sector+"/5   LV "+level+"   KILLS "+invaderKills,16,50+SAFE_TOP);
+ ctx.globalAlpha=1;const boss=enemies.find(e=>e.type==="boss"||e.type==="dreadnought");let hudY=94+SAFE_TOP;
+ if(boss){const bw=Math.min(250,W*.60),bx=(W-bw)/2,by=75+SAFE_TOP;ctx.fillStyle="rgba(0,0,0,.65)";ctx.fillRect(bx-2,by-2,bw+4,12);ctx.fillStyle="#fff";ctx.fillRect(bx,by,bw,8);ctx.fillStyle=(boss.bossDef||BOSS_ROSTER[0]).color;ctx.fillRect(bx,by,bw*(boss.health/boss.maxHealth),8);ctx.textAlign="center";ctx.fillStyle="#fff";ctx.font="bold 10px Arial";ctx.fillText((boss.bossDef||BOSS_ROSTER[0]).name,W/2,by+23);hudY=116+SAFE_TOP}
  ctx.textAlign="center";
  for(const [active,label,color] of [[meteorStormTimer>0,"METEOR STORM "+Math.ceil(meteorStormTimer/60)+"s","#ffb04f"],[overdriveTimer>0,"OVERDRIVE "+Math.ceil(overdriveTimer/60)+"s","#82aaff"],[spreadTimer>0,"TRI BURST "+Math.ceil(spreadTimer/60)+"s","#67f7ff"],[shieldHits>0,"SHIELD "+shieldHits,"#7dff9d"],[combo>=2,"COMBO "+combo+" x"+comboMult().toFixed(2),"#ffd45b"]]){if(active){ctx.fillStyle=color;ctx.font="bold 11px Arial";ctx.fillText(label,W/2,hudY);hudY+=16}}
  if(combo>=5){const tier=comboTier();ctx.textAlign="center";ctx.fillStyle=combo>=20?"#ff7657":"#ffd45b";ctx.font="900 12px system-ui,sans-serif";ctx.fillText(tier,W/2,hudY+2)}
  for(const p of scorePops){ctx.globalAlpha=Math.max(0,p.life/p.maxLife);ctx.textAlign="center";ctx.fillStyle="#ffe07a";ctx.font="900 12px system-ui,sans-serif";ctx.fillText(p.text,p.x,p.y)}ctx.globalAlpha=1;
- if(state==="play")button(W-54,18,42,34,"II","#17304f","#09192e","#8cecff");
+ if(state==="play"){const p=pauseRect();button(p.x,p.y,p.w,p.h,"II","#17304f","#09192e","#8cecff")}
 
  if(powerMessage>0){ctx.textAlign="center";ctx.globalAlpha=Math.min(1,powerMessage/20);ctx.font="bold 18px Arial";const msgY=Math.max(170,H*.30),tw=Math.min(W-40,ctx.measureText(powerMessageText).width+28);ctx.fillStyle="rgba(3,10,25,.78)";ctx.fillRect((W-tw)/2,msgY-25,tw,36);ctx.fillStyle="#fff";ctx.fillText(powerMessageText,W/2,msgY);ctx.globalAlpha=1}
 }
@@ -572,7 +575,7 @@ function drawStart(){
  const pulse=.55+.25*Math.sin(gameTime*.06);ctx.globalAlpha=pulse;ctx.strokeStyle="#ff7b38";ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(m+24,heroTop+heroH-22);ctx.lineTo(W*.32,heroTop+heroH-22);ctx.moveTo(W*.68,heroTop+heroH-22);ctx.lineTo(W-m-24,heroTop+heroH-22);ctx.stroke();ctx.globalAlpha=1;
  button(m+9,launchY,pw-18,60,"LAUNCH NOVA","#a94729","#543258","#ffc86d");
  ctx.fillStyle="#d3e8f4";ctx.font="800 13px system-ui,sans-serif";ctx.fillText("HOLD TO FIRE  •  DRAG TO MOVE",W/2,launchY+88);
- ctx.fillStyle="#91aabd";ctx.font="bold 11px system-ui,sans-serif";ctx.fillText("VERSION 13.3",W/2,H-53);ctx.fillStyle="#fff";ctx.font="bold 13px system-ui,sans-serif";ctx.fillText("Built by Curtis Company Limited",W/2,H-35);
+ ctx.fillStyle="#91aabd";ctx.font="bold 11px system-ui,sans-serif";ctx.fillText("VERSION 13.4",W/2,H-53);ctx.fillStyle="#fff";ctx.font="bold 13px system-ui,sans-serif";ctx.fillText("Built by Curtis Company Limited",W/2,H-35);
  ctx.restore();
 }
 function endLayout(){const h=Math.min(410,Math.max(350,H-210)),top=Math.max(102,(H-h)*.47),buttonY=top+h-65;return{top,h,buttonY}}
@@ -606,7 +609,7 @@ window.addEventListener("error",e=>{try{ctx.setTransform(1,0,0,1,0,0);ctx.fillSt
 requestAnimationFrame(loop);
 function touchPosition(touch){const rect=canvas.getBoundingClientRect();return{x:touch.clientX-rect.left,y:touch.clientY-rect.top}}
 canvas.addEventListener("touchstart",function(e){
- e.preventDefault();initAudio();if(state==="start"&&audioReady){if(audioCtx&&audioCtx.state==="suspended")audioCtx.resume();startMenuMusic()}if(state==="victory"){for(const touch of e.changedTouches){const p=touchPosition(touch);if(p.y>=H*.59&&p.y<=H*.59+50){state="play";nextBossLevel=Math.max(nextBossLevel,15);return}if(p.y>=H*.67&&p.y<=H*.67+46){state="start";return}}return}if(state==="paused"){for(const touch of e.changedTouches){const p=touchPosition(touch);if(p.y>=H*.48&&p.y<=H*.57){resumeGrace=60;state="play";return}}return}if(state==="play"){for(const touch of e.changedTouches){const p=touchPosition(touch);if(p.x>=W-62&&p.y>=12&&p.y<=62){state="paused";firing=false;moveTouchID=null;return}}}if(state==="start"){for(const touch of e.changedTouches){const p=touchPosition(touch),{launchY}=startLayout();if(p.y>=launchY&&p.y<=launchY+58){startGame();return}}return}if(state==="dead"){for(const touch of e.changedTouches){const p=touchPosition(touch),{buttonY}=endLayout();if(p.y>=buttonY&&p.y<=buttonY+48){if(p.x<W*.5)startGame();else{state="start";firing=false;moveTouchID=null;startMenuMusic()}return}}return}
+ e.preventDefault();initAudio();if(state==="start"&&audioReady){if(audioCtx&&audioCtx.state==="suspended")audioCtx.resume();startMenuMusic()}if(state==="victory"){for(const touch of e.changedTouches){const p=touchPosition(touch);if(p.y>=H*.59&&p.y<=H*.59+50){state="play";nextBossLevel=Math.max(nextBossLevel,15);return}if(p.y>=H*.67&&p.y<=H*.67+46){state="start";return}}return}if(state==="paused"){for(const touch of e.changedTouches){const p=touchPosition(touch);if(p.y>=H*.50-8&&p.y<=H*.50+56){resumeGrace=60;state="play";return}}return}if(state==="play"){for(const touch of e.changedTouches){const p=touchPosition(touch);const pause=pauseRect();if(p.x>=pause.x-8&&p.y>=pause.y-8&&p.y<=pause.y+pause.h+8){state="paused";firing=false;moveTouchID=null;return}}}if(state==="start"){for(const touch of e.changedTouches){const p=touchPosition(touch),{launchY}=startLayout();if(p.y>=launchY&&p.y<=launchY+60){startGame();return}}return}if(state==="dead"){for(const touch of e.changedTouches){const p=touchPosition(touch),{buttonY}=endLayout();if(p.y>=buttonY&&p.y<=buttonY+48){if(p.x<W*.5)startGame();else{state="start";firing=false;moveTouchID=null;startMenuMusic()}return}}return}
  for(const touch of e.changedTouches){const p=touchPosition(touch);
   if(moveTouchID===null){
    moveTouchID=touch.identifier;lastMoveX=p.x;lastMoveY=p.y;firing=true;if(player.fireCooldown<=0)shoot();
@@ -616,7 +619,7 @@ canvas.addEventListener("touchstart",function(e){
 canvas.addEventListener("touchmove",function(e){
  e.preventDefault();if(state!=="play")return;
  for(const touch of e.touches){if(touch.identifier!==moveTouchID)continue;const p=touchPosition(touch),dx=p.x-lastMoveX,dy=p.y-lastMoveY;
-  const thrust=1;player.x+=dx*thrust;player.y+=dy*thrust;player.x=Math.max(50,Math.min(W-65,player.x));player.y=Math.max(50,Math.min(H-65,player.y));lastMoveX=p.x;lastMoveY=p.y;
+  const thrust=1;player.x+=dx*thrust;player.y+=dy*thrust;player.x=Math.max(50,Math.min(W-65,player.x));const bounds=playerBounds();player.y=Math.max(bounds.top,Math.min(bounds.bottom,player.y));lastMoveX=p.x;lastMoveY=p.y;
  }
 },{passive:false});
 function releaseTouches(e){e.preventDefault();for(const touch of e.changedTouches){if(touch.identifier===moveTouchID){moveTouchID=null;firing=false}}}
