@@ -17,7 +17,7 @@ content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,vie
 html,body{position:fixed;inset:0;width:100%;height:100%;margin:0;overflow:hidden;overscroll-behavior:none;touch-action:none;background:#02040d}
 canvas{position:fixed;inset:0;width:100%;height:100%;display:block;touch-action:none;-webkit-tap-highlight-color:transparent}
 </style>
-<meta name="dino-build" content="V16.6-Single-Popup-System"></head>
+<meta name="dino-build" content="V16.7-Combat-QA-Performance"></head>
 <body>
 <canvas id="game"></canvas>
 <script>
@@ -118,7 +118,7 @@ function cacheSprite(im){if(!im.naturalWidth)return;const c=document.createEleme
 function drawSprite(im,...rect){ctx.drawImage(spriteCache.get(im)||im,...rect)}
 let shieldPulse=0,recordsDirty=false;
 function flushRecords(){if(!recordsDirty)return;try{localStorage.dinoTotalKills=totalKills;localStorage.dinoBestCombo=bestComboEver;recordsDirty=false}catch(_){}}
-function addParticle(p){if(particles.length<120)particles.push(p)}
+function addParticle(p){if(particles.length<96)particles.push(p)}
 
 function resize(){
  readSafeInsets();W=document.documentElement.clientWidth||innerWidth;H=document.documentElement.clientHeight||innerHeight;const pixels=W*H,dpr=Math.min(window.devicePixelRatio||1,pixels>650000?1.25:1.5);canvas.width=Math.round(W*dpr);canvas.height=Math.round(H*dpr);canvas.style.width=W+"px";canvas.style.height=H+"px";ctx.setTransform(dpr,0,0,dpr,0,0);ctx.imageSmoothingEnabled=true;ctx.imageSmoothingQuality="high";
@@ -206,7 +206,7 @@ function powerIcon(type){if(powerIconCache[type])return powerIconCache[type];con
 }
 function drawPowerups(){for(const p of powerups){ctx.save();ctx.translate(p.x,p.y);const pulse=1+Math.sin(gameTime*.08+p.phase)*.045;ctx.scale(pulse,pulse);ctx.drawImage(powerIcon(p.type),-24,-24,48,48);ctx.fillStyle="#d8f4ff";ctx.font="700 8px system-ui,sans-serif";ctx.textAlign="center";ctx.fillText(p.type==="overdrive"?"OVERDRIVE":p.type==="spread"?"TRI SHOT":p.type.toUpperCase(),0,34);ctx.restore()}}
 function spawnEnemy(type="scout",offset=0){
- if(enemies.length>=10)return;
+ if(enemies.length>=9)return;
  const y=70+Math.random()*Math.max(100,H-140),hunter=type==="hunter",boss=type==="boss"||type==="dreadnought",dread=type==="dreadnought",gunner=type==="gunner",charger=type==="charger",stalker=type==="stalker",bomber=type==="bomber",warden=type==="warden";
  const elite=!boss&&level>=5&&Math.random()<Math.min(.18,.035+level*.008);const hp=dread?60:boss?42:warden?7:bomber?5:gunner?4:hunter?3:stalker?4:charger?2:1;
  enemies.push({x:stalker&&Math.random()<.55?W*.38+Math.random()*W*.5:W+70+offset,y:stalker&&Math.random()<.5?-45:H+45,baseY:y,vx:boss?-1.25:stalker?-1.05:-(warden?1.15:bomber?1.45:gunner?1.7:hunter?2.7:2.1)-Math.random()*.8-difficulty*.12,phase:Math.random()*Math.PI*2,health:elite?hp*2:hp,maxHealth:elite?hp*2:hp,radius:dread?44:boss?34:warden?21:bomber?18:gunner?16:hunter?15:stalker?17:charger?13:11.424,points:(dread?6500:boss?3200:warden?950:bomber?750:gunner?500:stalker?650:hunter?350:charger?300:180)*(elite?2:1),type,elite,shotTimer:70+Math.random()*80,flightPhase:Math.random()*Math.PI*2,flightAmp:8+Math.random()*8,flightRate:.032+Math.random()*.018,bank:0,diveCooldown:150+Math.random()*180,diveTimer:0,diveDir:Math.random()<.5?-1:1,hitFlash:0,hitKick:0,fireKick:0,formationY:0,formationPhase:0,formationStrength:0});const ne=enemies[enemies.length-1];if(stalker)ne.baseY=ne.y;if(boss){const def=BOSS_ROSTER[(bossCount-1)%BOSS_ROSTER.length];ne.bossDef=def;ne.health=ne.maxHealth=def.hp+Math.floor((bossCount-1)/3)*18;ne.radius=def.radius;ne.points=3200+bossCount*1100;ne.shotTimer=85}
@@ -219,7 +219,7 @@ function spawnBoss(){
 }
 function spawnWave(){
  if(enemies.length>=10)return;
- wave++;const count=Math.min(10-enemies.length,3+Math.floor(level/2));
+ wave++;const count=Math.min(9-enemies.length,3+Math.floor(level/2));
  if(bossAlertTimer<=0&&bossDefeatTimer<=0){powerMessage=0;eventBannerTitle="WAVE "+wave;eventBannerSub="";eventBannerType="enemy";eventBannerTimer=90;}if(audioReady){tone(185,.12,"sawtooth",.025,0,"sfx",700);tone(247,.16,"triangle",.022,.08,"sfx",800)};
  const waveStart=enemies.length;
  for(let i=0;i<count;i++){let type=i===Math.floor(count/2)&&wave%2===0?"stalker":"scout";spawnEnemy(type,i*48)}
@@ -255,7 +255,7 @@ function drawEnemy(e){
  // Each boss uses separately articulated body and wing artwork.
  if(e.type==="stalker"&&stalkerBodyImg.complete&&stalkerBodyImg.naturalWidth&&stalkerWingLeftImg.complete&&stalkerWingLeftImg.naturalWidth&&stalkerWingRightImg.complete&&stalkerWingRightImg.naturalWidth){
   const beat=Math.sin(gameTime*.145+(e.flightPhase||e.phase)),stroke=beat*.38,bank=e.bank||0;
-  const bodyW=78,bodyH=bodyW*stalkerBodyImg.naturalHeight/stalkerBodyImg.naturalWidth;
+  const bodyW=74,bodyH=bodyW*stalkerBodyImg.naturalHeight/stalkerBodyImg.naturalWidth;
   const wingW=55,wingHL=wingW*stalkerWingLeftImg.naturalHeight/stalkerWingLeftImg.naturalWidth,wingHR=wingW*stalkerWingRightImg.naturalHeight/stalkerWingRightImg.naturalWidth;
   ctx.save();ctx.rotate(bank*.8);
   // Stalker wings use a slower, deeper predatory stroke and remain behind the body.
@@ -270,7 +270,7 @@ function drawEnemy(e){
 // V12.21 approved precomposed flying enemy. Preserve the verified silhouette; animate only the whole sprite.
 if(articulatedBodyImg.complete&&articulatedBodyImg.naturalWidth&&articulatedWingLeftImg.complete&&articulatedWingLeftImg.naturalWidth&&articulatedWingRightImg.complete&&articulatedWingRightImg.naturalWidth){
  ctx.save();ctx.translate(0,bob);ctx.rotate(bank);
- const bodyW=68,bodyH=bodyW*articulatedBodyImg.naturalHeight/articulatedBodyImg.naturalWidth;
+ const bodyW=66,bodyH=bodyW*articulatedBodyImg.naturalHeight/articulatedBodyImg.naturalWidth;
  const wingW=48,wingHL=wingW*articulatedWingLeftImg.naturalHeight/articulatedWingLeftImg.naturalWidth,wingHR=wingW*articulatedWingRightImg.naturalHeight/articulatedWingRightImg.naturalWidth;
  const beat=Math.sin(gameTime*.18+(e.flightPhase||e.phase)),stroke=beat*.32;
  // Both wings render behind the body so neither membrane can cover the dinosaur.
@@ -326,15 +326,15 @@ function spawnAsteroid(){
  asteroids.push(makeAsteroid(x,y,size,vx,vy));
 }
 function splitAsteroid(a){
- if(a.size<=1||asteroids.length>=24)return;
+ if(a.size<=1||asteroids.length>=21)return;
  const childSize=a.size-1;
- for(let i=0;i<2&&asteroids.length<24;i++){
+ for(let i=0;i<2&&asteroids.length<21;i++){
   const direction=i===0?-1:1,speed=Math.abs(a.vx)*(1.05+Math.random()*.25);
   asteroids.push(makeAsteroid(a.x,a.y+direction*8,childSize,-speed,direction*(1.3+Math.random()*1.5)));
  }
 }
 function burst(x,y,amount,type,power=7){
- const room=Math.max(0,120-particles.length),count=Math.min(amount,room);
+ const room=Math.max(0,96-particles.length),count=Math.min(amount,room);
  for(let i=0;i<count;i++){const life=12+Math.random()*16;addParticle({x,y,vx:(Math.random()-.5)*power,vy:(Math.random()-.5)*power,life,maxLife:life,size:1+Math.random()*4,type})}
 }
 function hitCircle(ax,ay,ar,bx,by,br){const dx=ax-bx,dy=ay-by,r=ar+br;return dx*dx+dy*dy<r*r}
@@ -382,14 +382,14 @@ function update(){
 level=1+Math.floor(gameTime/600);difficulty=.82+gameTime/1450+level*.122
  if(level>lastLevel){lastLevel=level}
  if(spreadTimer>0)spreadTimer--;if(overdriveTimer>0)overdriveTimer--;if(meteorStormTimer>0)meteorStormTimer--;if(powerMessage>0)powerMessage--;if(eventBannerTimer>0)eventBannerTimer--;if(bossAlertTimer>0)bossAlertTimer--;if(bossDefeatTimer>0)bossDefeatTimer--;
- if(gameTime===300||gameTime%840===0)spawnPowerup("spread");
- if(gameTime===480||gameTime%1080===0)spawnPowerup("shield");if(gameTime===840||gameTime%1380===0)spawnPowerup("overdrive");
+ if(gameTime===330||gameTime%960===0)spawnPowerup("spread");
+ if(gameTime===510||gameTime%1200===0)spawnPowerup("shield");if(gameTime===900||gameTime%1500===0)spawnPowerup("overdrive");
  player.x=Math.max(12,Math.min(W-56,player.x));const bounds=playerBounds();player.y=Math.max(bounds.top,Math.min(bounds.bottom,player.y));
  if(player.fireCooldown>0)player.fireCooldown--;if(firing&&player.fireCooldown<=0)shoot();
- const preBoss=enemies.some(e=>e.type==="boss"||e.type==="dreadnought");if(gameTime>=nextMeteorStorm&&!preBoss){meteorStormTimer=360;nextMeteorStorm=gameTime+1800;sfx("storm");if(bossAlertTimer<=0&&bossDefeatTimer<=0){powerMessage=0;eventBannerTitle="WAVE "+wave;eventBannerSub="METEOR STORM";eventBannerType="meteor";eventBannerTimer=130;}screenShake=4}const spawnRate=meteorStormTimer>0?Math.max(14,32-Math.floor(difficulty*1.6)):Math.max(23,67-Math.floor(difficulty*5));if(gameTime%spawnRate===0&&asteroids.length<(preBoss?9:meteorStormTimer>0?22:20))spawnAsteroid();
+ const preBoss=enemies.some(e=>e.type==="boss"||e.type==="dreadnought");if(gameTime>=nextMeteorStorm&&!preBoss){meteorStormTimer=360;nextMeteorStorm=gameTime+1800;sfx("storm");if(bossAlertTimer<=0&&bossDefeatTimer<=0){powerMessage=0;eventBannerTitle="WAVE "+wave;eventBannerSub="METEOR STORM";eventBannerType="meteor";eventBannerTimer=130;}screenShake=4}const spawnRate=meteorStormTimer>0?Math.max(14,32-Math.floor(difficulty*1.6)):Math.max(23,67-Math.floor(difficulty*5));if(gameTime%spawnRate===0&&asteroids.length<(preBoss?8:meteorStormTimer>0?20:18))spawnAsteroid();
  const bossActive=enemies.some(e=>e.type==="boss"||e.type==="dreadnought");
  if(!bossActive&&gameTime>240 && gameTime%Math.max(165,360-Math.floor(difficulty*12))===0){const r=Math.random();spawnEnemy(level>=2&&r<Math.min(.38,.16+level*.025)?"stalker":"scout")}
- if(!bossActive&&gameTime>=waveDelayUntil&&(gameTime===420||gameTime%900===0))spawnWave();
+ if(!bossActive&&gameTime>=waveDelayUntil&&(gameTime===420||gameTime%960===0))spawnWave();
  if(level>=nextBossLevel&&!bossActive){bossSpawned=false;spawnBoss();nextBossLevel+=5}
  for(let i=bullets.length-1;i>=0;i--){const b=bullets[i];b.x+=b.vx*GAME_SPEED;b.y+=(b.vy||0)*GAME_SPEED;if(b.x>W+40||b.y<-40||b.y>H+40)bullets.splice(i,1)}
  for(let i=enemyBullets.length-1;i>=0;i--){const b=enemyBullets[i];b.x+=b.vx*GAME_SPEED;b.y+=b.vy*GAME_SPEED;if(resumeGrace<=0&&hitPlayer(b.x,b.y,b.radius)){if(shieldHits>0){shieldHits--;shieldPulse=22;resumeGrace=Math.max(resumeGrace,25);burst(b.x,b.y,12,"hot",5);enemyBullets.splice(i,1);screenShake=4;continue}die();break}if(b.x<-30||b.y<-30||b.y>H+30)enemyBullets.splice(i,1)}
@@ -445,12 +445,12 @@ level=1+Math.floor(gameTime/600);difficulty=.82+gameTime/1450+level*.122
    }
   }
   if(e.type==="gunner"&&e.x<W*.92){e.shotTimer--;if(e.shotTimer<=0&&enemyBullets.length<16){const dx=player.x-e.x,dy=player.y-e.y,len=Math.hypot(dx,dy)||1,s=4.2+Math.min(2,difficulty*.12);enemyBullets.push({x:e.x-15,y:e.y,vx:dx/len*s,vy:dy/len*s,radius:4});e.fireKick=8;e.shotTimer=Math.max(55,115-level*3)}}
-  const er=(e.type==="boss"||e.type==="dreadnought")?e.radius*.78:e.type==="stalker"?e.radius*.72:e.radius*.70;if(resumeGrace<=0&&hitPlayer(e.x,e.y,er)){
+  const er=(e.type==="boss"||e.type==="dreadnought")?e.radius*.74:e.type==="stalker"?e.radius*.66:e.radius*.64;if(resumeGrace<=0&&hitPlayer(e.x,e.y,er)){
    if(shieldHits>0){shieldHits--;shieldPulse=22;resumeGrace=Math.max(resumeGrace,25);burst(player.x,player.y,24,"hot",7);if(shockwaves.length<14)shockwaves.push({x:player.x,y:player.y,radius:8,maxRadius:70,life:18,maxLife:18});const bossHit=e.type==="boss"||e.type==="dreadnought";if(bossHit){e.health-=5;player.x=Math.max(12,player.x-28);if(e.health<=0)destroyEnemy(i)}else enemies.splice(i,1);screenShake=7;continue}
    die();break}
   let enemyRemoved=false;
   for(let j=bullets.length-1;j>=0;j--){const b=bullets[j];
-   const shotR=(e.type==="boss"||e.type==="dreadnought")?e.radius*.82:e.type==="stalker"?e.radius*.76:e.radius*.73;if(hitCircle(b.x,b.y,b.radius,e.x,e.y,shotR)){
+   const shotR=(e.type==="boss"||e.type==="dreadnought")?e.radius*.78:e.type==="stalker"?e.radius*.70:e.radius*.68;if(hitCircle(b.x,b.y,b.radius,e.x,e.y,shotR)){
     if((b.pierce||0)>0)b.pierce--;else bullets.splice(j,1);e.health-=1+powerLevel+(critLevel>0&&Math.random()<critLevel*.10?2:0);e.hitFlash=6;e.hitKick=7;burst(b.x,b.y,9,"hot",4);for(let s=0;s<3;s++){const life=10+Math.random()*8;addParticle({x:b.x,y:b.y,vx:-2-Math.random()*4,vy:(Math.random()-.5)*5,life,maxLife:life,size:1.5+Math.random()*2,type:"hot"})}
     if(e.health<=0){destroyEnemy(i);enemyRemoved=true;break}
    }
