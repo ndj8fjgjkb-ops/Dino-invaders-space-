@@ -17,11 +17,11 @@ content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,vie
 html,body{position:fixed;inset:0;width:100%;height:100%;margin:0;overflow:hidden;overscroll-behavior:none;touch-action:none;background:#02040d}
 canvas{position:fixed;inset:0;width:100%;height:100%;display:block;touch-action:none;-webkit-tap-highlight-color:transparent}
 </style>
-<meta name="dino-build" content="V15.4-Stable-Silent-Intro"></head>
+<meta name="dino-build" content="V15.5-Stability-Cleanup"></head>
 <body>
 <canvas id="game"></canvas>
 <script>
-// DINO INVADERS: SPACE V15.4 — STABLE SILENT INTRO
+// DINO INVADERS: SPACE V15.5 — STABILITY CLEANUP
 const canvas=document.getElementById("game");
 const ctx=canvas.getContext("2d",{alpha:false,desynchronized:true});
 let W=0,H=0,SAFE_TOP=0,SAFE_BOTTOM=0;
@@ -41,7 +41,7 @@ raptorImg.onerror=()=>{raptorReady=false;raptorFailed=true};
 raptorImg.src="./nova-pilot.webp?v=130";
 const milkyImg=new Image();let milkyReady=false;milkyImg.onload=()=>milkyReady=true;milkyImg.onerror=()=>milkyReady=false;milkyImg.src="./assets/space/galactic-center.webp?v=114";
 
-let audioCtx=null,masterGain=null,musicGain=null,sfxGain=null,compressor=null,audioReady=false,musicTimer=null,musicStep=0,lastLaserAt=0,lastBoomAt=0,splashWhooshPlayed=false,splashBarkPlayed=false,splashHowlPlayed=false;
+let audioCtx=null,masterGain=null,musicGain=null,sfxGain=null,compressor=null,audioReady=false,musicTimer=null,musicStep=0,lastLaserAt=0,lastBoomAt=0;
 function initAudio(){if(audioReady){if(audioCtx&&audioCtx.state==="suspended")audioCtx.resume();return}try{
  audioCtx=new (window.AudioContext||window.webkitAudioContext)();masterGain=audioCtx.createGain();musicGain=audioCtx.createGain();sfxGain=audioCtx.createGain();compressor=audioCtx.createDynamicsCompressor();
  masterGain.gain.value=.82;musicGain.gain.value=.72;sfxGain.gain.value=.64;
@@ -51,8 +51,6 @@ function initAudio(){if(audioReady){if(audioCtx&&audioCtx.state==="suspended")au
 }catch(e){}}
 function tone(freq,dur=.08,type="sine",vol=.08,when=0,target="sfx",cutoff=0){if(!audioReady||!audioCtx)return;const o=audioCtx.createOscillator(),g=audioCtx.createGain(),bus=target==="music"?musicGain:sfxGain,t=audioCtx.currentTime+when;o.type=type;o.frequency.setValueAtTime(freq,t);g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(Math.max(.0002,vol),t+.008);g.gain.exponentialRampToValueAtTime(.0001,t+dur);if(cutoff){const f=audioCtx.createBiquadFilter();f.type="lowpass";f.frequency.value=cutoff;o.connect(f);f.connect(g)}else o.connect(g);g.connect(bus);o.start(t);o.stop(t+dur+.03)}
 function noiseBurst(dur=.16,vol=.05,cutoff=700,target="sfx"){if(!audioReady||!audioCtx)return;const frames=Math.max(1,Math.floor(audioCtx.sampleRate*dur)),buf=audioCtx.createBuffer(1,frames,audioCtx.sampleRate),d=buf.getChannelData(0);for(let i=0;i<frames;i++)d[i]=(Math.random()*2-1)*(1-i/frames);const src=audioCtx.createBufferSource(),f=audioCtx.createBiquadFilter(),g=audioCtx.createGain();src.buffer=buf;f.type="lowpass";f.frequency.value=cutoff;g.gain.setValueAtTime(vol,audioCtx.currentTime);g.gain.exponentialRampToValueAtTime(.0001,audioCtx.currentTime+dur);src.connect(f);f.connect(g);g.connect(target==="music"?musicGain:sfxGain);src.start()}
-function splashWhoosh(){if(!audioReady||!audioCtx||splashWhooshPlayed)return;splashWhooshPlayed=true;const dur=2.5,frames=Math.floor(audioCtx.sampleRate*dur),buf=audioCtx.createBuffer(2,frames,audioCtx.sampleRate);for(let c=0;c<2;c++){const d=buf.getChannelData(c);for(let i=0;i<frames;i++){const t=i/frames,env=Math.sin(Math.PI*t),flutter=.65+.35*Math.sin(i*.004+(c?1.7:0));d[i]=(Math.random()*2-1)*env*flutter}}const src=audioCtx.createBufferSource(),f=audioCtx.createBiquadFilter(),g=audioCtx.createGain(),pan=audioCtx.createStereoPanner?audioCtx.createStereoPanner():null;src.buffer=buf;f.type="bandpass";f.frequency.value=820;f.Q.value=.45;g.gain.value=.12;src.connect(f);f.connect(g);if(pan){g.connect(pan);pan.pan.setValueAtTime(-.45,audioCtx.currentTime);pan.pan.linearRampToValueAtTime(.45,audioCtx.currentTime+dur);pan.connect(sfxGain)}else g.connect(sfxGain);src.start()}
-function splashBark(){if(!audioReady||!audioCtx||splashBarkPlayed)return;splashBarkPlayed=true;noiseBurst(.10,.055,1500);tone(185,.10,"sawtooth",.035,0,"sfx",800);tone(260,.075,"triangle",.025,.045,"sfx",1200)}
 function sfx(name){if(!audioReady)return;
  if(name==="laser"){const now=audioCtx.currentTime;if(now-lastLaserAt<.05)return;lastLaserAt=now;tone(520,.045,"sine",.026,0,"sfx",1500);tone(310,.065,"triangle",.014,.006,"sfx",950)}
  else if(name==="boom"){const now=audioCtx.currentTime;if(now-lastBoomAt<.09)return;lastBoomAt=now;noiseBurst(.16,.042,650);tone(82,.18,"sine",.052,0,"sfx",300);tone(128,.09,"triangle",.018,.025,"sfx",500)}
@@ -611,7 +609,7 @@ function drawStart(){
  const pulse=.55+.25*Math.sin(gameTime*.06);ctx.globalAlpha=pulse;ctx.strokeStyle="#ff7b38";ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(m+24,heroTop+heroH-22);ctx.lineTo(W*.32,heroTop+heroH-22);ctx.moveTo(W*.68,heroTop+heroH-22);ctx.lineTo(W-m-24,heroTop+heroH-22);ctx.stroke();ctx.globalAlpha=1;
  button(m+9,launchY,pw-18,60,"LAUNCH NOVA","#a94729","#543258","#ffc86d");
  ctx.fillStyle="#d3e8f4";ctx.font="800 13px system-ui,sans-serif";ctx.fillText("HOLD TO FIRE  •  DRAG TO MOVE",W/2,launchY+88);
- ctx.fillStyle="#91aabd";ctx.font="bold 11px system-ui,sans-serif";ctx.fillText("VERSION 15.4",W/2,H-53);ctx.fillStyle="#fff";ctx.font="bold 13px system-ui,sans-serif";ctx.fillText("Built by Curtis Company Limited",W/2,H-35);
+ ctx.fillStyle="#91aabd";ctx.font="bold 11px system-ui,sans-serif";ctx.fillText("VERSION 15.5",W/2,H-53);ctx.fillStyle="#fff";ctx.font="bold 13px system-ui,sans-serif";ctx.fillText("Built by Curtis Company Limited",W/2,H-35);
  ctx.restore();
 }
 function endLayout(){const h=Math.min(410,Math.max(350,H-210)),top=Math.max(102,(H-h)*.47),buttonY=top+h-65;return{top,h,buttonY}}
