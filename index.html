@@ -17,11 +17,11 @@ content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,vie
 html,body{position:fixed;inset:0;width:100%;height:100%;margin:0;overflow:hidden;overscroll-behavior:none;touch-action:none;background:#02040d}
 canvas{position:fixed;inset:0;width:100%;height:100%;display:block;touch-action:none;-webkit-tap-highlight-color:transparent}
 </style>
-<meta name="dino-build" content="V14.7-Hollywood-CCL-Flythrough"></head>
+<meta name="dino-build" content="V14.8-Hollywood-CCL-Hold"></head>
 <body>
 <canvas id="game"></canvas>
 <script>
-// DINO INVADERS: SPACE V14.7 — HOLLYWOOD CCL FLYTHROUGH
+// DINO INVADERS: SPACE V14.8 — HOLLYWOOD CCL HOLD
 const canvas=document.getElementById("game");
 const ctx=canvas.getContext("2d",{alpha:false,desynchronized:true});
 let W=0,H=0,SAFE_TOP=0,SAFE_BOTTOM=0;
@@ -611,7 +611,7 @@ function drawStart(){
  const pulse=.55+.25*Math.sin(gameTime*.06);ctx.globalAlpha=pulse;ctx.strokeStyle="#ff7b38";ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(m+24,heroTop+heroH-22);ctx.lineTo(W*.32,heroTop+heroH-22);ctx.moveTo(W*.68,heroTop+heroH-22);ctx.lineTo(W-m-24,heroTop+heroH-22);ctx.stroke();ctx.globalAlpha=1;
  button(m+9,launchY,pw-18,60,"LAUNCH NOVA","#a94729","#543258","#ffc86d");
  ctx.fillStyle="#d3e8f4";ctx.font="800 13px system-ui,sans-serif";ctx.fillText("HOLD TO FIRE  •  DRAG TO MOVE",W/2,launchY+88);
- ctx.fillStyle="#91aabd";ctx.font="bold 11px system-ui,sans-serif";ctx.fillText("VERSION 14.7",W/2,H-53);ctx.fillStyle="#fff";ctx.font="bold 13px system-ui,sans-serif";ctx.fillText("Built by Curtis Company Limited",W/2,H-35);
+ ctx.fillStyle="#91aabd";ctx.font="bold 11px system-ui,sans-serif";ctx.fillText("VERSION 14.8",W/2,H-53);ctx.fillStyle="#fff";ctx.font="bold 13px system-ui,sans-serif";ctx.fillText("Built by Curtis Company Limited",W/2,H-35);
  ctx.restore();
 }
 function endLayout(){const h=Math.min(410,Math.max(350,H-210)),top=Math.max(102,(H-h)*.47),buttonY=top+h-65;return{top,h,buttonY}}
@@ -646,28 +646,21 @@ function drawLifeLost(){
 }
 function drawSplash(){
  const e=performance.now()-splashStart;ctx.save();ctx.fillStyle="#000";ctx.fillRect(0,0,W,H);
- // Audio is gesture-gated on iPhone; once enabled, one fly-through whoosh and one happy bark.
- if(e>1250)splashWhoosh();if(e>5250)splashBark();
- // Camera dolly: stationary monument, camera accelerates through it.
- const dolly=Math.max(0,Math.min(1,(e-250)/4050)),ease=dolly*dolly*(3-2*dolly),z=.26+ease*5.35;
- const pass=Math.max(0,Math.min(1,(e-4050)/850)),pitch=pass*pass*(3-2*pass);
- const centerY=H*(.43-pitch*.24);
- ctx.translate(W*.5,centerY);ctx.scale(z,z);ctx.translate(-W*.5,-H*.43);
- ctx.textAlign="center";ctx.textBaseline="middle";
- // Individual upward spotlights at the base of the monument, Hollywood-sign style.
- const title="CURTIS",fs=Math.min(58,W*.142),spacing=fs*.84,total=(title.length-1)*spacing,start=W*.5-total*.5;
- ctx.font=gameFont(fs,"900");
- for(let i=0;i<title.length;i++){const x=start+i*spacing,base=H*.515;const beam=ctx.createLinearGradient(x,base,x,H*.31);beam.addColorStop(0,"rgba(255,244,202,.26)");beam.addColorStop(.72,"rgba(255,244,202,.055)");beam.addColorStop(1,"rgba(255,244,202,0)");ctx.fillStyle=beam;ctx.beginPath();ctx.moveTo(x-3,base+7);ctx.lineTo(x-fs*.25,H*.31);ctx.lineTo(x+fs*.25,H*.31);ctx.lineTo(x+3,base+7);ctx.closePath();ctx.fill();ctx.fillStyle="#d8d2b7";ctx.beginPath();ctx.ellipse(x,base+8,5,2.5,0,0,Math.PI*2);ctx.fill()}
- // Deep stationary letter geometry: rear/side faces then illuminated front faces.
+ if(e>1150)splashWhoosh();
+ // Camera approaches the stationary monument, eases out, and stops once the full logo fills the screen.
+ const travel=Math.max(0,Math.min(1,(e-300)/3500)),ease=1-Math.pow(1-travel,4),z=.30+ease*1.48;
+ ctx.translate(W*.5,H*.49);ctx.scale(z,z);ctx.translate(-W*.5,-H*.49);ctx.textAlign="center";ctx.textBaseline="middle";
+ const title="CURTIS",fs=Math.min(58,W*.142),spacing=fs*.84,total=(title.length-1)*spacing,start=W*.5-total*.5;ctx.font=gameFont(fs,"900");
+ // Tight Hollywood-style uplights: fixtures sit immediately below each individual letter.
+ for(let i=0;i<title.length;i++){const x=start+i*spacing,base=H*.493,top=H*.355;const beam=ctx.createLinearGradient(x,base,x,top);beam.addColorStop(0,"rgba(255,246,205,.40)");beam.addColorStop(.55,"rgba(255,246,205,.10)");beam.addColorStop(1,"rgba(255,246,205,0)");ctx.fillStyle=beam;ctx.beginPath();ctx.moveTo(x-2.8,base+2);ctx.lineTo(x-fs*.20,top);ctx.lineTo(x+fs*.20,top);ctx.lineTo(x+2.8,base+2);ctx.closePath();ctx.fill();ctx.fillStyle="#d8d0ad";ctx.strokeStyle="#4b493f";ctx.lineWidth=1;ctx.beginPath();ctx.ellipse(x,base+3.5,4.6,2.2,0,0,Math.PI*2);ctx.fill();ctx.stroke()}
+ // Deep side faces preserve the solid 3D monument feel.
  for(let d=13;d>=1;d--){ctx.fillStyle=d%2?"#101214":"#1b1e20";ctx.strokeStyle="#050607";ctx.lineWidth=5;for(let i=0;i<title.length;i++){const x=start+i*spacing;ctx.strokeText(title[i],x+d*.72,H*.43+d*.55);ctx.fillText(title[i],x+d*.72,H*.43+d*.55)}}
- const lit=ctx.createLinearGradient(0,H*.34,0,H*.50);lit.addColorStop(0,"#777b7c");lit.addColorStop(.46,"#d8d9d3");lit.addColorStop(.72,"#fff9d9");lit.addColorStop(1,"#ffffff");ctx.fillStyle=lit;ctx.strokeStyle="#111416";ctx.lineWidth=5;ctx.shadowColor="rgba(255,245,195,.36)";ctx.shadowBlur=9;for(let i=0;i<title.length;i++){const x=start+i*spacing;ctx.strokeText(title[i],x,H*.43);ctx.fillText(title[i],x,H*.43)}ctx.shadowBlur=0;
- ctx.font=gameFont(Math.min(22,W*.054),"900");const sub="COMPANY LIMITED",sw=ctx.measureText(sub).width;for(let i=0;i<sub.length;i++){if(sub[i]===" ")continue;const x=W*.5-sw*.5+ctx.measureText(sub.slice(0,i)).width+ctx.measureText(sub[i]).width*.5,base=H*.565;const bg=ctx.createLinearGradient(x,base,x,H*.50);bg.addColorStop(0,"rgba(255,244,202,.20)");bg.addColorStop(1,"rgba(255,244,202,0)");ctx.fillStyle=bg;ctx.beginPath();ctx.moveTo(x-2,base+5);ctx.lineTo(x-8,H*.50);ctx.lineTo(x+8,H*.50);ctx.lineTo(x+2,base+5);ctx.fill()}ctx.fillStyle=lit;ctx.strokeStyle="#111416";ctx.lineWidth=3;ctx.strokeText(sub,W*.5,H*.535);ctx.fillText(sub,W*.5,H*.535);
- ctx.restore();
- // After passing through the sign, camera pitches down to the dogs below.
- if(pass>0){ctx.save();ctx.globalAlpha=Math.min(1,pass*1.5);ctx.fillStyle="#000";ctx.fillRect(0,H*(.52-pass*.16),W,H);const dogY=H*.70+pass*H*.04,scale=.72+pass*.28;
- function dog(x,y,kind,phase){ctx.save();ctx.translate(x,y);ctx.scale(scale,scale);const black=kind==="lab";ctx.fillStyle=black?"#111416":"#a66b3f";ctx.beginPath();ctx.ellipse(0,5,34,43,0,0,Math.PI*2);ctx.fill();ctx.beginPath();ctx.ellipse(0,-34,28,27,0,0,Math.PI*2);ctx.fill();if(!black){ctx.fillStyle="#f2e3cc";ctx.beginPath();ctx.ellipse(0,-28,15,19,0,0,Math.PI*2);ctx.fill();ctx.fillStyle="#6e4329";ctx.beginPath();ctx.ellipse(-24,-39,10,22,-.25,0,Math.PI*2);ctx.ellipse(24,-39,10,22,.25,0,Math.PI*2);ctx.fill()}else{ctx.beginPath();ctx.ellipse(-24,-38,9,19,-.18,0,Math.PI*2);ctx.ellipse(24,-38,9,19,.18,0,Math.PI*2);ctx.fill()}ctx.fillStyle="#f4d06b";ctx.beginPath();ctx.arc(-9,-38,2.5,0,Math.PI*2);ctx.arc(9,-38,2.5,0,Math.PI*2);ctx.fill();ctx.fillStyle="#050607";ctx.beginPath();ctx.arc(0,-26,4,0,Math.PI*2);ctx.fill();ctx.strokeStyle=black?"#15191b":"#9c623a";ctx.lineWidth=8;ctx.lineCap="round";const wag=Math.sin(e*.014+phase)*.75;ctx.beginPath();ctx.moveTo(30,14);ctx.quadraticCurveTo(48+wag*18,-4,49+wag*22,-25);ctx.stroke();ctx.restore()}
- dog(W*.35,dogY,"beagle",0);dog(W*.67,dogY,"lab",1.7);ctx.restore()}
- if(e>=6000){state="start";startMenuMusic()} }
+ const lit=ctx.createLinearGradient(0,H*.34,0,H*.49);lit.addColorStop(0,"#696d70");lit.addColorStop(.42,"#c9cbc7");lit.addColorStop(.72,"#fff4c7");lit.addColorStop(1,"#ffffff");ctx.fillStyle=lit;ctx.strokeStyle="#111416";ctx.lineWidth=5;ctx.shadowColor="rgba(255,245,195,.40)";ctx.shadowBlur=10;for(let i=0;i<title.length;i++){const x=start+i*spacing;ctx.strokeText(title[i],x,H*.43);ctx.fillText(title[i],x,H*.43)}ctx.shadowBlur=0;
+ const sub="COMPANY LIMITED";ctx.font=gameFont(Math.min(22,W*.054),"900");const sw=ctx.measureText(sub).width;
+ // Smaller fixtures hug the lower line too.
+ for(let i=0;i<sub.length;i++){if(sub[i]===" ")continue;const x=W*.5-sw*.5+ctx.measureText(sub.slice(0,i)).width+ctx.measureText(sub[i]).width*.5,base=H*.568,top=H*.515;const bg=ctx.createLinearGradient(x,base,x,top);bg.addColorStop(0,"rgba(255,246,205,.32)");bg.addColorStop(1,"rgba(255,246,205,0)");ctx.fillStyle=bg;ctx.beginPath();ctx.moveTo(x-1.4,base+1);ctx.lineTo(x-5.5,top);ctx.lineTo(x+5.5,top);ctx.lineTo(x+1.4,base+1);ctx.closePath();ctx.fill();ctx.fillStyle="#d8d0ad";ctx.beginPath();ctx.ellipse(x,base+2,2.2,1.2,0,0,Math.PI*2);ctx.fill()}
+ ctx.fillStyle=lit;ctx.strokeStyle="#111416";ctx.lineWidth=3;for(let d=7;d>=1;d--){ctx.fillStyle="#252a2d";ctx.strokeText(sub,W*.5+d*.55,H*.535+d*.45);ctx.fillText(sub,W*.5+d*.55,H*.535+d*.45)}ctx.fillStyle=lit;ctx.strokeText(sub,W*.5,H*.535);ctx.fillText(sub,W*.5,H*.535);
+ ctx.restore();if(e>=6000){state="start";startMenuMusic()} }
 function draw(){
  ctx.save();if(screenShake>0)ctx.translate((Math.random()-.5)*screenShake,(Math.random()-.5)*screenShake);
  drawSpace();if(state==="dead"||state==="lifeLost"){drawShockwaves();drawParticles()}else{for(const a of asteroids)drawAsteroid(a);for(const e of enemies)drawEnemy(e);drawPowerups();drawBullets();drawShockwaves();drawParticles();drawPlayer()}ctx.restore();
