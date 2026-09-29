@@ -13,7 +13,7 @@ npm run ios:sync
 open ios/App/App.xcodeproj
 ```
 
-`npm run ios:sync` copies only `index.html`, Tex, and the in-game artwork into
+`npm run ios:sync` copies only `index.html`, Nova, and the in-game artwork into
 the app; the bundled game works without a network connection. The project is
 set to portrait iPhone orientation. The `iPhone build check` GitHub Action
 checks an unsigned simulator build on a hosted Mac, so source changes can be
