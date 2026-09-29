@@ -17,11 +17,11 @@ content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,vie
 html,body{position:fixed;inset:0;width:100%;height:100%;margin:0;overflow:hidden;overscroll-behavior:none;touch-action:none;background:#02040d}
 canvas{position:fixed;inset:0;width:100%;height:100%;display:block;touch-action:none;-webkit-tap-highlight-color:transparent}
 </style>
-<meta name="dino-build" content="V13.8-Clean-Combat-HUD"></head>
+<meta name="dino-build" content="V13.9-Three-Lives"></head>
 <body>
 <canvas id="game"></canvas>
 <script>
-// DINO INVADERS: SPACE V13.8 — CLEAN COMBAT HUD
+// DINO INVADERS: SPACE V13.9 — THREE LIVES
 const canvas=document.getElementById("game");
 const ctx=canvas.getContext("2d",{alpha:false,desynchronized:true});
 let W=0,H=0,SAFE_TOP=0,SAFE_BOTTOM=0;
@@ -91,7 +91,7 @@ const GAME_SPEED=.69;const player={x:100,y:300,radius:5,width:50,hitX:2,hitY:1,f
 let stars=[],bullets=[],enemyBullets=[],asteroids=[],particles=[],shockwaves=[],enemies=[],planets=[],galaxies=[],powerups=[],scorePops=[];
 let spreadTimer=0,shieldHits=0,powerMessage=0,powerMessageText="",combo=0,comboTimer=0,maxCombo=0,overdriveTimer=0,level=1,lastLevel=1,wave=0,bossSpawned=false,nextBossLevel=5,runXP=0,upgradeTier=0,rapidLevel=0,powerLevel=0,spreadLevel=0,pierceLevel=0,plasmaLevel=0,upgradeChoices=[],bossCount=0,bossesDefeated=0,weaponEvolved=false;
 let asteroidKills=0,invaderKills=0,meteorStormTimer=0,nextMeteorStorm=1800;let sector=1,lastSector=1,sectorKills=0,totalKills=Number(localStorage.dinoTotalKills||0),maxSector=Number(localStorage.dinoMaxSector||1);const SECTOR_NAMES=["ORBITAL RUINS","RED NEBULA","VOID BELT","ALIEN FRONT","CORE APPROACH"];
-let moveTouchID=null,lastMoveX=0,lastMoveY=0,firing=false,resumeGrace=0;
+let moveTouchID=null,lastMoveX=0,lastMoveY=0,firing=false,resumeGrace=0,lives=3;
 let armorLevel=0,magnetLevel=0,critLevel=0,thrusterLevel=0;
 const SKINS=[{name:"NOVA",species:"RAPTOR",unlock:()=>true,beam:"#168dff",accent:"#55e8ff",mode:"tex",speed:1,damage:0,armor:0}];
 const BOSS_ROSTER=[{name:"DREADNOUGHT",kind:"dread",color:"#ff714a",hp:38,radius:35,pattern:"target"},{name:"TRICERATOPS SIEGE",kind:"bruiser",color:"#ffd06b",hp:52,radius:39,pattern:"wall"},{name:"VOID SPINOSAUR",kind:"spine",color:"#b88aff",hp:60,radius:38,pattern:"fan"},{name:"APEX ANKYLOSAUR",kind:"anka",color:"#62ffcc",hp:74,radius:42,pattern:"pulse"}];
@@ -318,7 +318,7 @@ else{const fbw=66,fbh=fbw*mainEnemyImg.naturalHeight/mainEnemyImg.naturalWidth;c
 
 function reset(){
  score=0;combatScore=0;distance=0;gameTime=0;runNewRecord=false;asteroidKills=0;invaderKills=0;meteorStormTimer=0;nextMeteorStorm=1800;difficulty=1;screenShake=0;bullets=[];enemyBullets=[];asteroids=[];particles=[];shockwaves=[];enemies=[];powerups=[];scorePops=[];spreadTimer=0;shieldHits=0;powerMessage=0;powerMessageText="";combo=0;comboTimer=0;maxCombo=0;overdriveTimer=0;level=1;lastLevel=1;wave=0;bossSpawned=false;nextBossLevel=5;bossCount=0;bossesDefeated=0;weaponEvolved=false;runXP=0;upgradeTier=0;rapidLevel=0;powerLevel=0;spreadLevel=0;pierceLevel=0;plasmaLevel=0;armorLevel=0;magnetLevel=0;critLevel=0;thrusterLevel=0;upgradeChoices=[];shieldHits=0;
- player.x=Math.min(100,W*.25);player.y=H*.5;player.fireCooldown=0;shieldPulse=0;moveTouchID=null;firing=false;resumeGrace=0;sector=1;lastSector=1;sectorKills=0;
+ player.x=Math.min(100,W*.25);player.y=H*.5;player.fireCooldown=0;shieldPulse=0;moveTouchID=null;firing=false;resumeGrace=0;lives=3;sector=1;lastSector=1;sectorKills=0;
 }
 function startGame(){if(!raptorReady){powerMessageText="LOADING NOVA...";powerMessage=90;return}sfx("select");stopMenuMusic();reset();state="play";if(audioReady){if(audioCtx&&audioCtx.state==="suspended")audioCtx.resume();tone(98,.24,"sine",.025,0,"music",300);tone(147,.28,"triangle",.016,.10,"music",520)}}
 
@@ -375,7 +375,7 @@ function hitPlayer(bx,by,br=0){
  return false;
 }
 function die(){
- if(state!=="play")return;sfx("hurt");const pilotArmor=0;if((armorLevel>0||pilotArmor>0)&&Math.random()<(armorLevel*.12+pilotArmor*.08)){powerMessageText="ARMOR DEFLECT!";powerMessage=90;resumeGrace=45;screenShake=5;return}state="dead";flushRecords();firing=false;moveTouchID=null;screenShake=13;burst(player.x,player.y,32,"red",9);
+ if(state!=="play"||resumeGrace>0)return;sfx("hurt");const pilotArmor=0;if((armorLevel>0||pilotArmor>0)&&Math.random()<(armorLevel*.12+pilotArmor*.08)){powerMessageText="ARMOR DEFLECT!";powerMessage=90;resumeGrace=45;screenShake=5;return}lives--;firing=false;moveTouchID=null;screenShake=13;burst(player.x,player.y,32,"red",9);if(lives>0){enemyBullets.length=0;player.x=Math.min(100,W*.25);player.y=H*.5;resumeGrace=150;powerMessageText="LIFE LOST — "+lives+" REMAINING";powerMessage=110;return}state="dead";flushRecords();
  runNewRecord=score>high;if(runNewRecord)high=score;if(level>bestLevel)bestLevel=level;lastCredits=0;runs++;const runSeconds=gameTime/60;if(runSeconds>bestRunTime)bestRunTime=runSeconds;if(distance>bestRunDistance)bestRunDistance=distance;try{localStorage.spaceHigh=high;localStorage.dinoBestLevel=bestLevel;localStorage.dinoRuns=runs;localStorage.dinoBestRunTime=bestRunTime;localStorage.dinoBestRunDistance=bestRunDistance}catch(_){}
 }
 function destroyAsteroid(index){
@@ -557,6 +557,8 @@ function drawHUD(){
  ctx.globalAlpha=1;
 // Shield inventory: top-right, separate from temporary effect/status text.
 ctx.save();const sx=W-50,sy=31+SAFE_TOP;ctx.textAlign="center";ctx.fillStyle="rgba(2,10,24,.55)";ctx.beginPath();ctx.roundRect(sx-29,sy-23,58,47,12);ctx.fill();ctx.strokeStyle=shieldHits>0?"rgba(107,229,255,.8)":"rgba(120,150,175,.35)";ctx.lineWidth=1.5;ctx.stroke();ctx.drawImage(powerIcon("shield"),sx-16,sy-18,32,32);ctx.fillStyle=shieldHits>0?"#dffbff":"#8294a5";ctx.font="900 13px system-ui,sans-serif";ctx.fillText("×"+shieldHits,sx+19,sy+17);ctx.restore();
+// Three-life run indicator beneath shield inventory.
+ctx.save();ctx.textAlign="right";ctx.font="900 15px system-ui,sans-serif";ctx.fillStyle="#ff6f78";ctx.shadowColor="rgba(255,70,90,.55)";ctx.shadowBlur=5;ctx.fillText("♥".repeat(Math.max(0,lives)),W-18,76+SAFE_TOP);ctx.shadowBlur=0;ctx.restore();
 const boss=enemies.find(e=>e.type==="boss"||e.type==="dreadnought");let hudY=94+SAFE_TOP;
  if(boss){const bw=Math.min(250,W*.60),bx=(W-bw)/2,by=75+SAFE_TOP;ctx.fillStyle="rgba(0,0,0,.65)";ctx.fillRect(bx-2,by-2,bw+4,12);ctx.fillStyle="#fff";ctx.fillRect(bx,by,bw,8);ctx.fillStyle=(boss.bossDef||BOSS_ROSTER[0]).color;ctx.fillRect(bx,by,bw*(boss.health/boss.maxHealth),8);ctx.textAlign="center";ctx.fillStyle="#fff";ctx.font="bold 10px Arial";ctx.fillText((boss.bossDef||BOSS_ROSTER[0]).name,W/2,by+23);hudY=116+SAFE_TOP}
  ctx.textAlign="center";
@@ -594,7 +596,7 @@ function drawStart(){
  const pulse=.55+.25*Math.sin(gameTime*.06);ctx.globalAlpha=pulse;ctx.strokeStyle="#ff7b38";ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(m+24,heroTop+heroH-22);ctx.lineTo(W*.32,heroTop+heroH-22);ctx.moveTo(W*.68,heroTop+heroH-22);ctx.lineTo(W-m-24,heroTop+heroH-22);ctx.stroke();ctx.globalAlpha=1;
  button(m+9,launchY,pw-18,60,"LAUNCH NOVA","#a94729","#543258","#ffc86d");
  ctx.fillStyle="#d3e8f4";ctx.font="800 13px system-ui,sans-serif";ctx.fillText("HOLD TO FIRE  •  DRAG TO MOVE",W/2,launchY+88);
- ctx.fillStyle="#91aabd";ctx.font="bold 11px system-ui,sans-serif";ctx.fillText("VERSION 13.8",W/2,H-53);ctx.fillStyle="#fff";ctx.font="bold 13px system-ui,sans-serif";ctx.fillText("Built by Curtis Company Limited",W/2,H-35);
+ ctx.fillStyle="#91aabd";ctx.font="bold 11px system-ui,sans-serif";ctx.fillText("VERSION 13.9",W/2,H-53);ctx.fillStyle="#fff";ctx.font="bold 13px system-ui,sans-serif";ctx.fillText("Built by Curtis Company Limited",W/2,H-35);
  ctx.restore();
 }
 function endLayout(){const h=Math.min(410,Math.max(350,H-210)),top=Math.max(102,(H-h)*.47),buttonY=top+h-65;return{top,h,buttonY}}
