@@ -18,9 +18,9 @@ html,body{position:fixed;inset:0;width:100%;height:100%;margin:0;overflow:hidden
 canvas{position:fixed;inset:0;width:100%;height:100%;display:block;touch-action:none;-webkit-tap-highlight-color:transparent}
 #introVideo{position:fixed;inset:0;width:100%;height:100%;object-fit:contain;object-position:center center;background:#000;z-index:20;display:block;pointer-events:none}
 </style>
-<meta name="dino-build" content="V16.8.6-Intro-Input-Lock"></head>
+<meta name="dino-build" content="V16.8.7-Intro-Audio-Load"></head>
 <body>
-<video id="introVideo" autoplay muted playsinline webkit-playsinline preload="auto"><source src="./362dac4b67ffea27c6a2a83dafdc155dbe3d2473bce070e19c315626e5600fc6.mp4?v=168" type="video/mp4"></video>
+<video id="introVideo" autoplay muted playsinline webkit-playsinline preload="metadata"><source src="./362dac4b67ffea27c6a2a83dafdc155dbe3d2473bce070e19c315626e5600fc6.mp4?v=168" type="video/mp4"></video>
 <canvas id="game"></canvas>
 <script>
 // DINO INVADERS: SPACE V16.2 — HOW TO PLAY + COMBAT POLISH
@@ -69,7 +69,7 @@ function ambientPad(root,when=0){
  tone(root/2,1.45,"triangle",.032,when+.03,"music",420);
  tone(root*1.5,.62,"sine",.020,when+.18,"music",1350)
 }
-function startMenuMusic(){if(!audioReady||musicTimer)return;
+function startMenuMusic(){if(typeof introFinished!=="undefined"&&!introFinished)return;if(!audioReady||musicTimer)return;
  const roots=[65.41,65.41,73.42,55,61.74,82.41,73.42,55],signals=[3,4.5,3.75,5,3,4,5.25,3.75];
  musicStep=0;
  const playMenuBeat=()=>{if(state!=="start")return;const i=musicStep++%roots.length,n=roots[i];ambientPad(n);tone(n,.22,"square",.022,0,"music",520);tone(n*signals[i],.16,"triangle",.024,.13,"music",1800);if(i%2===1)noiseBurst(.075,.012,1250,"music");if(i===3||i===7)tone(n/8,.72,"sine",.040,0,"music",120)};
@@ -619,7 +619,7 @@ function drawStart(){
  const pulse=.55+.25*Math.sin(gameTime*.06);ctx.globalAlpha=pulse;ctx.strokeStyle="#ff7b38";ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(m+24,heroTop+heroH-22);ctx.lineTo(W*.32,heroTop+heroH-22);ctx.moveTo(W*.68,heroTop+heroH-22);ctx.lineTo(W-m-24,heroTop+heroH-22);ctx.stroke();ctx.globalAlpha=1;
  button(m+9,launchY,pw-18,54,"LAUNCH NOVA","#a94729","#543258","#ffc86d");
  button(m+9,launchY+60,pw-18,42,"HOW TO PLAY","#075f83","#153665","#6deaff");
- ctx.fillStyle="#91aabd";ctx.font="bold 11px system-ui,sans-serif";ctx.fillText("VERSION 16.8.6",W/2,H-35);
+ ctx.fillStyle="#91aabd";ctx.font="bold 11px system-ui,sans-serif";ctx.fillText("VERSION 16.8.7",W/2,H-35);
  ctx.restore();
 }
 function drawHowTo(){ctx.save();ctx.fillStyle="rgba(0,4,14,.90)";ctx.fillRect(0,0,W,H);const m=16,top=Math.max(SAFE_TOP+18,28),pw=W-m*2,h=H-top-24;const g=ctx.createLinearGradient(m,top,W-m,top+h);g.addColorStop(0,"rgba(5,25,48,.95)");g.addColorStop(1,"rgba(24,10,42,.95)");ctx.fillStyle=g;ctx.beginPath();ctx.roundRect(m,top,pw,h,18);ctx.fill();ctx.strokeStyle="rgba(83,229,255,.65)";ctx.lineWidth=1.5;ctx.stroke();ctx.textAlign="center";ctx.fillStyle="#ff9b3d";ctx.font=gameFont(25);ctx.fillText("HOW TO PLAY",W/2,top+39);ctx.fillStyle="#8deeff";ctx.font="800 10px system-ui,sans-serif";ctx.fillText("NOVA — THE FINAL PILOT",W/2,top+59);const rows=[["MOVE + FIRE","Touch and hold anywhere. Drag to move. NOVA fires while held."],["SURVIVE","Dodge asteroids, enemy dinos and boss fire. You have 3 lives."],["TRI BURST","3-way blaster for 8 seconds."],["OVERDRIVE","Heavy 5-way blaster for 8 seconds."],["SHIELD","Blocks one hit. You can carry up to 2."],["BOSS CORE","Boss reward: +750 score."],["WAVES + BOSSES","Clear longer enemy waves. A UFO boss arrives every 5 levels."]];let y=top+88;for(const [head,body] of rows){ctx.textAlign="left";ctx.fillStyle="#ffbd69";ctx.font="900 11px system-ui,sans-serif";ctx.fillText(head,m+18,y);ctx.fillStyle="#d9edf7";ctx.font="600 10px system-ui,sans-serif";const words=body.split(" ");let line="",ly=y+16;for(const word of words){const test=line+word+" ";if(ctx.measureText(test).width>pw-36){ctx.fillText(line,m+18,ly);line=word+" ";ly+=13}else line=test}ctx.fillText(line,m+18,ly);y=ly+24}button(m+14,Math.min(top+h-58,y+2),pw-28,44,"BACK TO MENU","#075f83","#153665","#6deaff");ctx.restore()}
