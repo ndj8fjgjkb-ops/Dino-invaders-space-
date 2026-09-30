@@ -18,7 +18,7 @@ html,body{position:fixed;inset:0;width:100%;height:100%;margin:0;overflow:hidden
 canvas{position:fixed;inset:0;width:100%;height:100%;display:block;touch-action:none;-webkit-tap-highlight-color:transparent}
 #introVideo{position:fixed;inset:0;width:100%;height:100%;object-fit:contain;object-position:center center;background:#000;z-index:20;display:block;pointer-events:none}
 </style>
-<meta name="dino-build" content="V16.8.7-Intro-Audio-Load"></head>
+<meta name="dino-build" content="V16.9.0-Performance-Pass"></head>
 <body>
 <video id="introVideo" autoplay muted playsinline webkit-playsinline preload="metadata"><source src="./362dac4b67ffea27c6a2a83dafdc155dbe3d2473bce070e19c315626e5600fc6.mp4?v=168" type="video/mp4"></video>
 <canvas id="game"></canvas>
@@ -137,7 +137,7 @@ function flushRecords(){if(!recordsDirty)return;try{localStorage.dinoTotalKills=
 function addParticle(p){if(particles.length<96)particles.push(p)}
 
 function resize(){
- readSafeInsets();W=document.documentElement.clientWidth||innerWidth;H=document.documentElement.clientHeight||innerHeight;const pixels=W*H,dpr=Math.min(window.devicePixelRatio||1,pixels>650000?1.25:1.5);canvas.width=Math.round(W*dpr);canvas.height=Math.round(H*dpr);canvas.style.width=W+"px";canvas.style.height=H+"px";ctx.setTransform(dpr,0,0,dpr,0,0);ctx.imageSmoothingEnabled=true;ctx.imageSmoothingQuality="high";
+ readSafeInsets();W=document.documentElement.clientWidth||innerWidth;H=document.documentElement.clientHeight||innerHeight;const pixels=W*H,dpr=Math.min(window.devicePixelRatio||1,pixels>650000?1.2:1.5);canvas.width=Math.round(W*dpr);canvas.height=Math.round(H*dpr);canvas.style.width=W+"px";canvas.style.height=H+"px";ctx.setTransform(dpr,0,0,dpr,0,0);ctx.imageSmoothingEnabled=true;ctx.imageSmoothingQuality="high";
  createStars();createPlanets();createGalaxies();
  player.x=Math.max(12,Math.min(W-56,player.x));const bounds=playerBounds();player.y=Math.max(bounds.top,Math.min(bounds.bottom,player.y));
 }
@@ -330,7 +330,7 @@ function makeAsteroid(x,y,size,vx,vy){
  else{radius=8.092+Math.random()*2.38;health=1;points=30}
  const shape=[],count=9+Math.floor(Math.random()*3);
  for(let i=0;i<count;i++)shape.push(.78+Math.random()*.35);
- return{x,y,size,radius,health,points,vx,vy,rotation:Math.random()*Math.PI*2,spin:(Math.random()-.5)*.045,shape,craterSeed:Math.random()*1000};
+ const a={x,y,size,radius,health,points,vx,vy,rotation:Math.random()*Math.PI*2,spin:(Math.random()-.5)*.045,shape,craterSeed:Math.random()*1000};a.texture=buildAsteroidTexture(a);return a;
 }
 function spawnAsteroid(){
  const roll=Math.random();let size=roll<.18?3:roll<.52?2:1;
@@ -403,7 +403,7 @@ level=1+Math.floor(gameTime/600);difficulty=.82+gameTime/1450+level*.122
  player.x=Math.max(12,Math.min(W-56,player.x));const bounds=playerBounds();player.y=Math.max(bounds.top,Math.min(bounds.bottom,player.y));
  if(player.fireCooldown>0)player.fireCooldown--;if(firing&&player.fireCooldown<=0)shoot();
  const preBoss=enemies.some(e=>e.type==="boss"||e.type==="dreadnought");if(gameTime>=nextMeteorStorm&&!preBoss){meteorStormTimer=360;nextMeteorStorm=gameTime+1800;sfx("storm");if(bossAlertTimer<=0&&bossDefeatTimer<=0){powerMessage=0;eventBannerTitle="WAVE "+wave;eventBannerSub="METEOR STORM";eventBannerType="meteor";eventBannerTimer=130;}screenShake=4}const spawnRate=meteorStormTimer>0?Math.max(14,32-Math.floor(difficulty*1.6)):Math.max(23,67-Math.floor(difficulty*5));if(gameTime%spawnRate===0&&asteroids.length<(preBoss?8:meteorStormTimer>0?20:18))spawnAsteroid();
- const bossActive=enemies.some(e=>e.type==="boss"||e.type==="dreadnought");
+ const bossActive=preBoss;
  if(!bossActive&&gameTime>240 && gameTime%Math.max(165,360-Math.floor(difficulty*12))===0){const r=Math.random();spawnEnemy(level>=2&&r<Math.min(.38,.16+level*.025)?"stalker":"scout")}
  if(!bossActive&&gameTime>=waveDelayUntil&&(gameTime===420||gameTime%960===0))spawnWave();
  if(level>=nextBossLevel&&!bossActive){bossSpawned=false;spawnBoss();nextBossLevel+=5}
@@ -502,17 +502,20 @@ function drawSpace(){
  }
  for(const s of stars){ctx.globalAlpha=s.alpha*.42;ctx.fillStyle="#d9ecff";ctx.fillRect(s.x,s.y,s.size,s.size)}ctx.globalAlpha=1;
 }
+function buildAsteroidTexture(a){
+ const pad=5,s=Math.ceil(a.radius*2+pad*2),oc=document.createElement("canvas"),g=oc.getContext("2d");oc.width=s;oc.height=s;g.translate(s/2,s/2);
+ const rock=g.createRadialGradient(-a.radius*.38,-a.radius*.42,1,0,0,a.radius*1.18);rock.addColorStop(0,"#c2b5aa");rock.addColorStop(.18,"#857970");rock.addColorStop(.52,"#514b49");rock.addColorStop(.82,"#302e32");rock.addColorStop(1,"#17171d");g.fillStyle=rock;
+ g.beginPath();const count=a.shape.length;for(let i=0;i<count;i++){const angle=i/count*Math.PI*2,r=a.radius*a.shape[i],x=Math.cos(angle)*r,y=Math.sin(angle)*r;i===0?g.moveTo(x,y):g.lineTo(x,y)}g.closePath();g.fill();
+ g.fillStyle="rgba(25,23,27,.65)";g.beginPath();g.ellipse(-a.radius*.28,-a.radius*.17,a.radius*.23,a.radius*.16,.3,0,Math.PI*2);g.fill();
+ g.strokeStyle="rgba(190,175,160,.22)";g.lineWidth=Math.max(1,a.radius*.04);g.beginPath();g.ellipse(-a.radius*.28,-a.radius*.17,a.radius*.23,a.radius*.16,.3,Math.PI,Math.PI*2);g.stroke();
+ g.fillStyle="rgba(30,28,31,.55)";g.beginPath();g.arc(a.radius*.3,a.radius*.18,a.radius*.13,0,Math.PI*2);g.fill();
+ if(a.size>1){g.fillStyle="rgba(20,19,23,.72)";g.beginPath();g.arc(a.radius*.12,-a.radius*.43,a.radius*.11,0,Math.PI*2);g.fill();g.strokeStyle="rgba(215,190,165,.16)";g.lineWidth=1;g.stroke();g.strokeStyle="rgba(17,15,18,.55)";g.beginPath();g.moveTo(-a.radius*.58,a.radius*.18);g.lineTo(-a.radius*.18,a.radius*.05);g.lineTo(a.radius*.12,a.radius*.28);g.stroke()}
+ return oc;
+}
 function drawAsteroid(a){
- ctx.save();ctx.translate(a.x,a.y);ctx.rotate(a.rotation);ctx.shadowColor="rgba(0,0,0,.7)";ctx.shadowBlur=0;
- const rock=ctx.createRadialGradient(-a.radius*.38,-a.radius*.42,1,0,0,a.radius*1.18);rock.addColorStop(0,"#c2b5aa");rock.addColorStop(.18,"#857970");rock.addColorStop(.52,"#514b49");rock.addColorStop(.82,"#302e32");rock.addColorStop(1,"#17171d");ctx.fillStyle=rock;
- ctx.beginPath();const count=a.shape.length;
- for(let i=0;i<count;i++){const angle=i/count*Math.PI*2,r=a.radius*a.shape[i],x=Math.cos(angle)*r,y=Math.sin(angle)*r;i===0?ctx.moveTo(x,y):ctx.lineTo(x,y)}
- ctx.closePath();ctx.fill();ctx.shadowBlur=0;
- ctx.fillStyle="rgba(25,23,27,.65)";ctx.beginPath();ctx.ellipse(-a.radius*.28,-a.radius*.17,a.radius*.23,a.radius*.16,.3,0,Math.PI*2);ctx.fill();
- ctx.strokeStyle="rgba(190,175,160,.22)";ctx.lineWidth=Math.max(1,a.radius*.04);ctx.beginPath();ctx.ellipse(-a.radius*.28,-a.radius*.17,a.radius*.23,a.radius*.16,.3,Math.PI,Math.PI*2);ctx.stroke();
- ctx.fillStyle="rgba(30,28,31,.55)";ctx.beginPath();ctx.arc(a.radius*.3,a.radius*.18,a.radius*.13,0,Math.PI*2);ctx.fill();
- if(a.size>1){ctx.fillStyle="rgba(20,19,23,.72)";ctx.beginPath();ctx.arc(a.radius*.12,-a.radius*.43,a.radius*.11,0,Math.PI*2);ctx.fill();ctx.strokeStyle="rgba(215,190,165,.16)";ctx.lineWidth=1;ctx.stroke();ctx.strokeStyle="rgba(17,15,18,.55)";ctx.beginPath();ctx.moveTo(-a.radius*.58,a.radius*.18);ctx.lineTo(-a.radius*.18,a.radius*.05);ctx.lineTo(a.radius*.12,a.radius*.28);ctx.stroke()}
- if(a.health<a.size){ctx.globalAlpha=.8;ctx.strokeStyle="#ff6b25";ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(-a.radius*.05,-a.radius*.55);ctx.lineTo(a.radius*.05,-a.radius*.18);ctx.lineTo(-a.radius*.15,a.radius*.1);ctx.lineTo(a.radius*.12,a.radius*.4);ctx.stroke();ctx.globalAlpha=1}
+ ctx.save();ctx.translate(a.x,a.y);ctx.rotate(a.rotation);
+ if(a.texture)ctx.drawImage(a.texture,-a.texture.width/2,-a.texture.height/2);
+ if(a.health<a.size){ctx.globalAlpha=.8;ctx.strokeStyle="#ff6b25";ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(-a.radius*.05,-a.radius*.55);ctx.lineTo(a.radius*.05,-a.radius*.18);ctx.lineTo(-a.radius*.15,a.radius*.1);ctx.lineTo(a.radius*.12,a.radius*.4);ctx.stroke()}
  ctx.restore();
 }
 function drawBullets(){
@@ -619,7 +622,7 @@ function drawStart(){
  const pulse=.55+.25*Math.sin(gameTime*.06);ctx.globalAlpha=pulse;ctx.strokeStyle="#ff7b38";ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(m+24,heroTop+heroH-22);ctx.lineTo(W*.32,heroTop+heroH-22);ctx.moveTo(W*.68,heroTop+heroH-22);ctx.lineTo(W-m-24,heroTop+heroH-22);ctx.stroke();ctx.globalAlpha=1;
  button(m+9,launchY,pw-18,54,"LAUNCH NOVA","#a94729","#543258","#ffc86d");
  button(m+9,launchY+60,pw-18,42,"HOW TO PLAY","#075f83","#153665","#6deaff");
- ctx.fillStyle="#91aabd";ctx.font="bold 11px system-ui,sans-serif";ctx.fillText("VERSION 16.8.7",W/2,H-35);
+ ctx.fillStyle="#91aabd";ctx.font="bold 11px system-ui,sans-serif";ctx.fillText("VERSION 16.9.0",W/2,H-35);
  ctx.restore();
 }
 function drawHowTo(){ctx.save();ctx.fillStyle="rgba(0,4,14,.90)";ctx.fillRect(0,0,W,H);const m=16,top=Math.max(SAFE_TOP+18,28),pw=W-m*2,h=H-top-24;const g=ctx.createLinearGradient(m,top,W-m,top+h);g.addColorStop(0,"rgba(5,25,48,.95)");g.addColorStop(1,"rgba(24,10,42,.95)");ctx.fillStyle=g;ctx.beginPath();ctx.roundRect(m,top,pw,h,18);ctx.fill();ctx.strokeStyle="rgba(83,229,255,.65)";ctx.lineWidth=1.5;ctx.stroke();ctx.textAlign="center";ctx.fillStyle="#ff9b3d";ctx.font=gameFont(25);ctx.fillText("HOW TO PLAY",W/2,top+39);ctx.fillStyle="#8deeff";ctx.font="800 10px system-ui,sans-serif";ctx.fillText("NOVA — THE FINAL PILOT",W/2,top+59);const rows=[["MOVE + FIRE","Touch and hold anywhere. Drag to move. NOVA fires while held."],["SURVIVE","Dodge asteroids, enemy dinos and boss fire. You have 3 lives."],["TRI BURST","3-way blaster for 8 seconds."],["OVERDRIVE","Heavy 5-way blaster for 8 seconds."],["SHIELD","Blocks one hit. You can carry up to 2."],["BOSS CORE","Boss reward: +750 score."],["WAVES + BOSSES","Clear longer enemy waves. A UFO boss arrives every 5 levels."]];let y=top+88;for(const [head,body] of rows){ctx.textAlign="left";ctx.fillStyle="#ffbd69";ctx.font="900 11px system-ui,sans-serif";ctx.fillText(head,m+18,y);ctx.fillStyle="#d9edf7";ctx.font="600 10px system-ui,sans-serif";const words=body.split(" ");let line="",ly=y+16;for(const word of words){const test=line+word+" ";if(ctx.measureText(test).width>pw-36){ctx.fillText(line,m+18,ly);line=word+" ";ly+=13}else line=test}ctx.fillText(line,m+18,ly);y=ly+24}button(m+14,Math.min(top+h-58,y+2),pw-28,44,"BACK TO MENU","#075f83","#153665","#6deaff");ctx.restore()}
